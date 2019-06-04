@@ -1,6 +1,6 @@
-# SweRV RISC-V Core<sup>TM</sup> 1.1 from Western Digital
+# SweRV RISC-V Core<sup>TM</sup> from Western Digital
 
-This repository contains the SweRV Core<sup>TM</sup> 1.1 design RTL
+This repository contains version 1.0 of the SweRV Core<sup>TM</sup> design RTL
 
 ## License
 
@@ -36,9 +36,6 @@ Files under the [tools](tools/) directory may be available under a different lic
 1. Setup RV_ROOT to point to the path in your local filesystem
 1. Determine your configuration {optional}
 1. Run make with tools/Makefile
-
-## Release Notes for this version
-Please see [release notes](release-notes.md) for changes and bug fixes in this version of SweRV
 
 ### Configurations
 

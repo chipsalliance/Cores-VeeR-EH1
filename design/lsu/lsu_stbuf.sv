@@ -28,7 +28,6 @@
 
 
 module lsu_stbuf
-   import swerv_types::*;
 (
    input logic        clk,                                // core clock
    input logic        rst_l,                              // reset
@@ -48,16 +47,13 @@ module lsu_stbuf
    input logic        load_stbuf_reqvld_dc3,             // core instruction goes to stbuf
    input logic        store_stbuf_reqvld_dc3,             // core instruction goes to stbuf
    //input logic        ldst_stbuf_reqvld_dc3,               
-   input logic        addr_in_pic_dc2,                    // address is in pic
    input logic        addr_in_pic_dc3,                    // address is in pic
-   input logic        addr_in_dccm_dc2,                    // address is in pic
-   input logic        addr_in_dccm_dc3,                    // address is in pic
    input logic [`RV_DCCM_DATA_WIDTH-1:0] store_ecc_datafn_hi_dc3,   // data to write
    input logic [`RV_DCCM_DATA_WIDTH-1:0] store_ecc_datafn_lo_dc3,   // data to write
 
    input logic        isldst_dc1,                         // instruction in dc1 is lsu
-   input logic        dccm_ldst_dc2,                         // instruction in dc2 is lsu
-   input logic        dccm_ldst_dc3,                         // instruction in dc3 is lsu
+   input logic        isldst_dc2,                         // instruction in dc2 is lsu
+   input logic        isldst_dc3,                         // instruction in dc3 is lsu
 				       
    input logic        single_ecc_error_hi_dc3,		  // single ecc error in hi bank
    input logic        single_ecc_error_lo_dc3,		  // single ecc error in lo bank
@@ -77,7 +73,6 @@ module lsu_stbuf
    input  logic       lsu_stbuf_commit_any,                 // pop the stbuf as it commite
    output logic       lsu_stbuf_full_any,                   // stbuf is full
    output logic       lsu_stbuf_empty_any,                  // stbuf is empty
-   output logic       lsu_stbuf_nodma_empty_any,            // stbuf is empty except dma
                                            
    input logic [`RV_LSU_SB_BITS-1:0] lsu_addr_dc1,            // lsu address
    input logic [`RV_LSU_SB_BITS-1:0] lsu_addr_dc2,
@@ -113,7 +108,6 @@ module lsu_stbuf
    logic [DEPTH-1:0]       stbuf_drain_vld;
    logic [DEPTH-1:0]       stbuf_flush_vld;
    logic [DEPTH-1:0]       stbuf_addr_in_pic;
-   logic [DEPTH-1:0]       stbuf_dma;
    logic [DEPTH-1:0][LSU_SB_BITS-1:0] stbuf_addr; 
    logic [DEPTH-1:0][BYTE_WIDTH-1:0]  stbuf_byteen;
    logic [DEPTH-1:0][DATA_WIDTH-1:0] stbuf_data;
@@ -151,8 +145,7 @@ module lsu_stbuf
    logic [1:0] 		   stbuf_specvld_dc1, stbuf_specvld_dc2, stbuf_specvld_dc3;
    logic                   stbuf_oneavl_any, stbuf_twoavl_any;
    
-   logic                   cmpen_hi_dc2, cmpen_lo_dc2, jit_in_same_region;
-   
+   logic                   cmpen_hi_dc2, cmpen_lo_dc2;
    logic [LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]  cmpaddr_hi_dc2, cmpaddr_lo_dc2;
 
    logic                   stbuf_ldmatch_hi_hi, stbuf_ldmatch_hi_lo;
@@ -215,7 +208,6 @@ module lsu_stbuf
       rvdffsc #(.WIDTH(1)) stbuf_data_vldff (.din(1'b1), .dout(stbuf_data_vld[i]), .en(stbuf_wr_en[i]), .clear(stbuf_reset[i]), .clk(lsu_stbuf_c1_clk), .*);
       rvdffsc #(.WIDTH(1)) stbuf_drain_vldff (.din(1'b1), .dout(stbuf_drain_vld[i]), .en(stbuf_drain_en[i]), .clear(stbuf_reset[i]), .clk(lsu_free_c2_clk), .*);
       rvdffsc #(.WIDTH(1)) stbuf_flush_vldff (.din(1'b1), .dout(stbuf_flush_vld[i]), .en(stbuf_flush_en[i]), .clear(stbuf_reset[i]), .clk(lsu_free_c2_clk), .*);
-      rvdffs #(.WIDTH(1)) stbuf_dma_picff (.din(lsu_pkt_dc3.dma), .dout(stbuf_dma[i]), .en(stbuf_wr_en[i]), .clk(lsu_stbuf_c1_clk), .*);
       rvdffs #(.WIDTH(1)) stbuf_addr_in_picff (.din(addr_in_pic_dc3), .dout(stbuf_addr_in_pic[i]), .en(stbuf_wr_en[i]), .clk(lsu_stbuf_c1_clk), .*);
       rvdffe #(.WIDTH(LSU_SB_BITS)) stbuf_addrff (.din(stbuf_addrin[i][LSU_SB_BITS-1:0]), .dout(stbuf_addr[i][LSU_SB_BITS-1:0]), .en(stbuf_wr_en[i]), .*);
       rvdffs #(.WIDTH(BYTE_WIDTH)) stbuf_byteenff (.din(stbuf_byteenin[i][BYTE_WIDTH-1:0]), .dout(stbuf_byteen[i][BYTE_WIDTH-1:0]), .en(stbuf_wr_en[i]), .clk(lsu_stbuf_c1_clk), .*);
@@ -264,13 +256,12 @@ module lsu_stbuf
    end
 
    assign stbuf_specvld_dc1[1:0] = {1'b0,isldst_dc1} << (isldst_dc1 & ldst_dual_dc1);    // Gate dual with isldst to avoid X propagation
-   assign stbuf_specvld_dc2[1:0] = {1'b0,dccm_ldst_dc2} << (dccm_ldst_dc2 & ldst_dual_dc2);
-   assign stbuf_specvld_dc3[1:0] = {1'b0,dccm_ldst_dc3} << (dccm_ldst_dc3 & ldst_dual_dc3);
+   assign stbuf_specvld_dc2[1:0] = {1'b0,isldst_dc2} << (isldst_dc2 & ldst_dual_dc2);
+   assign stbuf_specvld_dc3[1:0] = {1'b0,isldst_dc3} << (isldst_dc3 & ldst_dual_dc3);
    assign stbuf_specvld_any[3:0] = stbuf_numvld_any[3:0] +  {2'b0, stbuf_specvld_dc1[1:0]} + {2'b0, stbuf_specvld_dc2[1:0]} + {2'b0, stbuf_specvld_dc3[1:0]};
 
    assign lsu_stbuf_full_any = (stbuf_specvld_any[3:0] > (DEPTH - 2));
    assign lsu_stbuf_empty_any = (stbuf_numvld_any[3:0] == 4'b0);
-   assign lsu_stbuf_nodma_empty_any = ~(|(stbuf_data_vld[DEPTH-1:0] & ~stbuf_dma[DEPTH-1:0]));
    
    assign stbuf_oneavl_any = (stbuf_numvld_any[3:0] < DEPTH);
    assign stbuf_twoavl_any = (stbuf_numvld_any[3:0] < (DEPTH - 1));
@@ -281,13 +272,12 @@ module lsu_stbuf
 
    assign cmpen_lo_dc2 = lsu_cmpen_dc2;
    assign cmpaddr_lo_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] = lsu_addr_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)];
-   assign jit_in_same_region = (addr_in_pic_dc2 & addr_in_pic_dc3) | (addr_in_dccm_dc2 & addr_in_dccm_dc3);
    
    // JIT forwarding
-   assign stbuf_ldmatch_hi_hi = (end_addr_dc3[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_hi_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) & ~(cmpen_hi_dc2 & lsu_pkt_dc2.dma & ~lsu_pkt_dc3.dma) & jit_in_same_region;
-   assign stbuf_ldmatch_hi_lo = (lsu_addr_dc3[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_hi_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) & ~(cmpen_hi_dc2 & lsu_pkt_dc2.dma & ~lsu_pkt_dc3.dma) & jit_in_same_region;
-   assign stbuf_ldmatch_lo_hi = (end_addr_dc3[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_lo_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) & ~(cmpen_lo_dc2 & lsu_pkt_dc2.dma & ~lsu_pkt_dc3.dma) & jit_in_same_region;
-   assign stbuf_ldmatch_lo_lo = (lsu_addr_dc3[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_lo_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) & ~(cmpen_lo_dc2 & lsu_pkt_dc2.dma & ~lsu_pkt_dc3.dma) & jit_in_same_region;
+   assign stbuf_ldmatch_hi_hi = (end_addr_dc3[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_hi_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) & ~(cmpen_hi_dc2 & lsu_pkt_dc2.dma & ~lsu_pkt_dc3.dma);
+   assign stbuf_ldmatch_hi_lo = (lsu_addr_dc3[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_hi_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) & ~(cmpen_hi_dc2 & lsu_pkt_dc2.dma & ~lsu_pkt_dc3.dma);
+   assign stbuf_ldmatch_lo_hi = (end_addr_dc3[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_lo_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) & ~(cmpen_lo_dc2 & lsu_pkt_dc2.dma & ~lsu_pkt_dc3.dma);
+   assign stbuf_ldmatch_lo_lo = (lsu_addr_dc3[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_lo_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) & ~(cmpen_lo_dc2 & lsu_pkt_dc2.dma & ~lsu_pkt_dc3.dma);
 
    for (genvar i=0; i<BYTE_WIDTH; i++) begin
       assign stbuf_fwdbyteen_hi_hi[i] = stbuf_ldmatch_hi_hi & store_byteen_hi_dc3[i] & ldst_stbuf_reqvld_dc3 & dual_stbuf_write_dc3;
@@ -307,9 +297,9 @@ module lsu_stbuf
       stbuf_fwdbyteen_lo_dc2[BYTE_WIDTH-1:0]   = '0;
       for (int i=0; i<DEPTH; i++) begin
          stbuf_ldmatch_hi[i] = (stbuf_addr[i][LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_hi_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) &  
-                               (stbuf_drain_vld[i] | ~lsu_pkt_dc2.dma) & ~stbuf_flush_vld[i] & ((stbuf_addr_in_pic[i] & addr_in_pic_dc2) | (~stbuf_addr_in_pic[i] & addr_in_dccm_dc2));
+                               (stbuf_drain_vld[i] | ~lsu_pkt_dc2.dma) & ~stbuf_flush_vld[i];
          stbuf_ldmatch_lo[i] = (stbuf_addr[i][LSU_SB_BITS-1:$clog2(BYTE_WIDTH)] == cmpaddr_lo_dc2[LSU_SB_BITS-1:$clog2(BYTE_WIDTH)]) & 
-                               (stbuf_drain_vld[i] | ~lsu_pkt_dc2.dma) & ~stbuf_flush_vld[i] & ((stbuf_addr_in_pic[i] & addr_in_pic_dc2) | (~stbuf_addr_in_pic[i] & addr_in_dccm_dc2));
+                               (stbuf_drain_vld[i] | ~lsu_pkt_dc2.dma) & ~stbuf_flush_vld[i];
 
 	 for (int j=0; j<BYTE_WIDTH; j++) begin
             stbuf_fwdbyteenvec_hi[i][j] = stbuf_ldmatch_hi[i] & stbuf_byteen[i][j] & stbuf_data_vld[i];
@@ -391,8 +381,7 @@ module lsu_stbuf
 `ifdef ASSERT_ON
 
    assert_drainorflushvld_notvld: assert #0 (~(|((stbuf_drain_vld[DEPTH-1:0] | stbuf_flush_vld[DEPTH-1:0]) & ~stbuf_data_vld[DEPTH-1:0])));
-   assert_drainAndflushvld:       assert #0 (~(|(stbuf_drain_vld[DEPTH-1:0] & stbuf_flush_vld[DEPTH-1:0])));
-   assert_stbufempty:             assert #0 (~lsu_stbuf_empty_any | lsu_stbuf_nodma_empty_any); 
+   assert_drainAndflushvld: assert #0 (~(|(stbuf_drain_vld[DEPTH-1:0] & stbuf_flush_vld[DEPTH-1:0])));
 `endif
    
 endmodule

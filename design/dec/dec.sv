@@ -26,16 +26,17 @@
 // A -> D -> EX1 ... WB
 // 
 //********************************************************************************
-    
+
+`include "def.sv"
+
 module dec
-   import swerv_types::*;
-(
+  (
    input logic clk,
    input logic free_clk,
    input logic active_clk,
 
 
-   output logic       dec_pause_state_cg,           // pause state for clock-gating
+   output logic dec_pause_state,             // to top for active state clock gating
    
    input logic rst_l,                        // reset, active low
    input logic [31:1] rst_vec,               // reset vector, from core pins
@@ -51,14 +52,6 @@ module dec
    output logic o_cpu_run_ack,               // Run request ack
    output logic o_debug_mode_status,         // Core to the PMU that core is in debug mode. When core is in debug mode, the PMU should refrain from sendng a halt or run request
 
-   // external MPC halt/run interface
-   input logic mpc_debug_halt_req, // Async halt request
-   input logic mpc_debug_run_req, // Async run request
-   input logic mpc_reset_run_req, // Run/halt after reset
-   output logic mpc_debug_halt_ack, // Halt ack
-   output logic mpc_debug_run_ack, // Run ack
-   output logic debug_brkpt_status, // debug breakpoint
-   
    
    output logic dec_ib0_valid_eff_d,         // effective valid taking decode into account 
    output logic dec_ib1_valid_eff_d,
@@ -116,8 +109,7 @@ module dec
    input logic   ifu_i1_dbecc,
 
    input logic lsu_freeze_dc3,         // freeze pipe: decode -> dc3
-   input logic lsu_idle_any,      // lsu idle for fence instructions
-   input logic lsu_halt_idle_any,      // lsu idle for halting
+   input logic lsu_idle_any,           // lsu idle for fence instructions
    
    input br_pkt_t i0_brp,              // branch packet
    input br_pkt_t i1_brp,
@@ -145,9 +137,6 @@ module dec
    input logic [31:0] exu_csr_rs1_e1,       // rs1 for csr instruction
 
    input logic [31:0] lsu_result_dc3,       // load result
-   input logic [31:0] lsu_result_corr_dc4, // corrected load result
- 
-   input logic        lsu_load_stall_any,   // This is for blocking loads
    input logic        lsu_store_stall_any,  // This is for blocking stores
    input logic        dma_dccm_stall_any,   // stall any load/store at decode, pmu event
    input logic        dma_iccm_stall_any,   // iccm stalled, pmu event
@@ -200,7 +189,6 @@ module dec
    input logic ifu_miss_state_idle,          // I-side miss buffer empty
  
   output logic dec_tlu_flush_noredir_wb ,    // Tell fetch to idle on this flush
-   output logic dec_tlu_mpc_halted_only, // Core is halted only due to MPC
    output logic dec_tlu_dbg_halted,          // Core is halted and ready for debug command
    output logic dec_tlu_pmu_fw_halted,       // Core is halted due to Power management unit or firmware halt
    output logic dec_tlu_debug_mode,          // Core is in debug mode
@@ -296,8 +284,6 @@ module dec
 
    output logic        dec_csr_ren_d,              // csr read enable 
 
-   output logic        dec_tlu_cancel_e4,          // Cancel lsu op at DC4 due to future trigger hit
-
    output logic        dec_tlu_flush_lower_wb,     // tlu flush due to late mp, exception, rfpc, or int
    output logic [31:1] dec_tlu_flush_path_wb,      // tlu flush target
    output logic        dec_tlu_i0_kill_writeb_wb,  // I0 is flushed, don't writeback any results to arch state 
@@ -337,10 +323,10 @@ module dec
    output br_tlu_pkt_t dec_tlu_br0_wb_pkt,         // slot 0 branch predictor update packet
    output br_tlu_pkt_t dec_tlu_br1_wb_pkt,         // slot 1 branch predictor update packet
 
-   output logic [1:0] dec_tlu_perfcnt0,                  // toggles when perf counter 0 has an event inc
-   output logic [1:0] dec_tlu_perfcnt1,                  // toggles when perf counter 1 has an event inc
-   output logic [1:0] dec_tlu_perfcnt2,                  // toggles when perf counter 2 has an event inc
-   output logic [1:0] dec_tlu_perfcnt3,                  // toggles when perf counter 3 has an event inc
+   output logic dec_tlu_perfcnt0,                  // toggles when slot0 perf counter 0 has an event inc
+   output logic dec_tlu_perfcnt1,                  // toggles when slot0 perf counter 1 has an event inc
+   output logic dec_tlu_perfcnt2,                  // toggles when slot0 perf counter 2 has an event inc
+   output logic dec_tlu_perfcnt3,                  // toggles when slot0 perf counter 3 has an event inc
 
    output predict_pkt_t  i0_predict_p_d,           // prediction packet to alus
    output predict_pkt_t  i1_predict_p_d, 
@@ -366,13 +352,12 @@ module dec
 
    output logic       dec_nonblock_load_freeze_dc2,  // lsu must freeze nonblock load due to younger dependency in pipe
 
-   input logic [15:0] ifu_i0_cinst,                  // 16b compressed instruction
+   input logic [15:0] ifu_i0_cinst,                  // 16b compressed instruction for trace
    input logic [15:0] ifu_i1_cinst,
 
-   output trace_pkt_t  trace_rv_trace_pkt,             // trace packet
+   output trace_pkt_t  trace_rv_trace_pkt,             // trace packet for trace
    
    // feature disable from mfdc
-   output logic  dec_tlu_sideeffect_posted_disable,    // disable posted writes to side-effect address
    output logic  dec_tlu_core_ecc_disable,           // disable core ECC
    output logic  dec_tlu_sec_alu_disable,            // disable secondary ALU
    output logic  dec_tlu_non_blocking_disable,       // disable non blocking loads
@@ -380,7 +365,6 @@ module dec
    output logic  dec_tlu_bpred_disable,              // disable branch prediction
    output logic  dec_tlu_wb_coalescing_disable,      // disable writebuffer coalescing
    output logic  dec_tlu_ld_miss_byp_wb_disable,     // disable loads miss bypass write buffer
-   output logic [2:0]  dec_tlu_dma_qos_prty,         // DMA QoS priority coming from MFDC [18:16]
 
    // clock gating overrides from mcgc
    output logic  dec_tlu_misc_clk_override,          // override misc clock domain gating
@@ -494,10 +478,7 @@ module dec
    logic [4:0] 		      dec_nonblock_load_waddr;
    logic 		      dec_tlu_flush_pause_wb;
 
-   logic 		      dec_i0_load_e4;
-
-   logic 		      dec_pause_state;
-   
+      
    br_pkt_t dec_i0_brp;
    br_pkt_t dec_i1_brp;
    
@@ -563,9 +544,9 @@ module dec
    assign trace_rv_trace_pkt.trace_rv_i_address_ip = { 32'b0, dec_i1_pc_wb1[31:1], 1'b0, dec_i0_pc_wb1[31:1], 1'b0 };
 
    assign trace_rv_trace_pkt.trace_rv_i_valid_ip =     {dec_tlu_int_valid_wb1,   // always int
-						    dec_tlu_i1_valid_wb1 | dec_tlu_i1_exc_valid_wb1,  // not interrupts
-						    dec_tlu_i0_valid_wb1 | dec_tlu_i0_exc_valid_wb1
-						    };
+	          	          		    dec_tlu_i1_valid_wb1 | dec_tlu_i1_exc_valid_wb1,  // not interrupts
+	          	          		    dec_tlu_i0_valid_wb1 | dec_tlu_i0_exc_valid_wb1
+	          	          		    };
    assign trace_rv_trace_pkt.trace_rv_i_exception_ip = {dec_tlu_int_valid_wb1, dec_tlu_i1_exc_valid_wb1, dec_tlu_i0_exc_valid_wb1};
    assign trace_rv_trace_pkt.trace_rv_i_ecause_ip =     dec_tlu_exc_cause_wb1[4:0];  // replicate across ports
    assign trace_rv_trace_pkt.trace_rv_i_interrupt_ip = {dec_tlu_int_valid_wb1,2'b0};

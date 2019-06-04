@@ -1,6 +1,6 @@
 //********************************************************************************
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2019 Western Digital Corporation or it's affiliates.
+// Copyright 2019 Western Digital Corporation or its affiliates.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ module ifu_ic_mem
       input logic clk_override,
       input logic dec_tlu_core_ecc_disable, 
 
-      input logic [31:3]  ic_rw_addr,   
+      input logic [31:4]  ic_rw_addr,   
       input logic [3:0]   ic_wr_en  ,  // Which way to write
       input logic         ic_rd_en  ,  // Read enable
 
@@ -39,12 +39,12 @@ module ifu_ic_mem
 
 
 `ifdef RV_ICACHE_ECC
-      input  logic [83:0]               ic_wr_data,         // Data to fill to the Icache. With ECC
+      input  logic [167:0]              ic_wr_data,         // Data to fill to the Icache. With ECC
       output logic [167:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With ECC
       output logic [24:0]               ictag_debug_rd_data,// Debug icache tag. 
       input logic  [41:0]               ic_debug_wr_data,   // Debug wr cache. 
 `else 
-      input  logic [67:0]               ic_wr_data,         // Data to fill to the Icache. With Parity
+      input  logic [135:0]              ic_wr_data,         // Data to fill to the Icache. With Parity
       output logic [135:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With Parity
       output logic [20:0]               ictag_debug_rd_data,// Debug icache tag. 
       input logic  [33:0]               ic_debug_wr_data,   // Debug wr cache. 
@@ -68,7 +68,7 @@ module ifu_ic_mem
            .*,
            .ic_wr_en     (ic_wr_en[3:0]), 
            .ic_debug_addr(ic_debug_addr[ICACHE_TAG_HIGH-1:2]),
-           .ic_rw_addr   (ic_rw_addr[31:3])
+           .ic_rw_addr   (ic_rw_addr[31:4])
            ) ;
    
    IC_DATA #( .ICACHE_TAG_HIGH(ICACHE_TAG_HIGH) ,
@@ -79,7 +79,7 @@ module ifu_ic_mem
            .*,
            .ic_wr_en     (ic_wr_en[3:0]), 
            .ic_debug_addr(ic_debug_addr[ICACHE_TAG_HIGH-1:2]),
-           .ic_rw_addr   (ic_rw_addr[ICACHE_TAG_HIGH-1:3])
+           .ic_rw_addr   (ic_rw_addr[ICACHE_TAG_HIGH-1:4])
            ) ;
    
  endmodule
@@ -97,15 +97,15 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
       input logic rst_l,
       input logic clk_override,
 
-      input logic [ICACHE_TAG_HIGH-1:3]  ic_rw_addr,
+      input logic [ICACHE_TAG_HIGH-1:4]  ic_rw_addr,
       input logic [3:0]                  ic_wr_en,
       input logic                        ic_rd_en,  // Read enable
 `ifdef RV_ICACHE_ECC
-      input  logic [83:0]               ic_wr_data,         // Data to fill to the Icache. With ECC
+      input  logic [167:0]              ic_wr_data,         // Data to fill to the Icache. With ECC
       output logic [167:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With ECC
       input  logic [41:0]               ic_debug_wr_data,   // Debug wr cache. 
 `else 
-      input  logic [67:0]               ic_wr_data,         // Data to fill to the Icache. With Parity
+      input  logic [135:0]              ic_wr_data,         // Data to fill to the Icache. With Parity
       output logic [135:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With Parity
       input  logic [33:0]               ic_debug_wr_data,   // Debug wr cache. 
 `endif
@@ -157,13 +157,13 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
    assign  ic_debug_rd_way_en[3:0] =  {4{ic_debug_rd_en & ~ic_debug_tag_array}} & ic_debug_way[3:0] ;
    assign  ic_debug_wr_way_en[3:0] =  {4{ic_debug_wr_en & ~ic_debug_tag_array}} & ic_debug_way[3:0] ;
 
-   assign  ic_b_sb_wren[0][3:0]  = (ic_wr_en[3:0]           & {4{~ic_rw_addr[3]}} ) |           
+   assign  ic_b_sb_wren[0][3:0]  = (ic_wr_en[3:0]           ) |           
                                    (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b00}}) ;           
-   assign  ic_b_sb_wren[1][3:0]  = (ic_wr_en[3:0]           & {4{~ic_rw_addr[3]}} ) |           
+   assign  ic_b_sb_wren[1][3:0]  = (ic_wr_en[3:0]           ) |           
                                    (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b01}}) ;           
-   assign  ic_b_sb_wren[2][3:0]  = (ic_wr_en[3:0]           & {4{ic_rw_addr[3]}} ) |           
+   assign  ic_b_sb_wren[2][3:0]  = (ic_wr_en[3:0]           ) |           
                                    (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b10}}) ;           
-   assign  ic_b_sb_wren[3][3:0]  = (ic_wr_en[3:0]           & {4{ic_rw_addr[3]}} ) |           
+   assign  ic_b_sb_wren[3][3:0]  = (ic_wr_en[3:0]           ) |           
                                    (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b11}}) ;           
 
    assign  ic_debug_sel_sb0       =  (ic_debug_addr[3:2] == 2'b00 ) ; 
@@ -178,18 +178,18 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
    assign  ic_sb_wr_data[1][41:0]   =  (ic_debug_sel_sb1 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} : 
                                                                              ic_wr_data[83:42] ;
    assign  ic_sb_wr_data[2][41:0]   =  (ic_debug_sel_sb2 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} : 
-                                                                             ic_wr_data[41:0] ;
+                                                                             ic_wr_data[125:84] ;
    assign  ic_sb_wr_data[3][41:0]   =  (ic_debug_sel_sb3 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} : 
-                                                                             ic_wr_data[83:42] ;
+                                                                             ic_wr_data[167:126] ;
 `else 
    assign  ic_sb_wr_data[0][33:0]   =  (ic_debug_sel_sb0 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] : 
                                                                              ic_wr_data[33:0] ;
    assign  ic_sb_wr_data[1][33:0]   =  (ic_debug_sel_sb1 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] : 
                                                                              ic_wr_data[67:34] ;
    assign  ic_sb_wr_data[2][33:0]   =  (ic_debug_sel_sb2 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] : 
-                                                                             ic_wr_data[33:0] ;
+                                                                             ic_wr_data[101:68] ;
    assign  ic_sb_wr_data[3][33:0]   =  (ic_debug_sel_sb3 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] : 
-                                                                             ic_wr_data[67:34] ;
+                                                                             ic_wr_data[135:102] ;
 `endif
 
 
@@ -236,6 +236,7 @@ localparam NUM_SUBBANKS=4 ;
                                      .D  (ic_sb_wr_data[k][41:0]),
                   		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:4]),
            			     .Q  (wb_dout[i][(k+1)*42-1:k*42])
+                                     
                                     );
         `else
          `RV_ICACHE_DATA_CELL  ic_bank_sb_way_data (                                 
@@ -244,6 +245,7 @@ localparam NUM_SUBBANKS=4 ;
                                      .D  (ic_sb_wr_data[k][33:0]),
                   		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:4]),
            			     .Q  (wb_dout[i][(k+1)*34-1:k*34])
+                                     
                                     );
         `endif
         end // block: SUBBANKS
@@ -316,7 +318,7 @@ module IC_TAG #(parameter ICACHE_TAG_HIGH = 16 ,
       input logic clk_override,
       input logic dec_tlu_core_ecc_disable, 
 
-      input logic [31:3]  ic_rw_addr,
+      input logic [31:4]  ic_rw_addr,
 
       input logic [3:0]   ic_wr_en,  // way
       input logic [3:0]   ic_tag_valid,
@@ -370,7 +372,7 @@ module IC_TAG #(parameter ICACHE_TAG_HIGH = 16 ,
    logic [3:0]          ic_tag_clken ;
    logic [3:0]          ic_debug_wr_way_en;   // debug wr_way
 
-   assign  ic_tag_wren [3:0]  = ic_wr_en[3:0] & {4{ic_rw_addr[5:3] == 3'b111}} ;           
+   assign  ic_tag_wren [3:0]  = ic_wr_en[3:0] & {4{ic_rw_addr[5:4] == 2'b11}} ;           
    assign  ic_tag_clken[3:0]  = {4{ic_rd_en | clk_override}} | ic_wr_en[3:0] | ic_debug_wr_way_en[3:0] | ic_debug_rd_way_en[3:0];
 
    rvdff #(32-ICACHE_TAG_HIGH) adr_ff (.*, 
@@ -452,6 +454,7 @@ end
                                      .D  (ic_tag_wr_data[24:0]),
                   		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
             			     .Q  (ic_tag_data_raw[i][24:0])
+                                     
 			            );
           
 
@@ -474,8 +477,9 @@ end
                                      .CLK(ic_tag_clk[i]),
              		             .WE (ic_tag_wren_q[i]),
                                      .D  (ic_tag_wr_data[20:0]),
-                   		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
+                  		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
             			     .Q  (ic_tag_data_raw[i][20:0])
+                                     
 			            );
 
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
@@ -496,6 +500,7 @@ end
                                      .D  (ic_tag_wr_data[24:0]),
                   		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
             			     .Q  (ic_tag_data_raw[i][24:0])
+                                     
                                     );
 
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
@@ -520,6 +525,8 @@ end
                                      .D  (ic_tag_wr_data[20:0]),
                   		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
             			     .Q  ({ic_tag_data_raw[i][20:0]})
+                                     
+                                   
                                     );
 
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
@@ -535,16 +542,16 @@ end // block: WAYS
    
 
 `ifdef RV_ICACHE_ECC
-   assign ictag_debug_rd_data[24:0] =  ({25{ic_debug_rd_way_en_ff[0]}} &  ic_tag_data_raw[0] ) |
-                                       ({25{ic_debug_rd_way_en_ff[1]}} &  ic_tag_data_raw[1] ) |
-                                       ({25{ic_debug_rd_way_en_ff[2]}} &  ic_tag_data_raw[2] ) |
-                                       ({25{ic_debug_rd_way_en_ff[3]}} &  ic_tag_data_raw[3] ) ;
-             								  
-`else									  
-   assign ictag_debug_rd_data[20:0] =  ({21{ic_debug_rd_way_en_ff[0]}} &  ic_tag_data_raw[0] ) |
-                                       ({21{ic_debug_rd_way_en_ff[1]}} &  ic_tag_data_raw[1] ) |
-                                       ({21{ic_debug_rd_way_en_ff[2]}} &  ic_tag_data_raw[2] ) |
-                                       ({21{ic_debug_rd_way_en_ff[3]}} &  ic_tag_data_raw[3] ) ;
+   assign ictag_debug_rd_data[24:0] =  ({25{ic_debug_rd_way_en_ff[0]}} &  w_tout[0] ) |
+                                       ({25{ic_debug_rd_way_en_ff[1]}} &  w_tout[1] ) |
+                                       ({25{ic_debug_rd_way_en_ff[2]}} &  w_tout[2] ) |
+                                       ({25{ic_debug_rd_way_en_ff[3]}} &  w_tout[3] ) ;
+             
+`else
+   assign ictag_debug_rd_data[20:0] =  ({21{ic_debug_rd_way_en_ff[0]}} &  w_tout[0] ) |
+                                       ({21{ic_debug_rd_way_en_ff[1]}} &  w_tout[1] ) |
+                                       ({21{ic_debug_rd_way_en_ff[2]}} &  w_tout[2] ) |
+                                       ({21{ic_debug_rd_way_en_ff[3]}} &  w_tout[3] ) ;
              
 `endif
    assign ic_rd_hit[0] = (w_tout[0][31:ICACHE_TAG_HIGH] == ic_rw_addr_ff[31:ICACHE_TAG_HIGH]) & ic_tag_valid[0];

@@ -26,37 +26,37 @@ module ifu_compress_ctl
 
    
 
-   logic [15:0]  i;
+   logic [15:0] i;
    
-   logic [31:0]  o,l1,l2,l3;
+   logic [31:0] o,l1,l2,l3;
 
    
    assign i[15:0] = din[15:0];
    
 
-   logic [4:0] 	 rs2d,rdd,rdpd,rs2pd;
+   logic [4:0] 	rs2d,rdd,rdpd,rs2pd;
    
-logic rdrd;
-logic rdrs1;
-logic rs2rs2;
-logic rdprd;
-logic rdprs1;
-logic rs2prs2;
-logic rs2prd;
-logic uimm9_2;
-logic ulwimm6_2;
-logic ulwspimm7_2;
-logic rdeq2;
-logic rdeq1;
-logic rs1eq2;
-logic sbroffset8_1;
-logic simm9_4;
-logic simm5_0;
-logic sjaloffset11_1;
-logic sluimm17_12;
-logic uimm5_0;
-logic uswimm6_2;
-logic uswspimm7_2;
+   logic 	rdrd;
+   logic 	rdrs1;
+   logic 	rs2rs2;
+   logic 	rdprd;
+   logic 	rdprs1;
+   logic 	rs2prs2;
+   logic 	rs2prd;
+   logic 	uimm9_2;
+   logic 	ulwimm6_2;
+   logic 	ulwspimm7_2;
+   logic 	rdeq2;
+   logic 	rdeq1;
+   logic 	rs1eq2;
+   logic 	sbroffset8_1;
+   logic 	simm9_4;
+   logic 	simm5_0;
+   logic 	sjaloffset11_1;
+   logic 	sluimm17_12;
+   logic 	uimm5_0;
+   logic 	uswimm6_2;
+   logic 	uswspimm7_2;
 
 
 
@@ -99,7 +99,7 @@ logic uswspimm7_2;
 		      ({5{rdrs1}} & rdd[4:0]) |
 		      ({5{rdprs1}} & rdpd[4:0]) |
 		      ({5{rs1eq2}} & 5'd2);
-      
+   
    
    // rs2
    assign l1[24:20] = o[24:20] | 
@@ -108,13 +108,13 @@ logic uswspimm7_2;
 
    assign l1[31:25] = o[31:25];
    
-   logic [5:0] simm5d;
-   logic [9:2] uimm9d;
+   logic [5:0] 	simm5d;
+   logic [9:2] 	uimm9d;
 
-   logic [9:4] simm9d;
-   logic [6:2] ulwimm6d;
-   logic [7:2] ulwspimm7d;
-   logic [5:0] uimm5d;
+   logic [9:4] 	simm9d;
+   logic [6:2] 	ulwimm6d;
+   logic [7:2] 	ulwspimm7d;
+   logic [5:0] 	uimm5d;
    logic [20:1] sjald;
 
    logic [31:12] sluimmd;   
@@ -151,7 +151,7 @@ logic uswspimm7_2;
    		      ( {12{uimm5_0}}      &    {6'b0,uimm5d[5:0]} ) |
    		      ( {12{sjaloffset11_1}} &  {sjald[20],sjald[10:1],sjald[11]} ) |
 		      ( {12{sluimm17_12}}    &  sluimmd[31:20] );
-		      
+   
    
    
    assign l2[19:12] = ( l1[19:12] ) |
@@ -194,26 +194,26 @@ logic uswspimm7_2;
    assign dout[31:0] = l3[31:0] & {32{legal}};
 
 
-// file "cdecode" is human readable file that has all of the compressed instruction decodes defined and is part of git repo
-// modify this file as needed
+   // file "cdecode" is human readable file that has all of the compressed instruction decodes defined and is part of git repo
+   // modify this file as needed
 
-// to generate all the equations below from "cdecode" except legal equation:
+   // to generate all the equations below from "cdecode" except legal equation:
 
-// 1) coredecode -in cdecode > cdecode.e
+   // 1) coredecode -in cdecode > cdecode.e
 
-// 2) espresso -Dso -oeqntott cdecode.e | addassign > compress_equations
+   // 2) espresso -Dso -oeqntott cdecode.e | addassign > compress_equations
 
-// to generate the legal (16b compressed instruction is legal)  equation below:
+   // to generate the legal (16b compressed instruction is legal)  equation below:
 
-// 1) coredecode -in cdecode -legal > clegal.e
+   // 1) coredecode -in cdecode -legal > clegal.e
 
-// 2) espresso -Dso -oeqntott clegal.e | addassign > clegal_equation
+   // 2) espresso -Dso -oeqntott clegal.e | addassign > clegal_equation
 
 
 
    
    
-// espresso decodes
+   // espresso decodes
 assign rdrd = (!i[14]&i[6]&i[1]) | (!i[15]&i[14]&i[11]&i[0]) | (!i[14]&i[5]&i[1]) | (
     !i[15]&i[14]&i[10]&i[0]) | (!i[14]&i[4]&i[1]) | (!i[15]&i[14]&i[9]
     &i[0]) | (!i[14]&i[3]&i[1]) | (!i[15]&i[14]&!i[8]&i[0]) | (!i[14]

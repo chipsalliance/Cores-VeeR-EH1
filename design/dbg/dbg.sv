@@ -25,7 +25,7 @@ module dbg (
    // outputs to the core for command and data interface
    output logic [31:0]                 dbg_cmd_addr,
    output logic [31:0]                 dbg_cmd_wrdata,
-   output logic                        dbg_cmd_valid,
+   output logic                        dbg_cmd_valid, 
    output logic                        dbg_cmd_write, // 1: write command, 0: read_command
    output logic [1:0]                  dbg_cmd_type, // 0:gpr 1:csr 2: memory 
    output logic [1:0]                  dbg_cmd_size, // size of the abstract mem access debug command
@@ -45,17 +45,16 @@ module dbg (
    output logic                        dbg_resume_req, // Debug sends a resume requests. Pulse
    input  logic                        dec_tlu_debug_mode,        // Core is in debug mode
    input  logic                        dec_tlu_dbg_halted, // The core has finished the queiscing sequence. Core is halted now                         
-   input  logic                        dec_tlu_mpc_halted_only,   // Only halted due to MPC
    input  logic                        dec_tlu_resume_ack, // core sends back an ack for the resume (pulse)
    
    // inputs from the JTAG
    input logic                         dmi_reg_en, // read or write
-   input logic [6:0]                   dmi_reg_addr, // address of DM register
+   input logic [31:0]                  dmi_reg_addr, // address of DM register
    input logic                         dmi_reg_wr_en, // write instruction
    input logic [31:0]                  dmi_reg_wdata, // write data
    // output 
    output logic [31:0]                 dmi_reg_rdata, // read data
-//   output logic                        dmi_reg_ack, 
+   output logic                        dmi_reg_ack, 
 
    // AXI signals               
    // AXI Write Channels
@@ -227,7 +226,7 @@ module dbg (
    
    // clocking
    // used for the abstract commands. 
-   assign dbg_free_clken  = dmi_reg_en | (dbg_state != IDLE) | dbg_state_en | dec_tlu_dbg_halted | clk_override;
+   assign dbg_free_clken  = dmi_reg_en | dmi_reg_ack | (dbg_state != IDLE) | dbg_state_en | dec_tlu_dbg_halted | clk_override;
    
    // used for the system bus
    assign sb_free_clken = dmi_reg_en | sb_state_en | (sb_state != SBIDLE) | clk_override;
@@ -249,9 +248,9 @@ module dbg (
    assign        sbcs_reg[28:23] = '0;
    assign        sbcs_reg[11:5]  = 7'h20;
    assign        sbcs_reg[4:0]   = 5'b01111;   
-   assign        sbcs_wren = (dmi_reg_addr ==  7'h38) & dmi_reg_en & dmi_reg_wr_en & (sb_state == SBIDLE); // & (sbcs_reg[14:12] == 3'b000);
+   assign        sbcs_wren = (dmi_reg_addr[31:0] ==  32'h38) & dmi_reg_en & dmi_reg_wr_en & (sb_state == SBIDLE); // & (sbcs_reg[14:12] == 3'b000);
    assign        sbcs_sbbusyerror_wren = (sbcs_wren & dmi_reg_wdata[22]) |
-                                         ((sb_state != SBIDLE) & dmi_reg_en & ((dmi_reg_addr == 7'h39) | (dmi_reg_addr == 7'h3c) | (dmi_reg_addr == 7'h3d)));
+                                         ((sb_state != SBIDLE) & dmi_reg_en & ((dmi_reg_addr[31:0] == 32'h39) | (dmi_reg_addr[31:0] == 32'h3c) | (dmi_reg_addr[31:0] == 32'h3d)));
    assign        sbcs_sbbusyerror_din = ~(sbcs_wren & dmi_reg_wdata[22]);   // Clear when writing one
       
    rvdffs #(1) sbcs_sbbusyerror_reg  (.din(sbcs_sbbusyerror_din),  .dout(sbcs_reg[22]),    .en(sbcs_sbbusyerror_wren), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk));
@@ -272,12 +271,12 @@ module dbg (
 				 ({4{(sbcs_reg[19:17] == 3'b100)}} &  4'b1000);
  
    // sbdata     
-   //assign        sbdata0_reg_wren0   = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 32'h3c);
-   assign        sbdata0_reg_wren0   = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h3c);   // write data only when single read is 0
+   //assign        sbdata0_reg_wren0   = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h3c);
+   assign        sbdata0_reg_wren0   = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h3c);   // write data only when single read is 0
    assign        sbdata0_reg_wren1   = (sb_state == RSP_RD) & sb_state_en & ~sbcs_sberror_wren;  
    assign        sbdata0_reg_wren    = sbdata0_reg_wren0 | sbdata0_reg_wren1;
   
-   assign        sbdata1_reg_wren0   = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h3d);   // write data only when single read is 0;
+   assign        sbdata1_reg_wren0   = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h3d);   // write data only when single read is 0;
    assign        sbdata1_reg_wren1   = (sb_state == RSP_RD) & sb_state_en & ~sbcs_sberror_wren;  
    assign        sbdata1_reg_wren    = sbdata1_reg_wren0 | sbdata1_reg_wren1;
    
@@ -290,21 +289,21 @@ module dbg (
    rvdffe #(32)    dbg_sbdata1_reg    (.*, .din(sbdata1_din[31:0]), .dout(sbdata1_reg[31:0]), .en(sbdata1_reg_wren), .rst_l(dbg_dm_rst_l));
     
     // sbaddress
-   assign        sbaddress0_reg_wren0   = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h39);
+   assign        sbaddress0_reg_wren0   = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h39);
    assign        sbaddress0_reg_wren    = sbaddress0_reg_wren0 | sbaddress0_reg_wren1;
    assign        sbaddress0_reg_din[31:0]= ({32{sbaddress0_reg_wren0}} & dmi_reg_wdata[31:0]) |
                                            ({32{sbaddress0_reg_wren1}} & (sbaddress0_reg[31:0] + {28'b0,sbaddress0_incr[3:0]}));    
    rvdffe #(32)    dbg_sbaddress0_reg    (.*, .din(sbaddress0_reg_din[31:0]), .dout(sbaddress0_reg[31:0]), .en(sbaddress0_reg_wren), .rst_l(dbg_dm_rst_l));
    
-   assign sbreadonaddr_access = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h39) & sbcs_reg[20];   // if readonaddr is set the next command will start upon writing of addr0
-   assign sbreadondata_access = dmi_reg_en & ~dmi_reg_wr_en & (dmi_reg_addr == 7'h3c) & sbcs_reg[15];  // if readondata is set the next command will start upon reading of data0
-   assign sbdata0wr_access  = dmi_reg_en &  dmi_reg_wr_en & (dmi_reg_addr == 7'h3c);                   // write to sbdata0 will start write command to system bus  
+   assign sbreadonaddr_access = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h39) & sbcs_reg[20];   // if readonaddr is set the next command will start upon writing of addr0
+   assign sbreadondata_access = dmi_reg_en & ~dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h3c) & sbcs_reg[15];  // if readondata is set the next command will start upon reading of data0
+   assign sbdata0wr_access  = dmi_reg_en &  dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h3c);                   // write to sbdata0 will start write command to system bus  
 
    // memory mapped registers
    // dmcontrol register has only 6 bits implemented. 31: haltreq, 30: resumereq, 29: haltreset, 28: ackhavereset, 1: ndmreset, 0: dmactive.
    // rest all the bits are zeroed out
    // dmactive flop is reset based on core rst_l, all other flops use dm_rst_l
-   assign dmcontrol_wren      = (dmi_reg_addr ==  7'h10) & dmi_reg_en & dmi_reg_wr_en;
+   assign dmcontrol_wren      = (dmi_reg_addr[31:0] ==  32'h10) & dmi_reg_en & dmi_reg_wr_en;
    assign dmcontrol_reg[27:2] = '0;
    rvdffs #(5) dmcontrolff (.din({dmi_reg_wdata[31:28],dmi_reg_wdata[1]}), .dout({dmcontrol_reg[31:28], dmcontrol_reg[1]}), .en(dmcontrol_wren), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
    rvdffs #(1) dmcontrol_dmactive_ff (.din(dmi_reg_wdata[0]), .dout(dmcontrol_reg[0]), .en(dmcontrol_wren), .rst_l(rst_l), .clk(dbg_free_clk));
@@ -313,7 +312,7 @@ module dbg (
    // dmstatus register bits that are implemented
    // [19:18]-havereset,[17:16]-resume ack, [9:8]-halted, [3:0]-version
    // rest all the bits are zeroed out
-   //assign dmstatus_wren       = (dmi_reg_addr ==  32'h11) & dmi_reg_en;
+   //assign dmstatus_wren       = (dmi_reg_addr[31:0] ==  32'h11) & dmi_reg_en;
    assign dmstatus_reg[31:20] = '0;
    assign dmstatus_reg[19:18] = {2{dmstatus_havereset}};
    assign dmstatus_reg[15:10] = '0;
@@ -326,11 +325,11 @@ module dbg (
    assign dmstatus_resumeack_wren = ((dbg_state == RESUMING) & dec_tlu_resume_ack) | (dmstatus_resumeack & ~dmcontrol_reg[30]);
    assign dmstatus_resumeack_din  = (dbg_state == RESUMING) & dec_tlu_resume_ack;
 
-   assign dmstatus_havereset_wren = (dmi_reg_addr == 7'h10) & dmi_reg_wdata[1] & dmi_reg_en & dmi_reg_wr_en;
-   assign dmstatus_havereset_rst  = (dmi_reg_addr == 7'h10) & dmi_reg_wdata[28] & dmi_reg_en & dmi_reg_wr_en;
+   assign dmstatus_havereset_wren = (dmi_reg_addr[31:0] == 32'h10) & dmi_reg_wdata[1] & dmi_reg_en & dmi_reg_wr_en;
+   assign dmstatus_havereset_rst  = (dmi_reg_addr[31:0] == 32'h10) & dmi_reg_wdata[28] & dmi_reg_en & dmi_reg_wr_en;
    
    rvdffs  #(1) dmstatus_resumeack_reg (.din(dmstatus_resumeack_din), .dout(dmstatus_resumeack), .en(dmstatus_resumeack_wren), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
-   rvdff   #(1) dmstatus_halted_reg    (.din(dec_tlu_dbg_halted & ~dec_tlu_mpc_halted_only),     .dout(dmstatus_halted), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
+   rvdff   #(1) dmstatus_halted_reg    (.din(dec_tlu_dbg_halted),     .dout(dmstatus_halted), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
    rvdffsc #(1) dmstatus_havereset_reg (.din(1'b1), .dout(dmstatus_havereset), .en(dmstatus_havereset_wren), .clear(dmstatus_havereset_rst), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
    
    // haltsum0 register
@@ -343,17 +342,17 @@ module dbg (
    assign        abstractcs_reg[11]    = '0;
    assign        abstractcs_reg[7:4]   = '0;
    assign        abstractcs_reg[3:0]   = 4'h2;    // One data register
-   assign        abstractcs_error_sel0 = abstractcs_reg[12] & dmi_reg_en & ((dmi_reg_wr_en & ( (dmi_reg_addr == 7'h16) | (dmi_reg_addr == 7'h17))) |  (dmi_reg_addr == 7'h4));  
-   assign        abstractcs_error_sel1 = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h17) & ~((dmi_reg_wdata[31:24] == 8'b0) | (dmi_reg_wdata[31:24] == 8'h2));
+   assign        abstractcs_error_sel0 = abstractcs_reg[12] & dmi_reg_en & ((dmi_reg_wr_en & ( (dmi_reg_addr[31:0] == 32'h16) | (dmi_reg_addr[31:0] == 32'h17))) |  (dmi_reg_addr[31:0] == 32'h4));  
+   assign        abstractcs_error_sel1 = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h17) & ~((dmi_reg_wdata[31:24] == 8'b0) | (dmi_reg_wdata[31:24] == 8'h2));
    assign        abstractcs_error_sel2 = core_dbg_cmd_done & core_dbg_cmd_fail;
-   assign        abstractcs_error_sel3 = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h17) & (dbg_state != HALTED);
-   assign        abstractcs_error_sel4 = (dmi_reg_addr ==  7'h17) & dmi_reg_en & dmi_reg_wr_en & 
+   assign        abstractcs_error_sel3 = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h17) & (dbg_state != HALTED);
+   assign        abstractcs_error_sel4 = (dmi_reg_addr[31:0] ==  32'h17) & dmi_reg_en & dmi_reg_wr_en & 
                                          ( ((dmi_reg_wdata[22:20] == 3'b001) &  data1_reg[0]) |  
                                            ((dmi_reg_wdata[22:20] == 3'b010) &  (|data1_reg[1:0])) |  
 			                   dmi_reg_wdata[22] | (dmi_reg_wdata[22:20] == 3'b011)
                                            );
    
-   assign        abstractcs_error_sel5 = (dmi_reg_addr ==  7'h16) & dmi_reg_en & dmi_reg_wr_en;
+   assign        abstractcs_error_sel5 = (dmi_reg_addr[31:0] ==  32'h16) & dmi_reg_en & dmi_reg_wr_en;
                            
    assign        abstractcs_error_selor = abstractcs_error_sel0 | abstractcs_error_sel1 | abstractcs_error_sel2 | abstractcs_error_sel3 | abstractcs_error_sel4 | abstractcs_error_sel5;
    
@@ -371,11 +370,11 @@ module dbg (
    
    // command register - implemented all the bits in this register
    // command[16] = 1: write, 0: read
-   assign     command_wren = (dmi_reg_addr ==  7'h17) & dmi_reg_en & dmi_reg_wr_en & (dbg_state == HALTED);
+   assign     command_wren = (dmi_reg_addr[31:0] ==  32'h17) & dmi_reg_en & dmi_reg_wr_en & (dbg_state == HALTED);
    rvdffe #(32) dmcommand_reg (.*, .din(dmi_reg_wdata[31:0]), .dout(command_reg[31:0]), .en(command_wren), .rst_l(dbg_dm_rst_l));
    
    // data0 reg
-   assign data0_reg_wren0   = (dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h4) & (dbg_state == HALTED));
+   assign data0_reg_wren0   = (dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h4) & (dbg_state == HALTED));
    assign data0_reg_wren1   = core_dbg_cmd_done & (dbg_state == CMD_WAIT) & ~command_reg[16];
    assign data0_reg_wren    = data0_reg_wren0 | data0_reg_wren1;
 
@@ -385,7 +384,7 @@ module dbg (
    rvdffe #(32) dbg_data0_reg (.*, .din(data0_din[31:0]), .dout(data0_reg[31:0]), .en(data0_reg_wren), .rst_l(dbg_dm_rst_l));
 
    // data 1 
-   assign data1_reg_wren0   = (dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h5) & (dbg_state == HALTED));
+   assign data1_reg_wren0   = (dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr[31:0] == 32'h5) & (dbg_state == HALTED));
    assign data1_reg_wren1   = 1'b0;   // core_dbg_cmd_done & (dbg_state == CMD_WAIT) & ~command_reg[16];
    assign data1_reg_wren    = data1_reg_wren0 | data1_reg_wren1;
           
@@ -401,26 +400,22 @@ module dbg (
       dbg_state_en            = 1'b0;
       abstractcs_busy_wren    = 1'b0;
       abstractcs_busy_din     = 1'b0;
-      dbg_halt_req            = dmcontrol_wren_Q & dmcontrol_reg[31];         // single pulse output to the core
+      dbg_halt_req            = 1'b0;         // single pulse output to the core
       dbg_resume_req          = 1'b0;         // single pulse output to the core
       
        case (dbg_state)
             IDLE: begin
-                     dbg_nxtstate         = (dmstatus_reg[9] | dec_tlu_mpc_halted_only) ? HALTED : HALTING;         // initiate the halt command to the core
-                     dbg_state_en         = ((dmcontrol_reg[31] & ~dec_tlu_debug_mode) | dmstatus_reg[9] | dec_tlu_mpc_halted_only) & ~dmcontrol_reg[1];      // when the jtag writes the halt bit in the DM register, OR when the status indicates Halted 
-                     dbg_halt_req         = dmcontrol_reg[31];                          // Removed debug mode qualification during MPC changes
-                     //dbg_halt_req         = dmcontrol_reg[31] & ~dec_tlu_debug_mode;                          // only when jtag has written the halt_req bit in the control
+                     dbg_nxtstate         = dmstatus_reg[9] ? HALTED : HALTING;         // initiate the halt command to the core
+                     dbg_state_en         = ((dmcontrol_reg[31] & ~dec_tlu_debug_mode) | dmstatus_reg[9]) & ~dmcontrol_reg[1];      // when the jtag writes the halt bit in the DM register, OR when the status indicates Halted 
+                     dbg_halt_req         = dmcontrol_reg[31] & ~dec_tlu_debug_mode;                          // only when jtag has written the halt_req bit in the control
             end
             HALTING : begin
                      dbg_nxtstate         = HALTED;                                        // Goto HALTED once the core sends an ACK
                      dbg_state_en         = dmstatus_reg[9];                               // core indicates halted
 	    end
             HALTED: begin
-                     // wait for halted to go away before send to resume. Else start of new command
-                     dbg_nxtstate         = (dmstatus_reg[9] & ~dmcontrol_reg[1]) ? ((dmcontrol_reg[30] & ~dmcontrol_reg[31]) ? RESUMING : CMD_START) : 
-                                                                                    (dmcontrol_reg[31] ? HALTING : IDLE);       // This is MPC halted case
-                     //dbg_nxtstate         = dmcontrol_reg[1] ? IDLE : (dmcontrol_reg[30] & ~dmcontrol_reg[31]) ? RESUMING : CMD_START; // wait for halted to go away before send to resume. Else start of new command
-           	     dbg_state_en         = (dmstatus_reg[9] & dmcontrol_reg[30] & ~dmcontrol_reg[31] & dmcontrol_wren_Q) | command_wren | dmcontrol_reg[1] | ~(dmstatus_reg[9] | dec_tlu_mpc_halted_only);
+                     dbg_nxtstate         = dmcontrol_reg[1] ? IDLE : (dmcontrol_reg[30] & ~dmcontrol_reg[31]) ? RESUMING : CMD_START; // wait for halted to go away before send to resume. Else start of new command
+           	     dbg_state_en         = (dmcontrol_reg[30] & ~dmcontrol_reg[31] & dmcontrol_wren_Q) | command_wren | dmcontrol_reg[1];         // need to be exclusive ???               
                      abstractcs_busy_wren = dbg_state_en & (dbg_nxtstate == CMD_START);                      // write busy when a new command was written by jtag
                      abstractcs_busy_din  = 1'b1;                                                            
                      dbg_resume_req       = dbg_state_en & (dbg_nxtstate == RESUMING);                       // single cycle pulse to core if resuming 
@@ -454,23 +449,23 @@ module dbg (
          endcase
    end // always_comb begin
 
-   assign dmi_reg_rdata_din[31:0] = ({32{dmi_reg_addr == 7'h4}}  & data0_reg[31:0])      |
-                                    ({32{dmi_reg_addr == 7'h5}}  & data1_reg[31:0])      |
-                                    ({32{dmi_reg_addr == 7'h10}} & dmcontrol_reg[31:0])  | 
-                                    ({32{dmi_reg_addr == 7'h11}} & dmstatus_reg[31:0])   |
-                                    ({32{dmi_reg_addr == 7'h16}} & abstractcs_reg[31:0]) |   
-                                    ({32{dmi_reg_addr == 7'h17}} & command_reg[31:0])    |
-                                    ({32{dmi_reg_addr == 7'h40}} & haltsum0_reg[31:0])   |
-				    ({32{dmi_reg_addr == 7'h38}} & sbcs_reg[31:0])       |
-                                    ({32{dmi_reg_addr == 7'h39}} & sbaddress0_reg[31:0]) | 
-                                    ({32{dmi_reg_addr == 7'h3c}} & sbdata0_reg[31:0])    |  
-                                    ({32{dmi_reg_addr == 7'h3d}} & sbdata1_reg[31:0]);
+   assign dmi_reg_rdata_din[31:0] = ({32{dmi_reg_addr[31:0] == 32'h4}}  & data0_reg[31:0])      |
+                                    ({32{dmi_reg_addr[31:0] == 32'h5}}  & data1_reg[31:0])      |
+                                    ({32{dmi_reg_addr[31:0] == 32'h10}} & dmcontrol_reg[31:0])  | 
+                                    ({32{dmi_reg_addr[31:0] == 32'h11}} & dmstatus_reg[31:0])   |
+                                    ({32{dmi_reg_addr[31:0] == 32'h16}} & abstractcs_reg[31:0]) |   
+                                    ({32{dmi_reg_addr[31:0] == 32'h17}} & command_reg[31:0])    |
+                                    ({32{dmi_reg_addr[31:0] == 32'h40}} & haltsum0_reg[31:0])    |
+				    ({32{dmi_reg_addr[31:0] == 32'h38}} & sbcs_reg[31:0])       |
+                                    ({32{dmi_reg_addr[31:0] == 32'h39}} & sbaddress0_reg[31:0]) | 
+                                    ({32{dmi_reg_addr[31:0] == 32'h3c}} & sbdata0_reg[31:0])    |  
+                                    ({32{dmi_reg_addr[31:0] == 32'h3d}} & sbdata1_reg[31:0]);
   
  
    rvdffs #($bits(state_t)) dbg_state_reg    (.din(dbg_nxtstate), .dout({dbg_state}), .en(dbg_state_en), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
    // Ack will use the power on reset only otherwise there won't be any ack until dmactive is 1
-//   rvdff  #(1)              dmi_ack_reg      (.din(dmi_reg_en), .dout(dmi_reg_ack), .rst_l(rst_l), .clk(free_clk));
-   rvdffs  #(32) dmi_rddata_reg(.din(dmi_reg_rdata_din), .dout(dmi_reg_rdata), .en(dmi_reg_en), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
+   rvdff  #(1)              dmi_ack_reg      (.din(dmi_reg_en), .dout(dmi_reg_ack), .rst_l(rst_l), .clk(free_clk));
+   rvdff  #(32)             dmi_rddata_reg   (.din(dmi_reg_rdata_din[31:0]), .dout(dmi_reg_rdata[31:0]), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
  
    // interface for the core
    assign        dbg_cmd_addr[31:0]    = (command_reg[31:24] == 8'h2) ? {data1_reg[31:2],2'b0}  : {20'b0, command_reg[11:0]};  // Only word addresses for abstract memory

@@ -14,8 +14,7 @@
 // limitations under the License.
 
 module dec_ib_ctl
-   import swerv_types::*;
-(
+  (
    input logic   free_clk,                    // free clk
    input logic   active_clk,                  // active clk if not halt / pause
 
@@ -25,18 +24,18 @@ module dec_ib_ctl
    input logic [1:0]           dbg_cmd_type,   // dbg type
    input logic [1:0]           dbg_cmd_size,   // 00 - 1B, 01 - 2B, 10 - 4B, 11 - reserved
    input logic [31:0] 	       dbg_cmd_addr,   // expand to 31:0
-   
+  
    input logic exu_flush_final,                // all flush sources: primary/secondary alu's, trap
 
    input logic          dec_ib0_valid_eff_d,   // effective valid taking decode into account 
    input logic          dec_ib1_valid_eff_d,
-   
+  
    input br_pkt_t i0_brp,                      // i0 branch packet from aligner
    input br_pkt_t i1_brp,
-   
+  
    input logic   ifu_i0_pc4,                   // i0 is 4B inst else 2B
    input logic   ifu_i1_pc4,
-   
+  
    input logic 	 ifu_i0_valid,                 // i0 valid from ifu
    input logic   ifu_i1_valid,
 
@@ -59,17 +58,17 @@ module dec_ib_ctl
 
    input logic 	 dec_i0_decode_d,              // i0 decode
    input logic 	 dec_i1_decode_d,
-   
-   
+  
+  
    input logic 	 rst_l,                        // test stuff
    input logic 	 clk,
-   
-   
+  
+  
    output logic dec_ib3_valid_d,               // ib3 valid
    output logic dec_ib2_valid_d,               // ib2 valid
    output logic dec_ib1_valid_d,               // ib1 valid
    output logic dec_ib0_valid_d,               // ib0 valid
-   
+  
 
    output logic [31:0] dec_i0_instr_d,         // i0 inst at decode
    output logic [31:0] dec_i1_instr_d,         // i1 inst at decode
@@ -108,56 +107,56 @@ module dec_ib_ctl
 
 `include "global.h"
    
-   logic 	 flush_final;
+   logic 	flush_final;
    
-   logic [3:0] 	 ibval_in, ibval;
+   logic [3:0] 	ibval_in, ibval;
 
-   logic [31:0]  ib3_in, ib2_in, ib1_in, ib0_in;
-   logic [31:0]  ib3, ib2, ib1, ib0;
+   logic [31:0] ib3_in, ib2_in, ib1_in, ib0_in;
+   logic [31:0] ib3, ib2, ib1, ib0;
 
-   logic [36:0]  pc3_in, pc2_in, pc1_in, pc0_in;
-   logic [36:0]  pc3, pc2, pc1, pc0;
+   logic [36:0] pc3_in, pc2_in, pc1_in, pc0_in;
+   logic [36:0] pc3, pc2, pc1, pc0;
 
-   logic [15:0]  cinst3_in, cinst2_in, cinst1_in, cinst0_in;
-   logic [15:0]  cinst3, cinst2, cinst1, cinst0;
+   logic [15:0] cinst3_in, cinst2_in, cinst1_in, cinst0_in;
+   logic [15:0] cinst3, cinst2, cinst1, cinst0;
 
-   logic 	 write_i1_ib3, write_i0_ib3;
-   logic 	 write_i1_ib2, write_i0_ib2;
-   logic 	 write_i1_ib1, write_i0_ib1;
-   logic 	 write_i0_ib0;
+   logic 	write_i1_ib3, write_i0_ib3;
+   logic 	write_i1_ib2, write_i0_ib2;
+   logic 	write_i1_ib1, write_i0_ib1;
+   logic 	write_i0_ib0;
 
-   logic 	 shift2, shift1, shift0;
+   logic 	shift2, shift1, shift0;
 
-   logic 	 shift_ib1_ib0, shift_ib2_ib1, shift_ib3_ib2;
-   logic 	 shift_ib2_ib0;
-   logic 	 shift_ib3_ib1;
+   logic 	shift_ib1_ib0, shift_ib2_ib1, shift_ib3_ib2;
+   logic 	shift_ib2_ib0;
+   logic 	shift_ib3_ib1;
    
    
-   logic 	 ifu_i0_val, ifu_i1_val;
-   logic 	 debug_valid;
-   logic [4:0] 	 dreg;
-   logic [11:0]  dcsr;
-   logic [31:0]  ib0_debug_in;
+   logic 	ifu_i0_val, ifu_i1_val;
+   logic 	debug_valid;
+   logic [4:0] 	dreg;
+   logic [11:0] dcsr;
+   logic [31:0] ib0_debug_in;
    
-//   logic 		       debug_read_mem;
-//   logic 		       debug_write_mem;
-   logic 	 debug_read;
-   logic 	 debug_write;
-   logic 	 debug_read_gpr;
-   logic 	 debug_write_gpr;
-   logic 	 debug_read_csr;
-   logic 	 debug_write_csr;
+   //   logic 		       debug_read_mem;
+   //   logic 		       debug_write_mem;
+   logic 	debug_read;
+   logic 	debug_write;
+   logic 	debug_read_gpr;
+   logic 	debug_write_gpr;
+   logic 	debug_read_csr;
+   logic 	debug_write_csr;
    
 
    
    rvdff #(1) flush_upperff (.*, .clk(free_clk), .din(exu_flush_final), .dout(flush_final)); 
 
-   logic [3:0] 	 ibvalid;
+   logic [3:0] 	ibvalid;
 
-   logic [3:0] 	 i0_wen;
-   logic [3:1] 	 i1_wen;
-   logic [3:0] 	 shift_ibval;
-   logic [3:0] 	 ibwrite;
+   logic [3:0] 	i0_wen;
+   logic [3:1] 	i1_wen;
+   logic [3:0] 	shift_ibval;
+   logic [3:0] 	ibwrite;
    
    assign ibvalid[3:0] = ibval[3:0] | i0_wen[3:0] | {i1_wen[3:1],1'b0};
    
@@ -167,7 +166,7 @@ module dec_ib_ctl
 
    rvdff #(4) ibvalff (.*, .clk(active_clk), .din(ibval_in[3:0]), .dout(ibval[3:0]));
    
-// only valid if there is room
+   // only valid if there is room
    if (DEC_INSTBUF_DEPTH==4) begin
       assign ifu_i0_val = ifu_i0_valid & ~ibval[3] & ~flush_final;
       assign ifu_i1_val = ifu_i1_valid & ~ibval[2] & ~flush_final;
@@ -358,24 +357,24 @@ module dec_ib_ctl
    rvdffe #(32) ib1ff (.*, .en(ibwrite[1]), .din(ib1_in[31:0]), .dout(ib1[31:0]));
 
 
-// GPR accesses
+   // GPR accesses
 
-// put reg to read on rs1
-// read ->   or %x0,  %reg,%x0      {000000000000,reg[4:0],110000000110011}
+   // put reg to read on rs1
+   // read ->   or %x0,  %reg,%x0      {000000000000,reg[4:0],110000000110011}
 
-// put write date on rs1
-// write ->  or %reg, %x0, %x0      {00000000000000000110,reg[4:0],0110011}
+   // put write date on rs1
+   // write ->  or %reg, %x0, %x0      {00000000000000000110,reg[4:0],0110011}
 
 
-// CSR accesses
-// csr is of form rd, csr, rs1
+   // CSR accesses
+   // csr is of form rd, csr, rs1
 
-// read  -> csrrs %x0, %csr, %x0     {csr[11:0],00000010000001110011}
+   // read  -> csrrs %x0, %csr, %x0     {csr[11:0],00000010000001110011}
 
-// put write data on rs1
-// write -> csrrw %x0, %csr, %x0     {csr[11:0],00000001000001110011}
+   // put write data on rs1
+   // write -> csrrw %x0, %csr, %x0     {csr[11:0],00000001000001110011}
 
-// abstract memory command not done here   
+   // abstract memory command not done here   
    assign debug_valid = dbg_cmd_valid & (dbg_cmd_type[1:0] != 2'h2);   
    
 

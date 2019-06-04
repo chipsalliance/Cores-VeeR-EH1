@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2019 Western Digital Corporation or its affiliates.
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,8 +15,7 @@
 
 
 module exu_mul_ctl
-   import swerv_types::*;
-(
+  (
    input logic         clk,              // Top level clock
    input logic         active_clk,       // Level 1 active clock
    input logic         clk_override,     // Override clock enables
@@ -78,7 +77,6 @@ module exu_mul_ctl
    rvdff  #(32) b_e1_ff          (.*, .din(b[31:0]),                   .dout(b_ff_e1[31:0]),          .clk(exu_mul_c1_e1_clk));
 
 
-
    // --------------------------- E1 Logic Stage ----------------------------------
 
    assign a_e1[31:0]             = (load_mul_rs1_bypass_e1)  ?  lsu_result_dc3[31:0]  :  a_ff_e1[31:0];
@@ -95,9 +93,7 @@ module exu_mul_ctl
    rvdff  #(33) b_e2_ff          (.*, .din({rs2_neg_e1, b_e1[31:0]}),  .dout(b_ff_e2[32:0]),          .clk(exu_mul_c1_e2_clk));
 
 
-
    // ---------------------- E2 Logic Stage --------------------------
-
 
    logic signed [65:0]  prod_e2;
 
@@ -108,9 +104,7 @@ module exu_mul_ctl
    rvdff  #(64) prod_e3_ff       (.*, .din(prod_e2[63:0]),             .dout(prod_e3[63:0]),          .clk(exu_mul_c1_e3_clk));
 
 
-
    // ----------------------- E3 Logic Stage -------------------------
-
 
    assign out[31:0]            = low_e3  ?  prod_e3[31:0]  :  prod_e3[63:32];
 

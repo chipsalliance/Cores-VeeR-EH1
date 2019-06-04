@@ -104,9 +104,8 @@ module ifu_ifc_ctl
    typedef enum  logic [1:0] { IDLE=2'b00, FETCH=2'b01, STALL=2'b10, WFM=2'b11} state_t;
    state_t state, next_state;
 
-   logic dma_stall;
-   assign dma_stall = ic_dma_active | dma_iccm_stall_any_f;
-   
+
+
    // detect a reset and start fetching the reset vector
    rvdff #(2) reset_ff (.*, .clk(free_clk), .din({1'b1, reset_detect}), .dout({reset_detect, reset_detected}));
 
@@ -121,7 +120,7 @@ module ifu_ifc_ctl
    assign fetch_crit_word = ic_crit_wd_rdy_mod & ~ic_crit_wd_rdy_d1 & ~exu_flush_final & ~ic_write_stall;
    
    assign missff_en = exu_flush_final | (~ic_hit_f2 & ifc_fetch_req_f2) | ifu_bp_kill_next_f2 | fetch_crit_word_d1 | ifu_bp_kill_next_f2 | (ifc_fetch_req_f2 & ~ifc_fetch_req_f1 & ~fetch_crit_word_d2);
-   assign miss_sel_flush = exu_flush_final & (((wfm | idle) & ~fetch_crit_word_d1)  | dma_stall | ic_write_stall);
+   assign miss_sel_flush = exu_flush_final & (((wfm | idle) & ~fetch_crit_word_d1)  | ic_dma_active | ic_write_stall);
    assign miss_sel_f2 = ~exu_flush_final & ~ic_hit_f2 & ifc_fetch_req_f2;
    assign miss_sel_f1 = ~exu_flush_final & ~miss_sel_f2 & ~ifc_fetch_req_f1 & ifc_fetch_req_f2 & ~fetch_crit_word_d2 & ~ifu_bp_kill_next_f2;
    assign miss_sel_bf = ~miss_sel_f2 & ~miss_sel_f1 & ~miss_sel_flush;
@@ -160,7 +159,7 @@ module ifu_ifc_ctl
 
    assign miss_f2 = ifc_fetch_req_f2 & ~ic_hit_f2;
    
-   assign mb_empty_mod = (ifu_ic_mb_empty | exu_flush_final) & ~dma_stall & ~miss_f2 & ~miss_a;
+   assign mb_empty_mod = (ifu_ic_mb_empty | exu_flush_final) & ~dma_iccm_stall_any_f & ~miss_f2 & ~miss_a;
 
    // Halt flushes and takes us to IDLE
    assign goto_idle = exu_flush_final & dec_tlu_flush_noredir_wb;
@@ -215,7 +214,7 @@ module ifu_ifc_ctl
  			       ({4{~flush_fb & ~fb_right & ~fb_right2 & ~fb_left & ~fb_right3}}  & fb_write_f1[3:0]));
 			       
    
-   assign fb_full_f1_ns = fb_write_ns[3];
+   assign fb_full_f1_ns = fb_write_ns[3] | dma_iccm_stall_any_f;
 
    assign idle = state[1:0] == IDLE;
    assign wfm = state[1:0] == WFM;
@@ -227,12 +226,12 @@ module ifu_ifc_ctl
    assign ifu_pmu_fetch_stall = wfm | 
 				(ifc_fetch_req_f1_raw & 
 				( (fb_full_f1 & ~(ifu_fb_consume2 | ifu_fb_consume1 | exu_flush_final)) |
-				  dma_stall));
+				  ic_dma_active));
    // BTB hit kills this fetch
    assign ifc_fetch_req_f1 = ( ifc_fetch_req_f1_raw & 
 			       ~ifu_bp_kill_next_f2 & 
 			       ~(fb_full_f1 & ~(ifu_fb_consume2 | ifu_fb_consume1 | exu_flush_final)) & 
-			       ~dma_stall &
+			       ~ic_dma_active &
 			       ~ic_write_stall &
 			       ~dec_tlu_flush_noredir_wb ); 
 
@@ -264,12 +263,7 @@ module ifu_ifc_ctl
 
    assign ifc_iccm_access_f1 = iccm_acc_in_range_f1 ; 
 
-   assign ifc_dma_access_ok = ( (~ifc_iccm_access_f1 | 
-				 (fb_full_f1 & ~(ifu_fb_consume2 | ifu_fb_consume1)) | 
-				 wfm | 
-				 idle ) & ~exu_flush_final) |
-			      dma_iccm_stall_any_f;
-   
+   assign ifc_dma_access_ok = (~ifc_iccm_access_f1 | (fb_full_f1 & ~(ifu_fb_consume2 | ifu_fb_consume1)) | wfm) & ~exu_flush_final;
    assign ifc_region_acc_fault_f1 = ~iccm_acc_in_range_f1 & iccm_acc_in_region_f1 ;
  `else
    assign ifc_iccm_access_f1 = 1'b0 ;

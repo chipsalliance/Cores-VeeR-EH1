@@ -1,4 +1,95 @@
 #!/usr/bin/perl
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2019 Western Digital Corporation or its affiliates.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# unrollforverilator
+# This script is needed to unroll the following system verilog loop to enable verilator to compile
+# The output of this script is generated in file "pic_ctrl_verilator_unroll.sv" which is included in pic_ctrl.sv 
+#
+#`ifdef RV_PIC_2CYCLE
+#///  Do the prioritization of the interrupts here  ////////////
+# for (l=0; l<NUM_LEVELS/2 ; l++) begin : TOP_LEVEL
+#    for (m=0; m<=(TOTAL_INT)/(2**(l+1)) ; m++) begin : COMPARE
+#       if ( m == (TOTAL_INT)/(2**(l+1))) begin 
+#            assign level_intpend_w_prior_en[l+1][m+1] = '0 ;
+#            assign level_intpend_id[l+1][m+1]         = '0 ;
+#       end
+#       cmp_and_mux  #(.ID_BITS(ID_BITS),
+#                      .INTPRIORITY_BITS(INTPRIORITY_BITS)) cmp_l1 (
+#                      .a_id(level_intpend_id[l][2*m]),
+#                      .a_priority(level_intpend_w_prior_en[l][2*m]),
+#                      .b_id(level_intpend_id[l][2*m+1]),
+#                      .b_priority(level_intpend_w_prior_en[l][2*m+1]),
+#                      .out_id(level_intpend_id[l+1][m]),
+#                      .out_priority(level_intpend_w_prior_en[l+1][m])) ;
+#        
+#    end
+# end
+#
+#        for (i=0; i<=TOTAL_INT/2**(NUM_LEVELS/2) ; i++) begin : MIDDLE_FLOPS
+#          rvdff #(INTPRIORITY_BITS) level2_intpend_prior_reg  (.*, .din (level_intpend_w_prior_en[NUM_LEVELS/2][i]), .dout(l2_intpend_w_prior_en_ff[i]),  .clk(free_clk));
+#          rvdff #(ID_BITS)          level2_intpend_id_reg     (.*, .din (level_intpend_id[NUM_LEVELS/2][i]),         .dout(l2_intpend_id_ff[i]),          .clk(free_clk));
+#        end
+#
+# for (j=NUM_LEVELS/2; j<NUM_LEVELS ; j++) begin : BOT_LEVELS
+#    for (k=0; k<=(TOTAL_INT)/(2**(j+1)) ; k++) begin : COMPARE
+#       if ( k == (TOTAL_INT)/(2**(j+1))) begin 
+#            assign levelx_intpend_w_prior_en[j+1][k+1] = '0 ;
+#            assign levelx_intpend_id[j+1][k+1]         = '0 ;
+#       end
+#            cmp_and_mux  #(.ID_BITS(ID_BITS),
+#                        .INTPRIORITY_BITS(INTPRIORITY_BITS)) 
+#                 cmp_l1 (
+#                        .a_id(levelx_intpend_id[j][2*k]),
+#                        .a_priority(levelx_intpend_w_prior_en[j][2*k]),
+#                        .b_id(levelx_intpend_id[j][2*k+1]),
+#                        .b_priority(levelx_intpend_w_prior_en[j][2*k+1]),
+#                        .out_id(levelx_intpend_id[j+1][k]),
+#                        .out_priority(levelx_intpend_w_prior_en[j+1][k])) ;
+#    end
+#  end
+#        assign claimid_in[ID_BITS-1:0]                      =      levelx_intpend_id[NUM_LEVELS][0] ;   // This is the last level output
+#        assign selected_int_priority[INTPRIORITY_BITS-1:0]  =      levelx_intpend_w_prior_en[NUM_LEVELS][0] ;
+#
+#`else
+#
+#///  Do the prioritization of the interrupts here  ////////////
+#// genvar l, m , j, k;  already declared outside ifdef
+# for (l=0; l<NUM_LEVELS ; l++) begin : LEVEL
+#    for (m=0; m<=(TOTAL_INT)/(2**(l+1)) ; m++) begin : COMPARE
+#       if ( m == (TOTAL_INT)/(2**(l+1))) begin 
+#            assign level_intpend_w_prior_en[l+1][m+1] = '0 ;
+#            assign level_intpend_id[l+1][m+1]         = '0 ;
+#       end
+#       cmp_and_mux  #(.ID_BITS(ID_BITS),
+#                      .INTPRIORITY_BITS(INTPRIORITY_BITS)) cmp_l1 (
+#                      .a_id(level_intpend_id[l][2*m]),
+#                      .a_priority(level_intpend_w_prior_en[l][2*m]),
+#                      .b_id(level_intpend_id[l][2*m+1]),
+#                      .b_priority(level_intpend_w_prior_en[l][2*m+1]),
+#                      .out_id(level_intpend_id[l+1][m]),
+#                      .out_priority(level_intpend_w_prior_en[l+1][m])) ;
+#        
+#    end
+# end
+#        assign claimid_in[ID_BITS-1:0]                      =      level_intpend_id[NUM_LEVELS][0] ;   // This is the last level output
+#        assign selected_int_priority[INTPRIORITY_BITS-1:0]  =      level_intpend_w_prior_en[NUM_LEVELS][0] ;
+#
+#`endif
+##
 #use strict;
 #use warnings;
 

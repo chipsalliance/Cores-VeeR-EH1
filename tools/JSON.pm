@@ -1,6 +1,5 @@
 package JSON;
 
-
 use strict;
 use Carp ();
 use base qw(Exporter);

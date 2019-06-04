@@ -25,6 +25,7 @@ localparam DCCM_ECC_WIDTH   = `RV_DCCM_ECC_WIDTH;
 
 localparam LSU_RDBUF_DEPTH  = `RV_LSU_NUM_NBLOAD;
 localparam DMA_BUF_DEPTH    = `RV_DMA_BUF_DEPTH;
+localparam LSU_WRBUF_DEPTH  = `RV_LSU_WRBUF_DEPTH;
 localparam LSU_STBUF_DEPTH  = `RV_LSU_STBUF_DEPTH;
 localparam LSU_SB_BITS      = `RV_LSU_SB_BITS;
 
@@ -43,9 +44,16 @@ localparam ICACHE_IC_DEPTH  = `RV_ICACHE_IC_DEPTH;
 localparam ICACHE_TAG_DEPTH = `RV_ICACHE_TAG_DEPTH;
 
 localparam LSU_BUS_TAG     = `RV_LSU_BUS_TAG;
+localparam LSU_BUS_ID      = `RV_LSU_BUS_ID;
+localparam LSU_BUS_PRTY    = `RV_LSU_BUS_PRTY;
 localparam DMA_BUS_TAG     = `RV_DMA_BUS_TAG;
+localparam DMA_BUS_ID      = `RV_DMA_BUS_ID;
+localparam DMA_BUS_PRTY    = `RV_DMA_BUS_PRTY;
 localparam SB_BUS_TAG      = `RV_SB_BUS_TAG;
+localparam SB_BUS_ID       = `RV_SB_BUS_ID;
+localparam SB_BUS_PRTY     = `RV_SB_BUS_PRTY;
    
 localparam IFU_BUS_TAG     = `RV_IFU_BUS_TAG;
-
+localparam IFU_BUS_ID      = `RV_IFU_BUS_ID;
+localparam IFU_BUS_PRTY    = `RV_IFU_BUS_PRTY;
 

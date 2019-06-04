@@ -24,9 +24,7 @@
 // //********************************************************************************
 
 
-module lsu_clkdomain 
-   import swerv_types::*;
-(
+module lsu_clkdomain (
    input logic      clk,                               // clock
    input logic      free_clk,                          // clock
    input logic      rst_l,                             // reset
@@ -42,9 +40,11 @@ module lsu_clkdomain
    input logic      store_stbuf_reqvld_dc3,            // instruction to stbuf
    input logic      stbuf_reqvld_any,                  // stbuf is draining
    input logic      stbuf_reqvld_flushed_any,          // instruction going to stbuf is flushed
-   input logic      lsu_busreq_dc5,                    // busreq in dc5
-   input logic      lsu_bus_buffer_pend_any,           // bus buffer has a pending bus entry
-   input logic      lsu_bus_buffer_empty_any,          // external bus buffer is empty
+   input logic      lsu_ldbusreq_dc3,                  // lsu is to read buffer external
+   input logic      lsu_ldbusreq_dc5,                  // lsu is to read buffer external
+   input logic      lsu_stbusreq_dc5,                  // lsu is to external write buffer
+   input logic      lsu_write_buffer_empty_any,        // external write buffer is empty
+   input logic      lsu_read_buffer_empty_any,         // external read buffer is empty
    input logic      lsu_stbuf_empty_any,               // stbuf is empty
    //input logic      lsu_load_stall_any,                // Need to turn on clocks for this case
 
@@ -83,11 +83,10 @@ module lsu_clkdomain
 
    output logic     lsu_dccm_c1_dc3_clk,               // dccm clock
    output logic     lsu_pic_c1_dc3_clk,                // pic clock
-
-   output logic     lsu_stbuf_c1_clk,                      
-   output logic     lsu_bus_obuf_c1_clk,               // ibuf clock
-   output logic     lsu_bus_ibuf_c1_clk,               // ibuf clock
-   output logic     lsu_bus_buf_c1_clk,                // ibuf clock
+                      
+   output logic     lsu_stbuf_c1_clk,                  // stbuf clock
+   output logic     lsu_rdbuf_c1_clk,                  // external read buffer clock
+   output logic     lsu_wrbuf_c1_clk,                  // external write buffer clock
    output logic     lsu_busm_clk,                      // bus clock
                       
    output logic     lsu_free_c2_clk,
@@ -105,7 +104,8 @@ module lsu_clkdomain
    logic lsu_freeze_c1_dc1_clken_q, lsu_freeze_c1_dc2_clken_q, lsu_freeze_c1_dc3_clken_q, lsu_freeze_c1_dc4_clken_q; 
 
    logic lsu_stbuf_c1_clken;
-   logic lsu_bus_ibuf_c1_clken, lsu_bus_obuf_c1_clken, lsu_bus_buf_c1_clken;
+   logic lsu_rdbuf_c1_clken;
+   logic lsu_wrbuf_c1_clken;
    
    logic lsu_dccm_c1_dc3_clken, lsu_pic_c1_dc3_clken;
    
@@ -145,15 +145,14 @@ module lsu_clkdomain
  
 
    assign lsu_stbuf_c1_clken = load_stbuf_reqvld_dc3 | store_stbuf_reqvld_dc3 | stbuf_reqvld_any | stbuf_reqvld_flushed_any | clk_override;
-   assign lsu_bus_ibuf_c1_clken = lsu_busreq_dc5 | clk_override;
-   assign lsu_bus_obuf_c1_clken = ((lsu_bus_buffer_pend_any | lsu_busreq_dc5) & lsu_bus_clk_en) | clk_override;
-   assign lsu_bus_buf_c1_clken  = ~lsu_bus_buffer_empty_any | lsu_busreq_dc5 | clk_override;
-   
+   assign lsu_rdbuf_c1_clken = lsu_ldbusreq_dc3 | ~lsu_read_buffer_empty_any | clk_override;
+   assign lsu_wrbuf_c1_clken = lsu_stbusreq_dc5 | clk_override;
+
    assign lsu_dccm_c1_dc3_clken = ((lsu_c1_dc3_clken & addr_in_dccm_dc2) | clk_override) & ~lsu_freeze_dc3;
    assign lsu_pic_c1_dc3_clken  = ((lsu_c1_dc3_clken & addr_in_pic_dc2) | clk_override) & ~lsu_freeze_dc3;
 
-   assign lsu_free_c1_clken = (lsu_p.valid | lsu_pkt_dc1.valid | lsu_pkt_dc2.valid | lsu_pkt_dc3.valid | lsu_pkt_dc4.valid | lsu_pkt_dc5.valid) | 
-                              ~lsu_bus_buffer_empty_any | ~lsu_stbuf_empty_any | clk_override;
+   assign lsu_free_c1_clken = ((lsu_p.valid | lsu_pkt_dc1.valid | lsu_pkt_dc2.valid | lsu_pkt_dc3.valid | lsu_pkt_dc4.valid | lsu_pkt_dc5.valid) | 
+                               ~lsu_write_buffer_empty_any | ~lsu_stbuf_empty_any | ~lsu_read_buffer_empty_any) | clk_override;
    assign lsu_free_c2_clken = lsu_free_c1_clken | lsu_free_c1_clken_q | clk_override;
    
     // Flops
@@ -195,9 +194,8 @@ module lsu_clkdomain
    rvclkhdr lsu_freeze_c2dc4_cgc ( .en(lsu_freeze_c2_dc4_clken), .l1clk(lsu_freeze_c2_dc4_clk), .* );
 
    rvclkhdr lsu_stbuf_c1_cgc ( .en(lsu_stbuf_c1_clken), .l1clk(lsu_stbuf_c1_clk), .* );
-   rvclkhdr lsu_bus_ibuf_c1_cgc ( .en(lsu_bus_ibuf_c1_clken), .l1clk(lsu_bus_ibuf_c1_clk), .* );
-   rvclkhdr lsu_bus_obuf_c1_cgc ( .en(lsu_bus_obuf_c1_clken), .l1clk(lsu_bus_obuf_c1_clk), .* );
-   rvclkhdr lsu_bus_buf_c1_cgc  ( .en(lsu_bus_buf_c1_clken),  .l1clk(lsu_bus_buf_c1_clk), .* );
+   rvclkhdr lsu_wrbuf_c1_cgc ( .en(lsu_wrbuf_c1_clken), .l1clk(lsu_wrbuf_c1_clk), .* );
+   rvclkhdr lsu_rdbuf_c1_cgc ( .en(lsu_rdbuf_c1_clken), .l1clk(lsu_rdbuf_c1_clk), .* );
 
    rvclkhdr lsu_busm_cgc (.en(lsu_bus_clk_en), .l1clk(lsu_busm_clk), .*);
    

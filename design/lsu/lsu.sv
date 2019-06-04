@@ -25,9 +25,7 @@
 // 
 //********************************************************************************
 
-module lsu 
-   import swerv_types::*;
-(
+module lsu (
 
    input logic [31:0]                      i0_result_e4_eff, // I0 e4 result for e4 -> dc3 store forwarding
    input logic [31:0]                      i1_result_e4_eff, // I1 e4 result for e4 -> dc3 store forwarding
@@ -38,13 +36,11 @@ module lsu
    input logic                             dec_tlu_flush_lower_wb,    // I0/I1 writeback flush. This is used to flush the old packets only
    input logic                             dec_tlu_i0_kill_writeb_wb, // I0 is flushed, don't writeback any results to arch state 
    input logic                             dec_tlu_i1_kill_writeb_wb, // I1 is flushed, don't writeback any results to arch state 
-   input logic                             dec_tlu_cancel_e4,         // cancel the bus load in dc4 and reset the freeze
 
    // chicken signals
    input logic                             dec_tlu_non_blocking_disable,    // disable the non block
    input logic                             dec_tlu_wb_coalescing_disable,   // disable the write buffer coalesce
    input logic                             dec_tlu_ld_miss_byp_wb_disable,  // disable the miss bypass in the write buffer                                     
-   input logic                             dec_tlu_sideeffect_posted_disable,  // disable posted writes to sideeffect addr to the bus
    input logic                             dec_tlu_core_ecc_disable,        // disable the generation of the ecc
 
    input logic [31:0]                      exu_lsu_rs1_d,      // address rs operand
@@ -56,12 +52,9 @@ module lsu
    input logic [31:0]                      dec_tlu_mrac_ff,     // CSR for memory region control
 
    output logic [31:0]                     lsu_result_dc3,      // lsu load data
-   output logic [31:0]                     lsu_result_corr_dc4, // This is the ECC corrected data going to RF
    output logic                            lsu_freeze_dc3,      // lsu freeze due to load to external
-   output logic                            lsu_load_stall_any, // This is for blocking loads in the decode
    output logic                            lsu_store_stall_any, // This is for blocking stores in the decode
    output logic                            lsu_idle_any,        // lsu buffers are empty and no instruction in the pipeline
-   output logic                            lsu_halt_idle_any,   // This is used to enter halt mode. Exclude DMA
                                             
    output lsu_error_pkt_t                  lsu_error_pkt_dc3,             // lsu exception packet
    output logic                            lsu_freeze_external_ints_dc3,  // freeze due to sideeffects loads need to suppress external interrupt
@@ -109,6 +102,7 @@ module lsu
    output logic [31:0]                     picm_wr_data, // PIC memory write data
    input logic [31:0]                      picm_rd_data, // PIC memory read/mask data
 
+   // AXI signals               
    // AXI Write Channels
    output logic                            lsu_axi_awvalid,
    input  logic                            lsu_axi_awready,
@@ -154,7 +148,7 @@ module lsu
    input  logic [63:0]                     lsu_axi_rdata,
    input  logic [1:0]                      lsu_axi_rresp,
    input  logic                            lsu_axi_rlast,
-
+                                             
    input logic                             lsu_bus_clk_en,    // external drives a clock_en to control bus ratio
             
    // DMA slave
@@ -198,7 +192,6 @@ module lsu
    logic [6:0]  dccm_data_ecc_lo_dc3;
 
    logic [31:0] lsu_ld_data_dc3;
-   logic [31:0] lsu_ld_data_corr_dc3;
    logic [31:0] picm_mask_data_dc3;
    
    logic [31:0] lsu_addr_dc1, lsu_addr_dc2, lsu_addr_dc3, lsu_addr_dc4, lsu_addr_dc5;
@@ -208,7 +201,7 @@ module lsu
    logic        lsu_i0_valid_dc1, lsu_i0_valid_dc2, lsu_i0_valid_dc3, lsu_i0_valid_dc4, lsu_i0_valid_dc5;
    
    // Store Buffer signals
-   logic        isldst_dc1, dccm_ldst_dc2, dccm_ldst_dc3;
+   logic        isldst_dc1, isldst_dc2, isldst_dc3;
    logic        store_stbuf_reqvld_dc3;
    logic        load_stbuf_reqvld_dc3;
    logic        ldst_stbuf_reqvld_dc3;
@@ -234,15 +227,15 @@ module lsu
    logic [DCCM_BYTE_WIDTH-1:0] stbuf_fwdbyteen_lo_dc3;
 
    logic        lsu_stbuf_commit_any;
-   logic        lsu_stbuf_empty_any;       
-   logic        lsu_stbuf_nodma_empty_any;   // Store Buffer is empty except dma writes
+   logic        lsu_stbuf_empty_any;   // This is for blocking loads
    logic        lsu_stbuf_full_any;
 
     // Bus signals
-   logic        lsu_busreq_dc5;
-   logic        lsu_bus_buffer_pend_any;
-   logic        lsu_bus_buffer_empty_any;
-   logic        lsu_bus_buffer_full_any;
+   logic        lsu_ldbusreq_dc3, lsu_ldbusreq_dc5;
+   logic        lsu_stbusreq_dc5;
+   logic        lsu_read_buffer_empty_any;
+   logic        lsu_write_buffer_empty_any;
+   logic        lsu_write_buffer_full_any;
    logic        lsu_busreq_dc2;
    logic [31:0] bus_read_data_dc3;
    logic        ld_bus_error_dc3;
@@ -261,7 +254,7 @@ module lsu
                       
    logic        lsu_freeze_c2_dc1_clk, lsu_freeze_c2_dc2_clk, lsu_freeze_c2_dc3_clk, lsu_freeze_c2_dc4_clk;                           
    logic        lsu_stbuf_c1_clk;
-   logic        lsu_bus_ibuf_c1_clk, lsu_bus_obuf_c1_clk, lsu_bus_buf_c1_clk;
+   logic        lsu_rdbuf_c1_clk, lsu_wrbuf_c1_clk;
    logic        lsu_dccm_c1_dc3_clk, lsu_pic_c1_dc3_clk;
    logic        lsu_busm_clk;
    logic        lsu_free_c2_clk;
@@ -270,8 +263,7 @@ module lsu
    lsu_lsc_ctl lsu_lsc_ctl(.*);
    
    // block stores in decode  - for either bus or stbuf reasons
-   assign lsu_store_stall_any = lsu_stbuf_full_any | lsu_bus_buffer_full_any;
-   assign lsu_load_stall_any  = lsu_bus_buffer_full_any;
+   assign lsu_store_stall_any = lsu_stbuf_full_any | lsu_write_buffer_full_any;
     
    // Ready to accept dma trxns
    // There can't be any inpipe forwarding from non-dma packet to dma packet since they can be flushed so we can't have ld/st in dc3-dc5 when dma is in dc2
@@ -287,17 +279,7 @@ module lsu
    
    // lsu idle
    assign lsu_idle_any = ~(lsu_pkt_dc1.valid | lsu_pkt_dc2.valid | lsu_pkt_dc3.valid | lsu_pkt_dc4.valid | lsu_pkt_dc5.valid) & 
-                         lsu_bus_buffer_empty_any & lsu_stbuf_empty_any;
-
-   // lsu halt idle. This is used for entering the halt mode
-   // Indicates non-idle if there is a instruction valid in dc1-dc5 or read/write buffers are non-empty since they can come with error
-   // Need to make sure bus trxns are done and there are no non-dma writes in store buffer 
-   assign lsu_halt_idle_any = ~((lsu_pkt_dc1.valid & ~lsu_pkt_dc1.dma) | 
-                                (lsu_pkt_dc2.valid & ~lsu_pkt_dc2.dma) |
-                                (lsu_pkt_dc3.valid & ~lsu_pkt_dc3.dma) |
-                                (lsu_pkt_dc4.valid & ~lsu_pkt_dc4.dma) |
-                                (lsu_pkt_dc5.valid & ~lsu_pkt_dc5.dma)) &
-                               lsu_bus_buffer_empty_any & lsu_stbuf_nodma_empty_any;
+                         lsu_read_buffer_empty_any & lsu_write_buffer_empty_any & lsu_stbuf_empty_any;
 
    // Instantiate the store buffer
    //assign ldst_stbuf_reqvld_dc3  = store_stbuf_reqvld_dc3 | load_stbuf_reqvld_dc3;
@@ -306,11 +288,11 @@ module lsu
 
    // These go to store buffer to detect full
    assign isldst_dc1 = lsu_pkt_dc1.valid & (lsu_pkt_dc1.load | lsu_pkt_dc1.store);
-   assign dccm_ldst_dc2 = lsu_pkt_dc2.valid & (lsu_pkt_dc2.load | lsu_pkt_dc2.store) & (addr_in_dccm_dc2 | addr_in_pic_dc2);
-   assign dccm_ldst_dc3 = lsu_pkt_dc3.valid & (lsu_pkt_dc3.load | lsu_pkt_dc3.store) & (addr_in_dccm_dc3 | addr_in_pic_dc3);
+   assign isldst_dc2 = lsu_pkt_dc2.valid & (lsu_pkt_dc2.load | lsu_pkt_dc2.store);
+   assign isldst_dc3 = lsu_pkt_dc3.valid & (lsu_pkt_dc3.load | lsu_pkt_dc3.store) & (addr_in_dccm_dc3 | addr_in_pic_dc3);
    
    // Disable Forwarding for now
-   assign lsu_cmpen_dc2 = lsu_pkt_dc2.valid & (lsu_pkt_dc2.load | lsu_pkt_dc2.store) & (addr_in_dccm_dc2 | addr_in_pic_dc2);
+   assign lsu_cmpen_dc2 = lsu_pkt_dc2.valid & (lsu_pkt_dc2.load | lsu_pkt_dc2.store) & addr_in_dccm_dc2;
 
    // Bus signals
    assign lsu_busreq_dc2 = lsu_pkt_dc2.valid & (lsu_pkt_dc2.load | lsu_pkt_dc2.store) & addr_external_dc2 & ~flush_dc2_up & ~lsu_exc_dc2;

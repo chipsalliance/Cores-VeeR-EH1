@@ -20,8 +20,7 @@
 //********************************************************************************
 
 module ifu
-   import swerv_types::*;
-(
+  (
    input logic free_clk,
    input logic active_clk,
    input logic clk,
@@ -32,7 +31,7 @@ module ifu
 
    input logic dec_ib0_valid_eff_d,   // effective valid taking decode into account 
    input logic dec_ib1_valid_eff_d,   // effective valid taking decode into account 
-   
+  
    input logic        exu_i0_br_ret_e4, // i0 branch commit is a ret
    input logic        exu_i1_br_ret_e4, // i1 branch commit is a ret
    input logic        exu_i0_br_call_e4, // i0 branch commit is a call
@@ -66,18 +65,18 @@ module ifu
    output logic [3:0]                     ifu_axi_awcache,
    output logic [2:0]                     ifu_axi_awprot,
    output logic [3:0]                     ifu_axi_awqos,
-                                           
+  
    output logic                           ifu_axi_wvalid,                                       
    input  logic                           ifu_axi_wready,
    output logic [63:0]                    ifu_axi_wdata,
    output logic [7:0]                     ifu_axi_wstrb,
    output logic                           ifu_axi_wlast,
-                                           
+  
    input  logic                           ifu_axi_bvalid,
    output logic                           ifu_axi_bready,
    input  logic [1:0]                     ifu_axi_bresp,
    input  logic [`RV_IFU_BUS_TAG-1:0]     ifu_axi_bid,
-                                           
+  
    // AXI Read Channels                    
    output logic                           ifu_axi_arvalid,
    input  logic                           ifu_axi_arready,
@@ -91,7 +90,7 @@ module ifu
    output logic [3:0]                     ifu_axi_arcache,
    output logic [2:0]                     ifu_axi_arprot,
    output logic [3:0]                     ifu_axi_arqos,
-                                           
+  
    input  logic                           ifu_axi_rvalid,
    output logic                           ifu_axi_rready,
    input  logic [`RV_IFU_BUS_TAG-1:0]     ifu_axi_rid,
@@ -99,8 +98,8 @@ module ifu
    input  logic [1:0]                     ifu_axi_rresp,
    input  logic                           ifu_axi_rlast,
 
- //// AHB LITE BUS
-//`ifdef RV_BUILD_AHB_LITE 
+   //// AHB LITE BUS
+   //`ifdef RV_BUILD_AHB_LITE 
    input  logic                      ifu_bus_clk_en,
 
 
@@ -110,30 +109,30 @@ module ifu
    input  logic [2:0]                dma_mem_sz,
    input  logic                      dma_mem_write,
    input  logic [63:0]               dma_mem_wdata,
-                                     
+  
    output logic                      iccm_dma_ecc_error,		 
    output logic                      iccm_dma_rvalid,		 
    output logic [63:0]               iccm_dma_rdata,
    output logic                      iccm_ready,
 
-//`endif   
+   //`endif   
 
    output logic [1:0] ifu_pmu_instr_aligned,
    output logic       ifu_pmu_align_stall,
    output logic       ifu_pmu_fetch_stall,
-   
-//   I$ & ITAG Ports   
-   output logic [31:3]               ic_rw_addr,         // Read/Write addresss to the Icache.   
+  
+   //   I$ & ITAG Ports   
+   output logic [31:4]               ic_rw_addr,         // Read/Write addresss to the Icache.   
    output logic [3:0]                ic_wr_en,           // Icache write enable, when filling the Icache.
    output logic                      ic_rd_en,           // Icache read  enable.
 `ifdef RV_ICACHE_ECC
-   output logic [83:0]               ic_wr_data,         // Data to fill to the Icache. With ECC
+   output logic [167:0]              ic_wr_data,         // Data to fill to the Icache. With ECC
    input  logic [167:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With ECC
    input  logic [24:0]               ictag_debug_rd_data,// Debug icache tag. 
    output logic [41:0]               ic_debug_wr_data,   // Debug wr cache. 
    output logic [41:0]               ifu_ic_debug_rd_data,
 `else 
-   output logic [67:0]               ic_wr_data,         // Data to fill to the Icache. With Parity
+   output logic [135:0]              ic_wr_data,         // Data to fill to the Icache. With Parity
    input  logic [135:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With Parity
    input  logic [20:0]               ictag_debug_rd_data,// Debug icache tag. 
    output logic [33:0]               ic_debug_wr_data,   // Debug wr cache. 
@@ -152,7 +151,7 @@ module ifu
 
 
    output logic [3:0]                ic_tag_valid,       // Valid bits when accessing the Icache. One valid bit per way. F2 stage 
-                                     
+  
    input  logic [3:0]                ic_rd_hit,          // Compare hits from Icache tags. Per way.  F2 stage 
    input  logic                      ic_tag_perr,        // Icache Tag parity error
 
@@ -164,11 +163,11 @@ module ifu
    output logic                      iccm_rden,          // ICCM read enable.
    output logic [77:0]               iccm_wr_data,       // ICCM write data.
    output logic [2:0]                iccm_wr_size,       // ICCM write location within DW. 
-                                     
+  
    input  logic [155:0]              iccm_rd_data,       // Data read from ICCM.
 `endif
 
-// Perf counter sigs
+   // Perf counter sigs
    output logic       ifu_pmu_ic_miss, // ic miss
    output logic       ifu_pmu_ic_hit, // ic hit 
    output logic       ifu_pmu_bus_error, // iside bus error
@@ -176,32 +175,32 @@ module ifu
    output logic       ifu_pmu_bus_trxn, // iside bus transactions
 
 
-   output logic	 ifu_i0_valid,        // Instruction 0 valid. From Aligner to Decode 
-   output logic	 ifu_i1_valid,        // Instruction 1 valid. From Aligner to Decode 
-   output logic	 ifu_i0_icaf,         // Instruction 0 access fault. From Aligner to Decode
-   output logic	 ifu_i1_icaf,         // Instruction 1 access fault. From Aligner to Decode 
+   output logic	 ifu_i0_valid,        // Instructio 0 valid. From Aligner to Decode 
+   output logic	 ifu_i1_valid,        // Instructio 1 valid. From Aligner to Decode 
+   output logic	 ifu_i0_icaf,         // Instructio 0 access fault. From Aligner to Decode
+   output logic	 ifu_i1_icaf,         // Instructio 1 access fault. From Aligner to Decode 
    output logic  ifu_i0_icaf_f1,      // Instruction 0 has access fault on second fetch group
    output logic  ifu_i1_icaf_f1,      // Instruction 1 has access fault on second fetch group
-   output logic	 ifu_i0_perr,         // Instruction 0 parity error. From Aligner to Decode
-   output logic	 ifu_i1_perr,         // Instruction 1 parity error. From Aligner to Decode 
+   output logic	 ifu_i0_perr,         // Instructio 0 parity error. From Aligner to Decode
+   output logic	 ifu_i1_perr,         // Instructio 1 parity error. From Aligner to Decode 
    output logic	 ifu_i0_sbecc,        // Instruction 0 has single bit ecc error
    output logic	 ifu_i1_sbecc,        // Instruction 1 has single bit ecc error
    output logic	 ifu_i0_dbecc,        // Instruction 0 has double bit ecc error
    output logic	 ifu_i1_dbecc,        // Instruction 1 has double bit ecc error
    output logic  iccm_dma_sb_error,   // Single Bit ECC error from a DMA access
-   output logic[31:0] ifu_i0_instr,   // Instruction 0 . From Aligner to Decode
-   output logic[31:0] ifu_i1_instr,   // Instruction 1 . From Aligner to Decode 
-   output logic[31:1] ifu_i0_pc,      // Instruction 0 pc. From Aligner to Decode 
-   output logic[31:1] ifu_i1_pc,      // Instruction 1 pc. From Aligner to Decode
-   output logic ifu_i0_pc4,           // Instruction 0 is 4 byte. From Aligner to Decode
-   output logic ifu_i1_pc4,           // Instruction 1 is 4 byte. From Aligner to Decode 
+   output logic[31:0] ifu_i0_instr,   // Instructio 0 . From Aligner to Decode
+   output logic[31:0] ifu_i1_instr,   // Instructio 1 . From Aligner to Decode 
+   output logic[31:1] ifu_i0_pc,      // Instructio 0 pc. From Aligner to Decode 
+   output logic[31:1] ifu_i1_pc,      // Instructio 1 pc. From Aligner to Decode
+   output logic ifu_i0_pc4,           // Instructio 0 is 4 byte. From Aligner to Decode
+   output logic ifu_i1_pc4,           // Instructio 1 is 4 byte. From Aligner to Decode 
    output logic [15:0] ifu_illegal_inst, // Illegal instruction.
 
    output logic ifu_miss_state_idle,   // There is no outstanding miss. Cache miss state is idle.
 
 
-   output br_pkt_t i0_brp,           // Instruction 0 branch packet. From Aligner to Decode
-   output br_pkt_t i1_brp,           // Instruction 1 branch packet. From Aligner to Decode
+   output br_pkt_t i0_brp,           // Instructio 0 branch packet. From Aligner to Decode
+   output br_pkt_t i1_brp,           // Instructio 1 branch packet. From Aligner to Decode
 
    input predict_pkt_t  exu_mp_pkt, // mispredict packet
    input logic [`RV_BHT_GHR_RANGE] exu_mp_eghr, // execute ghr
@@ -209,7 +208,7 @@ module ifu
    input br_tlu_pkt_t dec_tlu_br0_wb_pkt, // slot0 update/error pkt
    input br_tlu_pkt_t dec_tlu_br1_wb_pkt, // slot1 update/error pkt
    input dec_tlu_flush_lower_wb,
-   
+  
    input rets_pkt_t exu_rets_e1_pkt, // E1 return stack packet
    input rets_pkt_t exu_rets_e4_pkt, // E4 return stack packet
 
@@ -225,10 +224,10 @@ module ifu
    output logic [15:0] ifu_i1_cinst,
 
 
-/// Icache debug 
+   /// Icache debug 
    input  cache_debug_pkt_t        dec_tlu_ic_diag_pkt ,
    output logic                    ifu_ic_debug_rd_data_valid,
- 
+  
 
 
    input logic scan_mode   
@@ -237,12 +236,12 @@ module ifu
    localparam TAGWIDTH = 2 ;
    localparam IDWIDTH  = 2 ;
 
-   logic 		   ifu_fb_consume1, ifu_fb_consume2;
-   logic [31:1] 	   ifc_fetch_addr_f2;
-   logic                   ifc_fetch_uncacheable_f1;
+   logic       ifu_fb_consume1, ifu_fb_consume2;
+   logic [31:1] ifc_fetch_addr_f2;
+   logic 	ifc_fetch_uncacheable_f1;
 
-   logic [7:0] 	 ifu_fetch_val;  // valids on a 2B boundary, left justified [7] implies valid fetch
-   logic [31:1]  ifu_fetch_pc;   // starting pc of fetch
+   logic [7:0] 	ifu_fetch_val;  // valids on a 2B boundary, left justified [7] implies valid fetch
+   logic [31:1] ifu_fetch_pc;   // starting pc of fetch
 
    logic [31:1] ifc_fetch_addr_f1;
    
@@ -256,7 +255,7 @@ module ifu
    logic        ifu_ic_mb_empty;
 
    
-   logic ic_hit_f2;
+   logic 	ic_hit_f2;
    
    // fetch control
    ifu_ifc_ctl ifc (.*
@@ -266,37 +265,37 @@ module ifu
 `ifdef RV_BTB_48
    logic [7:0][1:0] ifu_bp_way_f2; // way indication; right justified
 `else
-   logic [7:0] 	ifu_bp_way_f2; // way indication; right justified
+   logic [7:0] 	    ifu_bp_way_f2; // way indication; right justified
 `endif
-   logic  ifu_bp_kill_next_f2; // kill next fetch; taken target found
-   logic [31:1] ifu_bp_btb_target_f2; //  predicted target PC
-   logic [7:1] 	ifu_bp_inst_mask_f2; // tell ic which valids to kill because of a taken branch; right justified
-   logic [7:0] 	ifu_bp_hist1_f2; // history counters for all 4 potential branches; right justified
-   logic [7:0] 	ifu_bp_hist0_f2; // history counters for all 4 potential branches; right justified
-   logic [11:0] ifu_bp_poffset_f2; // predicted target
-   logic [7:0] 	ifu_bp_ret_f2; // predicted ret ; right justified
-   logic [7:0] 	ifu_bp_pc4_f2; // pc4 indication; right justified
-   logic [7:0] 	ifu_bp_valid_f2; // branch valid, right justified
+   logic 	    ifu_bp_kill_next_f2; // kill next fetch; taken target found
+   logic [31:1]     ifu_bp_btb_target_f2; //  predicted target PC
+   logic [7:1] 	    ifu_bp_inst_mask_f2; // tell ic which valids to kill because of a taken branch; right justified
+   logic [7:0] 	    ifu_bp_hist1_f2; // history counters for all 4 potential branches; right justified
+   logic [7:0] 	    ifu_bp_hist0_f2; // history counters for all 4 potential branches; right justified
+   logic [11:0]     ifu_bp_poffset_f2; // predicted target
+   logic [7:0] 	    ifu_bp_ret_f2; // predicted ret ; right justified
+   logic [7:0] 	    ifu_bp_pc4_f2; // pc4 indication; right justified
+   logic [7:0] 	    ifu_bp_valid_f2; // branch valid, right justified
    logic [`RV_BHT_GHR_RANGE] ifu_bp_fghr_f2;
    
    // branch predictor
    ifu_bp_ctl bp (.*);
 
    
-   logic [7:0]   ic_fetch_val_f2;
-   logic [127:0] ic_data_f2;
-   logic [127:0] ifu_fetch_data;
-   logic ifc_fetch_req_f1_raw, ifc_fetch_req_f1, ifc_fetch_req_f2;
-   logic ic_rd_parity_final_err;  // This fetch has a  data_cache or tag  parity error. 
-   logic iccm_rd_ecc_single_err;  // This fetch has an iccm single error. 
-   logic iccm_rd_ecc_double_err;  // This fetch has an iccm double error.
+   logic [7:0] 		     ic_fetch_val_f2;
+   logic [127:0] 	     ic_data_f2;
+   logic [127:0] 	     ifu_fetch_data;
+   logic 		     ifc_fetch_req_f1_raw, ifc_fetch_req_f1, ifc_fetch_req_f2;
+   logic 		     ic_rd_parity_final_err;  // This fetch has a  data_cache or tag  parity error. 
+   logic 		     iccm_rd_ecc_single_err;  // This fetch has an iccm single error. 
+   logic 		     iccm_rd_ecc_double_err;  // This fetch has an iccm double error.
 
    icache_err_pkt_t ic_error_f2;
    
-   logic         ifu_icache_fetch_f2 ;
-   logic [16:2]  ifu_icache_error_index;       //  Index with parity error
-   logic         ifu_icache_error_val;   //  Parity error 
-   logic         ifu_icache_sb_error_val;
+   logic 		     ifu_icache_fetch_f2 ;
+   logic [16:2] 	     ifu_icache_error_index;       //  Index with parity error
+   logic 		     ifu_icache_error_val;   //  Parity error 
+   logic 		     ifu_icache_sb_error_val;
 
    assign ifu_fetch_data[127:0] = ic_data_f2[127:0];
    assign ifu_fetch_val[7:0] = ic_fetch_val_f2[7:0];
@@ -320,20 +319,20 @@ module ifu
    //
    //
 `ifdef DUMP_BTB_ON
-   logic 	      exu_mp_valid; // conditional branch mispredict
-   logic exu_mp_way; // conditional branch mispredict
-   logic exu_mp_ataken; // direction is actual taken
-   logic exu_mp_boffset; // branch offsett
-   logic exu_mp_pc4; // branch is a 4B inst
-   logic exu_mp_call; // branch is a call inst
-   logic exu_mp_ret; // branch is a ret inst
-   logic exu_mp_ja; // branch is a jump always
-   logic [1:0] exu_mp_hist; // new history
-   logic [11:0] exu_mp_tgt; // target offset
+   logic 		     exu_mp_valid; // conditional branch mispredict
+   logic 		     exu_mp_way; // conditional branch mispredict
+   logic 		     exu_mp_ataken; // direction is actual taken
+   logic 		     exu_mp_boffset; // branch offsett
+   logic 		     exu_mp_pc4; // branch is a 4B inst
+   logic 		     exu_mp_call; // branch is a call inst
+   logic 		     exu_mp_ret; // branch is a ret inst
+   logic 		     exu_mp_ja; // branch is a jump always
+   logic [1:0] 		     exu_mp_hist; // new history
+   logic [11:0] 	     exu_mp_tgt; // target offset
    logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] exu_mp_addr; // BTB/BHT address
-   logic [1:0] 				exu_mp_bank; // write bank; based on branch PC[3:2]
-   logic [`RV_BTB_BTAG_SIZE-1:0] exu_mp_btag; // branch tag
-   logic [`RV_BHT_GHR_RANGE] exu_mp_fghr; // original fetch ghr (for correcting dir)
+   logic [1:0] 				   exu_mp_bank; // write bank; based on branch PC[3:2]
+   logic [`RV_BTB_BTAG_SIZE-1:0] 	   exu_mp_btag; // branch tag
+   logic [`RV_BHT_GHR_RANGE] 		   exu_mp_fghr; // original fetch ghr (for correcting dir)
 
    assign exu_mp_valid = exu_mp_pkt.misp; // conditional branch mispredict
    assign exu_mp_ataken = exu_mp_pkt.ataken;  // direction is actual taken
@@ -354,37 +353,37 @@ module ifu
  `define DEC `CPU_TOP.dec
  `define EXU `CPU_TOP.exu
    rvbtb_addr_hash f2hash(.pc(ifc_fetch_addr_f2[31:1]), .hash(btb_rd_addr_f2[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO]));
-   logic [31:0] mppc_ns, mppc;
+   logic [31:0] 			   mppc_ns, mppc;
    assign mppc_ns[31:1] = `EXU.exu_i0_flush_upper_e1 ? `DEC.decode.i0_pc_e1[31:1] : (`EXU.exu_i1_flush_upper_e1 ? `DEC.decode.i1_pc_e1[31:1] : (`EXU.exu_i0_flush_lower_e4 ?  `DEC.decode.i0_pc_e4[31:1] :  `DEC.decode.i1_pc_e4[31:1]));
    assign mppc_ns[0] = 1'b0;
-   logic [3:0] ic_rd_hit_f2;
+   logic [3:0] 				   ic_rd_hit_f2;
    rvdff #(36)  mdseal_ff (.*, .din({mppc_ns[31:0], mem_ctl.ic_rd_hit[3:0]}), .dout({mppc[31:0],ic_rd_hit_f2[3:0]}));
-logic [2:0] tmp_bnk;
-assign tmp_bnk[2:0] = encode8_3(bp.btb_sel_f2[7:0]);
+   logic [2:0] 				   tmp_bnk;
+   assign tmp_bnk[2:0] = encode8_3(bp.btb_sel_f2[7:0]);
    always @(negedge clk) begin
       if(`DEC.tlu.mcyclel[31:0] == 32'h0000_0010) begin
 	 $display("BTB_CONFIG: %d",`RV_BTB_ARRAY_DEPTH*4);
-	 `ifndef BP_NOGSHARE
+ `ifndef BP_NOGSHARE
 	 $display("BHT_CONFIG: %d gshare: 1",`RV_BHT_ARRAY_DEPTH*4);
-	 `else
+ `else
 	 $display("BHT_CONFIG: %d gshare: 0",`RV_BHT_ARRAY_DEPTH*4);
-	 `endif
+ `endif
 	 $display("RS_CONFIG: %d", `RV_RET_STACK_SIZE);
       end
-       if(exu_flush_final & ~(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error | dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error) & (exu_mp_pkt.misp | exu_mp_pkt.ataken)) 
-	 $display("%7d BTB_MP  : index: %0h bank: %0h call: %b ret: %b ataken: %b hist: %h valid: %b tag: %h targ: %h eghr: %b pred: %b ghr_index: %h brpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha, exu_mp_addr[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO], exu_mp_bank[1:0], exu_mp_call, exu_mp_ret, exu_mp_ataken, exu_mp_hist[1:0], exu_mp_valid, exu_mp_pkt.btag[`RV_BTB_BTAG_SIZE-1:0], {exu_flush_path_final[31:1], 1'b0}, exu_mp_eghr[`RV_BHT_GHR_RANGE], exu_mp_valid, bp.bht_wr_addr0, mppc[31:0], exu_mp_pkt.way);
-     for(int i = 0; i < 8; i++) begin
-      if(ifu_bp_valid_f2[i] & ifc_fetch_req_f2) 
-	$display("%7d BTB_HIT : index: %0h bank: %0h call: %b ret: %b taken: %b strength: %b tag: %h targ: %h ghr: %4b ghr_index: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,btb_rd_addr_f2[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],encode8_3(bp.btb_sel_f2[7:0]), bp.btb_rd_call_f2, bp.btb_rd_ret_f2, ifu_bp_hist1_f2[tmp_bnk], ifu_bp_hist0_f2[tmp_bnk], bp.fetch_rd_tag_f2[`RV_BTB_BTAG_SIZE-1:0], {ifu_bp_btb_target_f2[31:1], 1'b0}, bp.fghr[`RV_BHT_GHR_RANGE], bp.bht_rd_addr_f1, ifu_bp_way_f2[tmp_bnk]);
-     end
-`ifdef RV_BTB_48
+      if(exu_flush_final & ~(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error | dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error) & (exu_mp_pkt.misp | exu_mp_pkt.ataken)) 
+	$display("%7d BTB_MP  : index: %0h bank: %0h call: %b ret: %b ataken: %b hist: %h valid: %b tag: %h targ: %h eghr: %b pred: %b ghr_index: %h brpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha, exu_mp_addr[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO], exu_mp_bank[1:0], exu_mp_call, exu_mp_ret, exu_mp_ataken, exu_mp_hist[1:0], exu_mp_valid, exu_mp_pkt.btag[`RV_BTB_BTAG_SIZE-1:0], {exu_flush_path_final[31:1], 1'b0}, exu_mp_eghr[`RV_BHT_GHR_RANGE], exu_mp_valid, bp.bht_wr_addr0, mppc[31:0], exu_mp_pkt.way);
+      for(int i = 0; i < 8; i++) begin
+	 if(ifu_bp_valid_f2[i] & ifc_fetch_req_f2) 
+	   $display("%7d BTB_HIT : index: %0h bank: %0h call: %b ret: %b taken: %b strength: %b tag: %h targ: %h ghr: %4b ghr_index: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,btb_rd_addr_f2[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],encode8_3(bp.btb_sel_f2[7:0]), bp.btb_rd_call_f2, bp.btb_rd_ret_f2, ifu_bp_hist1_f2[tmp_bnk], ifu_bp_hist0_f2[tmp_bnk], bp.fetch_rd_tag_f2[`RV_BTB_BTAG_SIZE-1:0], {ifu_bp_btb_target_f2[31:1], 1'b0}, bp.fghr[`RV_BHT_GHR_RANGE], bp.bht_rd_addr_f1, ifu_bp_way_f2[tmp_bnk]);
+      end
+ `ifdef RV_BTB_48
       for(int y = 0; y < 4; y++) begin
 	 for(int z = 0; z < 4; z++) begin
 	    if(bp.lru_bank_sel[y][z])
 	      $display("%7d BTB_LRU: index: %0h bank: %0h newlru %h", `DEC.tlu.mcyclel[31:0]+32'ha, z,y,bp.lru_bank_wr_data[y][z]);	
 	 end
       end
-`endif      
+ `endif      
       if(dec_tlu_br0_wb_pkt.valid & ~(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error))
 	$display("%7d BTB_UPD0: ghr_index: %0h bank: %0h hist: %h  way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,bp.br0_hashed_wb[`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO],{dec_tlu_br0_wb_pkt.bank[1:0],dec_tlu_br0_wb_pkt.middle}, dec_tlu_br0_wb_pkt.hist, dec_tlu_br0_wb_pkt.way);	
       if(dec_tlu_br1_wb_pkt.valid & ~(dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error))
@@ -394,7 +393,7 @@ assign tmp_bnk[2:0] = encode8_3(bp.btb_sel_f2[7:0]);
       if(dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error)
 	$display("%7d BTB_ERR1: index: %0h bank: %0h start: %b rfpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,dec_tlu_br1_wb_pkt.index[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],dec_tlu_br1_wb_pkt.bank[1:0], dec_tlu_br1_wb_pkt.br_start_error, {exu_flush_path_final[31:1], 1'b0}, dec_tlu_br1_wb_pkt.way);
    end // always @ (negedge clk)
-      function [2:0] encode8_3;
+   function [2:0] encode8_3;
       input [7:0] in;
 
       encode8_3[2] = |in[7:4];

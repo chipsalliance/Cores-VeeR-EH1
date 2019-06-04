@@ -21,14 +21,12 @@
 //
 //********************************************************************************
 module swerv 
-   import swerv_types::*;
-(
+  (
    input logic		        clk,
    input logic		        rst_l,
    input logic [31:1]           rst_vec,
    input logic                  nmi_int,
    input logic [31:1]           nmi_vec,			    
-   input logic [31:1]           jtag_id,
    output logic                 core_rst_l,   // This is "rst_l | dbg_rst_l"  
 
    output logic [63:0] trace_rv_i_insn_ip,
@@ -53,18 +51,10 @@ module swerv
    output logic o_cpu_run_ack,     // Core Acknowledge to run request
    output logic o_debug_mode_status, // Core to the PMU that core is in debug mode. When core is in debug mode, the PMU should refrain from sendng a halt or run request
 
-   // external MPC halt/run interface
-   input logic mpc_debug_halt_req, // Async halt request
-   input logic mpc_debug_run_req, // Async run request
-   input logic mpc_reset_run_req, // Run/halt after reset
-   output logic mpc_debug_halt_ack, // Halt ack
-   output logic mpc_debug_run_ack, // Run ack
-   output logic debug_brkpt_status, // debug breakpoint
-   
-   output logic [1:0] dec_tlu_perfcnt0, // toggles when perf counter 0 has an event inc
-   output logic [1:0] dec_tlu_perfcnt1,
-   output logic [1:0] dec_tlu_perfcnt2,
-   output logic [1:0] dec_tlu_perfcnt3,
+   output logic dec_tlu_perfcnt0, // toggles when slot0 perf counter 0 has an event inc
+   output logic dec_tlu_perfcnt1,
+   output logic dec_tlu_perfcnt2,
+   output logic dec_tlu_perfcnt3,
 			    
    // DCCM ports	        
    output logic                          dccm_wren,
@@ -89,18 +79,18 @@ module swerv
 `endif
 
    // ICache , ITAG  ports
-   output logic [31:3]           ic_rw_addr,
+   output logic [31:4]           ic_rw_addr,
    output logic [3:0]            ic_tag_valid,
    output logic [3:0]            ic_wr_en,
    output logic                  ic_rd_en,
 
 `ifdef RV_ICACHE_ECC
-   output logic [83:0]               ic_wr_data,         // Data to fill to the Icache. With ECC
+   output logic [167:0]              ic_wr_data,         // Data to fill to the Icache. With ECC
    input  logic [167:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With ECC
    input  logic [24:0]               ictag_debug_rd_data,// Debug icache tag. 
    output logic [41:0]               ic_debug_wr_data,   // Debug wr cache. 
 `else 
-   output logic [67:0]               ic_wr_data,         // Data to fill to the Icache. With Parity
+   output logic [135:0]              ic_wr_data,         // Data to fill to the Icache. With Parity
    input  logic [135:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With Parity
    input  logic [20:0]               ictag_debug_rd_data,// Debug icache tag. 
    output logic [33:0]               ic_debug_wr_data,   // Debug wr cache. 
@@ -356,11 +346,9 @@ module swerv
    input logic [1:0]             dma_htrans,
    input logic                   dma_hwrite,
    input logic [63:0]            dma_hwdata,
-   input logic                   dma_hsel,
-   input logic                   dma_hreadyin,
-   
+
    output  logic [63:0]          dma_hrdata,
-   output  logic                 dma_hreadyout,
+   output  logic                 dma_hready,
    output  logic                 dma_hresp,
 
 `endif //  `ifdef RV_BUILD_AHB_LITE
@@ -645,7 +633,6 @@ module swerv
    rets_pkt_t exu_rets_e1_pkt;
    rets_pkt_t exu_rets_e4_pkt;
    
-   logic         dec_tlu_cancel_e4;
    logic 	 ifu_miss_state_idle;
    logic 	 dec_tlu_flush_noredir_wb;
    logic         dec_tlu_flush_leak_one_wb;
@@ -673,16 +660,13 @@ module swerv
    logic        dec_i1_lsu_d;      
 
    logic [31:0]  lsu_result_dc3;
-   logic [31:0]  lsu_result_corr_dc4;    // ECC corrected lsu load data
    lsu_error_pkt_t lsu_error_pkt_dc3;
    logic         lsu_freeze_external_ints_dc3;
    logic         lsu_imprecise_error_load_any;
    logic         lsu_imprecise_error_store_any;
    logic [31:0]  lsu_imprecise_error_addr_any;
-   logic         lsu_load_stall_any;       // This is for blocking stores
    logic         lsu_store_stall_any;       // This is for blocking stores
    logic         lsu_idle_any;
-   logic         lsu_halt_idle_any;   // This is used to enter halt mode. Exclude DMA
    
    // Non-blocking loads
    logic                                  lsu_nonblock_load_valid_dc3;
@@ -868,8 +852,6 @@ module swerv
    logic  dec_tlu_bpred_disable;          
    logic  dec_tlu_wb_coalescing_disable;  
    logic  dec_tlu_ld_miss_byp_wb_disable; 
-   logic  dec_tlu_sideeffect_posted_disable;
-   logic [2:0] dec_tlu_dma_qos_prty;
    // clock gating overrides from mcgc
    logic  dec_tlu_misc_clk_override;      
    logic  dec_tlu_exu_clk_override;       
@@ -909,9 +891,8 @@ module swerv
    logic [31:0]            dec_dbg_rddata;            // The core drives this data ( intercepts the pipe and sends it here )
    logic                   dec_dbg_cmd_done;          // This will be treated like a valid signal 
    logic                   dec_dbg_cmd_fail;          // Abstract command failed
-   logic 		   dec_tlu_mpc_halted_only;   // Only halted due to MPC
-   logic                   dec_tlu_dbg_halted;        // The core has finished the queiscing sequence. Sticks this signal high  
-   logic                   dec_tlu_pmu_fw_halted;     // The core has finished the queiscing sequence. Sticks this signal high  
+   logic                   dec_tlu_dbg_halted;            // The core has finished the queiscing sequence. Sticks this signal high  
+   logic                   dec_tlu_pmu_fw_halted;            // The core has finished the queiscing sequence. Sticks this signal high  
    logic                   dec_tlu_resume_ack;
    logic                   dec_tlu_debug_mode;        // Core is in debug mode
    logic 		   dec_debug_wdata_rs1_d;
@@ -947,7 +928,7 @@ module swerv
 
    logic 		   active_state;
    logic 		   free_clk, active_clk;
-   logic                   dec_pause_state_cg;
+   logic                   dec_pause_state;
 
    logic 		   lsu_nonblock_load_data_error;
 
@@ -957,7 +938,7 @@ module swerv
    trace_pkt_t  trace_rv_trace_pkt;
 
    
-   assign active_state = ~dec_pause_state_cg | dec_tlu_flush_lower_wb;
+   assign active_state = ~dec_pause_state | dec_tlu_flush_lower_wb;
    
    rvclkhdr free_cg   ( .en(1'b1),         .l1clk(free_clk), .* );
    rvclkhdr active_cg ( .en(active_state), .l1clk(active_clk), .* );   
@@ -974,11 +955,12 @@ module swerv
  
    // inputs from the JTAG - these will become input ports to the echx
    logic                   dmi_reg_en;                // read or write
-   logic [6:0]             dmi_reg_addr;              // address of DM register
+   logic [31:0]            dmi_reg_addr;              // address of DM register
    logic                   dmi_reg_wr_en;             // write instruction
    logic [31:0] 	   dmi_reg_wdata;             // write data
    // outputs from the dbg back to jtag
    logic [31:0] 	   dmi_reg_rdata;
+   logic                   dmi_reg_ack;
    logic                   dmi_hard_reset;
    
    logic                   jtag_tdoEn;
@@ -998,8 +980,8 @@ module swerv
            // Processor Signals
            .core_rst_n  (rst_l),          // Core reset, active low                  
            .core_clk    (clk),            // Core clock                  
-           .jtag_id     (jtag_id),        // 32 bit JTAG ID 
            .rd_data     (dmi_reg_rdata),  // 32 bit Read data from  Processor                       
+           .reg_ack     (dmi_reg_ack),               // Acknowledgement signal from Processor                     
            .reg_wr_data (dmi_reg_wdata),  // 32 bit Write data to Processor                      
            .reg_wr_addr (dmi_reg_addr),   // 32 bit Write address to Processor                   
            .reg_en      (dmi_reg_en),     // 1 bit  Write interface bit to Processor                                   
@@ -1064,7 +1046,6 @@ module swerv
    );
  
 `ifdef RV_BUILD_AHB_LITE
-
    // AXI4 -> AHB Gasket for LSU
    axi4_to_ahb #(.TAG(LSU_BUS_TAG)) lsu_axi4_to_ahb (
       .clk_override(dec_tlu_bus_clk_override),
@@ -1283,10 +1264,9 @@ module swerv
       .ahb_hwdata(dma_hwdata[63:0]),
 
       .ahb_hrdata(dma_hrdata[63:0]),
-      .ahb_hreadyout(dma_hreadyout),
-      .ahb_hresp(dma_hresp), 
-      .ahb_hreadyin(dma_hreadyin),
-      .ahb_hsel(dma_hsel),
+      .ahb_hready(dma_hready),
+      .ahb_hresp(dma_hresp),
+      
       .*
    );
 

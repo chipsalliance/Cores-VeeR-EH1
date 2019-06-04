@@ -22,16 +22,13 @@
 //********************************************************************************
 `include "build.h"
 //`include "def.sv"
-module swerv_wrapper  
-   import swerv_types::*;
-(
+module swerv_wrapper  (
    input logic 			     clk,
    input logic 			     rst_l,
    input logic [31:1] 		     rst_vec,
    input logic                       nmi_int,
    input logic [31:1]                nmi_vec,			    
-   input logic [31:1]                jtag_id,
-                       
+
 
    output logic [63:0] trace_rv_i_insn_ip,
    output logic [63:0] trace_rv_i_address_ip,
@@ -223,7 +220,7 @@ module swerv_wrapper
    output logic [`RV_DMA_BUS_TAG-1:0]   dma_axi_rid,
    output logic [63:0]                  dma_axi_rdata,
    output logic [1:0]                   dma_axi_rresp,
-   output logic                         dma_axi_rlast,		       
+   output logic                         dma_axi_rlast,
                        
 `endif
 
@@ -277,11 +274,9 @@ module swerv_wrapper
    input logic [1:0] 		     dma_htrans,
    input logic 			     dma_hwrite,
    input logic [63:0] 		     dma_hwdata,
-   input logic                       dma_hsel,
-   input logic                       dma_hreadyin,		      
- 
+
    output logic [63:0] 		     dma_hrdata,
-   output logic 		     dma_hreadyout,
+   output logic 		     dma_hready,
    output logic 		     dma_hresp,
 
 `endif
@@ -298,10 +293,10 @@ module swerv_wrapper
    input logic 			     timer_int,
    input logic [`RV_PIC_TOTAL_INT:1] extintsrc_req,
 
-   output logic [1:0] dec_tlu_perfcnt0, // toggles when perf counter 0 has an event inc
-   output logic [1:0] dec_tlu_perfcnt1,
-   output logic [1:0] dec_tlu_perfcnt2,
-   output logic [1:0] dec_tlu_perfcnt3,
+   output logic dec_tlu_perfcnt0, // toggles when slot0 perf counter 0 has an event inc
+   output logic dec_tlu_perfcnt1,
+   output logic dec_tlu_perfcnt2,
+   output logic dec_tlu_perfcnt3,
 
    // ports added by the soc team	       
    input logic 			     jtag_tck, // JTAG clk
@@ -309,14 +304,6 @@ module swerv_wrapper
    input logic 			     jtag_tdi, // JTAG tdi
    input logic 			     jtag_trst_n, // JTAG Reset
    output logic 		     jtag_tdo, // JTAG TDO
-   // external MPC halt/run interface
-   input logic mpc_debug_halt_req, // Async halt request
-   input logic mpc_debug_run_req, // Async run request
-   input logic mpc_reset_run_req, // Run/halt after reset
-   output logic mpc_debug_halt_ack, // Halt ack
-   output logic mpc_debug_run_ack, // Run ack
-   output logic debug_brkpt_status, // debug breakpoint
-
    input logic 			     i_cpu_halt_req, // Async halt req to CPU
    output logic 		     o_cpu_halt_ack, // core response to halt
    output logic 		     o_cpu_halt_status, // 1'b1 indicates core is halted
@@ -345,7 +332,7 @@ module swerv_wrapper
    // PIC ports
 
    // Icache & Itag ports
-   logic [31:3]  ic_rw_addr;   
+   logic [31:4]  ic_rw_addr;   
    logic [3:0]   ic_wr_en  ;     // Which way to write
    logic         ic_rd_en ;
 
@@ -363,13 +350,13 @@ module swerv_wrapper
 
 `ifdef RV_ICACHE_ECC
    logic [24:0]  ictag_debug_rd_data;// Debug icache tag. 
-   logic [83:0]  ic_wr_data;         // ic_wr_data[135:0]
-   logic [167:0] ic_rd_data;         // ic_rd_data[135:0]
+   logic [167:0] ic_wr_data;     // ic_wr_data[135:0]
+   logic [167:0] ic_rd_data;     // ic_rd_data[135:0]
    logic [41:0]  ic_debug_wr_data;   // Debug wr cache. 
 `else
    logic [20:0]  ictag_debug_rd_data;// Debug icache tag. 
-   logic [67:0]  ic_wr_data;         // ic_wr_data[135:0]
-   logic [135:0] ic_rd_data;         // ic_rd_data[135:0]
+   logic [135:0] ic_wr_data;     // ic_wr_data[135:0]
+   logic [135:0] ic_rd_data;     // ic_rd_data[135:0]
    logic [33:0]  ic_debug_wr_data;   // Debug wr cache. 
 `endif
 

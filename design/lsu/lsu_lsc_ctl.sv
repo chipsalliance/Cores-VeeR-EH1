@@ -25,9 +25,7 @@
 // DC1 -> DC2 -> DC3 -> DC4 (Commit)
 // 
 //********************************************************************************
-module lsu_lsc_ctl 
-   import swerv_types::*;
-(
+module lsu_lsc_ctl (
    input logic         rst_l,
    // clocks per pipe
    input logic        lsu_c1_dc4_clk,                            
@@ -73,10 +71,8 @@ module lsu_lsc_ctl
    
    input  logic [31:0] picm_mask_data_dc3,
    input  logic [31:0] lsu_ld_data_dc3,
-   input  logic [31:0] lsu_ld_data_corr_dc3,
    input  logic [31:0]  bus_read_data_dc3,
    output logic [31:0] lsu_result_dc3,
-   output logic [31:0] lsu_result_corr_dc4,   // This is the ECC corrected data going to RF
    // lsu address down the pipe
    output logic [31:0] lsu_addr_dc1,
    output logic [31:0] lsu_addr_dc2,
@@ -141,9 +137,7 @@ module lsu_lsc_ctl
    logic [31:0]        rs1_dc1;
    logic [11:0]        offset_dc1;
    logic [12:0]        end_addr_offset_dc1;
-   logic [31:0]        lsu_ld_datafn_dc3;
-   logic [31:0]        lsu_ld_datafn_corr_dc3;
-   logic [31:0]        lsu_result_corr_dc3;
+   logic [31:0]        data3;
    logic [2:0]         addr_offset_dc1;
    
    logic [63:0]        dma_mem_wdata_shifted;
@@ -251,28 +245,21 @@ module lsu_lsc_ctl
    rvdff #($bits(lsu_pkt_t)-1) lsu_pkt_dc4ff (.*, .din(lsu_pkt_dc4_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc4[$bits(lsu_pkt_t)-1:1]), .clk(lsu_c1_dc4_clk));
    rvdff #($bits(lsu_pkt_t)-1) lsu_pkt_dc5ff (.*, .din(lsu_pkt_dc5_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc5[$bits(lsu_pkt_t)-1:1]), .clk(lsu_c1_dc5_clk));   
    
-   assign lsu_ld_datafn_dc3[31:0] = addr_external_dc3 ? bus_read_data_dc3[31:0] : lsu_ld_data_dc3[31:0];
-   assign lsu_ld_datafn_corr_dc3[31:0] = addr_external_dc3 ? bus_read_data_dc3[31:0] : lsu_ld_data_corr_dc3[31:0];
+   assign data3[31:0] = addr_external_dc3 ? bus_read_data_dc3[31:0] : lsu_ld_data_dc3[31:0];
 
    // this result must look at prior stores and merge them in
-   assign lsu_result_dc3[31:0] = ({32{ lsu_pkt_dc3.unsign & lsu_pkt_dc3.by  }} & {24'b0,lsu_ld_datafn_dc3[7:0]}) |
-                                 ({32{ lsu_pkt_dc3.unsign & lsu_pkt_dc3.half}} & {16'b0,lsu_ld_datafn_dc3[15:0]}) |
-                                 ({32{~lsu_pkt_dc3.unsign & lsu_pkt_dc3.by  }} & {{24{  lsu_ld_datafn_dc3[7]}}, lsu_ld_datafn_dc3[7:0]}) |
-                                 ({32{~lsu_pkt_dc3.unsign & lsu_pkt_dc3.half}} & {{16{  lsu_ld_datafn_dc3[15]}},lsu_ld_datafn_dc3[15:0]}) |
-                                 ({32{lsu_pkt_dc3.word}} &                       lsu_ld_datafn_dc3[31:0]);
-
-   assign lsu_result_corr_dc3[31:0] = ({32{ lsu_pkt_dc3.unsign & lsu_pkt_dc3.by  }} & {24'b0,lsu_ld_datafn_corr_dc3[7:0]}) |
-                                      ({32{ lsu_pkt_dc3.unsign & lsu_pkt_dc3.half}} & {16'b0,lsu_ld_datafn_corr_dc3[15:0]}) |
-                                      ({32{~lsu_pkt_dc3.unsign & lsu_pkt_dc3.by  }} & {{24{  lsu_ld_datafn_corr_dc3[7]}}, lsu_ld_datafn_corr_dc3[7:0]}) |
-                                      ({32{~lsu_pkt_dc3.unsign & lsu_pkt_dc3.half}} & {{16{  lsu_ld_datafn_corr_dc3[15]}},lsu_ld_datafn_corr_dc3[15:0]}) |
-                                      ({32{lsu_pkt_dc3.word}} &                       lsu_ld_datafn_corr_dc3[31:0]);
+   assign lsu_result_dc3[31:0] = ({32{ lsu_pkt_dc3.unsign & lsu_pkt_dc3.by  }} & {24'b0,data3[7:0]}) |
+                                 ({32{ lsu_pkt_dc3.unsign & lsu_pkt_dc3.half}} & {16'b0,data3[15:0]}) |
+                                 ({32{~lsu_pkt_dc3.unsign & lsu_pkt_dc3.by  }} & {{24{  data3[7]}}, data3[7:0]}) |
+                                 ({32{~lsu_pkt_dc3.unsign & lsu_pkt_dc3.half}} & {{16{  data3[15]}},data3[15:0]}) |
+                                 ({32{lsu_pkt_dc3.word}} &        data3[31:0]);
 
    
    // absence load/store all 0's   
    assign lsu_addr_dc1[31:0] = full_addr_dc1[31:0];
 
    // Interrupt as a flush source allows the WB to occur
-   assign lsu_commit_dc5 = lsu_pkt_dc5.valid & (lsu_pkt_dc5.store | lsu_pkt_dc5.load) & ~flush_dc5 & ~lsu_pkt_dc5.dma;
+   assign lsu_commit_dc5 = lsu_pkt_dc5.valid & (lsu_pkt_dc5.store | lsu_pkt_dc5.load) & ~(flush_dc5 & ~lsu_pkt_dc5.dma);
 
    assign dma_mem_wdata_shifted[63:0] = dma_mem_wdata[63:0] >> {dma_mem_addr[2:0], 3'b000};   // Shift the dma data to lower bits to make it consistent to lsu stores
    assign store_data_d[63:0] = dma_dccm_req ? dma_mem_wdata_shifted[63:0] : {32'b0,exu_lsu_rs2_d[31:0]};   
@@ -293,8 +280,6 @@ module lsu_lsc_ctl
                                  ((lsu_pkt_dc3.store_data_bypass_e4_c3[1]) ? i1_result_e4_eff[31:0] :
                                   (lsu_pkt_dc3.store_data_bypass_e4_c3[0]) ? i0_result_e4_eff[31:0] : store_data_pre_dc3[31:0]);
    
-   rvdff #(32) lsu_result_corr_dc4ff (.*, .din(lsu_result_corr_dc3[31:0]), .dout(lsu_result_corr_dc4[31:0]), .clk(lsu_c1_dc4_clk));
-
    rvdff #(64) sddc1ff (.*, .din(store_data_d[63:0]),  .dout(store_data_dc1[63:0]), .clk(lsu_store_c1_dc1_clk));
    rvdff #(64) sddc2ff (.*, .din(store_data_dc2_in[63:0]), .dout(store_data_pre_dc2[63:0]), .clk(lsu_store_c1_dc2_clk));
    rvdffs #(64) sddc3ff (.*, .din(store_data_dc2[63:0]), .dout(store_data_pre_dc3[63:0]), .en(~lsu_freeze_dc3), .clk(lsu_store_c1_dc3_clk));

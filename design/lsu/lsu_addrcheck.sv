@@ -19,12 +19,10 @@
 // 
 // Owner: 
 // Function: Checks the memory map for the address
-// Comments: 
+// Comments:
 //
 //********************************************************************************
-module lsu_addrcheck 
-   import swerv_types::*;
-(
+module lsu_addrcheck (
    input logic         lsu_freeze_c2_dc2_clk,       // clock
    input logic         lsu_freeze_c2_dc3_clk,
    input logic 	       rst_l,                       // reset
@@ -72,7 +70,6 @@ module lsu_addrcheck
    logic        start_addr_in_pic_region_dc1, end_addr_in_pic_region_dc1;
    logic [4:0] 	csr_idx;
    logic        addr_in_iccm;
-   logic        non_dccm_access_ok;
    
    if (DCCM_ENABLE == 1) begin: Gen_dccm_enable
       // Start address check
@@ -129,45 +126,23 @@ module lsu_addrcheck
                               (lsu_pkt_dc1.half & (start_addr_dc1[0] == 1'b0)) |
                               lsu_pkt_dc1.by;
 
-    assign non_dccm_access_ok = (~(|{`RV_DATA_ACCESS_ENABLE0,`RV_DATA_ACCESS_ENABLE1,`RV_DATA_ACCESS_ENABLE2,`RV_DATA_ACCESS_ENABLE3,`RV_DATA_ACCESS_ENABLE4,`RV_DATA_ACCESS_ENABLE5,`RV_DATA_ACCESS_ENABLE6,`RV_DATA_ACCESS_ENABLE7})) |
-
-                             (((`RV_DATA_ACCESS_ENABLE0 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK0)) == (`RV_DATA_ACCESS_ADDR0 | `RV_DATA_ACCESS_MASK0)) |
-                               (`RV_DATA_ACCESS_ENABLE1 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK1)) == (`RV_DATA_ACCESS_ADDR1 | `RV_DATA_ACCESS_MASK1)) |
-                               (`RV_DATA_ACCESS_ENABLE2 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK2)) == (`RV_DATA_ACCESS_ADDR2 | `RV_DATA_ACCESS_MASK2)) |
-                               (`RV_DATA_ACCESS_ENABLE3 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK3)) == (`RV_DATA_ACCESS_ADDR3 | `RV_DATA_ACCESS_MASK3)) |			       
-                               (`RV_DATA_ACCESS_ENABLE4 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK4)) == (`RV_DATA_ACCESS_ADDR4 | `RV_DATA_ACCESS_MASK4)) |
-                               (`RV_DATA_ACCESS_ENABLE5 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK5)) == (`RV_DATA_ACCESS_ADDR5 | `RV_DATA_ACCESS_MASK5)) |
-                               (`RV_DATA_ACCESS_ENABLE6 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK6)) == (`RV_DATA_ACCESS_ADDR6 | `RV_DATA_ACCESS_MASK6)) |
-                               (`RV_DATA_ACCESS_ENABLE7 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK7)) == (`RV_DATA_ACCESS_ADDR7 | `RV_DATA_ACCESS_MASK7)))        &
-
-                              ((`RV_DATA_ACCESS_ENABLE0 & ((end_addr_dc1[31:0]   | `RV_DATA_ACCESS_MASK0)) == (`RV_DATA_ACCESS_ADDR0 | `RV_DATA_ACCESS_MASK0)) |
-                               (`RV_DATA_ACCESS_ENABLE1 & ((end_addr_dc1[31:0]   | `RV_DATA_ACCESS_MASK1)) == (`RV_DATA_ACCESS_ADDR1 | `RV_DATA_ACCESS_MASK1)) |
-                               (`RV_DATA_ACCESS_ENABLE2 & ((end_addr_dc1[31:0]   | `RV_DATA_ACCESS_MASK2)) == (`RV_DATA_ACCESS_ADDR2 | `RV_DATA_ACCESS_MASK2)) |
-                               (`RV_DATA_ACCESS_ENABLE3 & ((end_addr_dc1[31:0]   | `RV_DATA_ACCESS_MASK3)) == (`RV_DATA_ACCESS_ADDR3 | `RV_DATA_ACCESS_MASK3)) |
-                               (`RV_DATA_ACCESS_ENABLE4 & ((end_addr_dc1[31:0]   | `RV_DATA_ACCESS_MASK4)) == (`RV_DATA_ACCESS_ADDR4 | `RV_DATA_ACCESS_MASK4)) |
-                               (`RV_DATA_ACCESS_ENABLE5 & ((end_addr_dc1[31:0]   | `RV_DATA_ACCESS_MASK5)) == (`RV_DATA_ACCESS_ADDR5 | `RV_DATA_ACCESS_MASK5)) |
-                               (`RV_DATA_ACCESS_ENABLE6 & ((end_addr_dc1[31:0]   | `RV_DATA_ACCESS_MASK6)) == (`RV_DATA_ACCESS_ADDR6 | `RV_DATA_ACCESS_MASK6)) |
-                               (`RV_DATA_ACCESS_ENABLE7 & ((end_addr_dc1[31:0]   | `RV_DATA_ACCESS_MASK7)) == (`RV_DATA_ACCESS_ADDR7 | `RV_DATA_ACCESS_MASK7))));
-
    // Access fault logic
    // 1. Addr in dccm region but not in dccm offset
    // 2. Addr in picm region but not in picm offset
    // 3. DCCM -> PIC offset cross when DCCM/PIC in same region (PIC access are always word aligned so no cross possible from PIC->DCCM)
-   // 4. Ld/St access to picm are not word aligned
-   // 5. Address not in protected space or dccm/pic region
+   // 3. Ld/St access to picm are not word aligned
+   // 4. Uncorrectable (double bit) ECC error
    if (DCCM_REGION == PIC_REGION) begin
       assign access_fault_dc1  = ((start_addr_in_dccm_region_dc1 & ~(start_addr_in_dccm_dc1 | start_addr_in_pic_dc1)) | 
                                   (end_addr_in_dccm_region_dc1 & ~(end_addr_in_dccm_dc1 | end_addr_in_pic_dc1))       |
                                   ((start_addr_dc1[27:18] != end_addr_dc1[27:18]) & start_addr_in_dccm_dc1) |
-                                  ((addr_in_pic_dc1 & ((start_addr_dc1[1:0] != 2'b0) | ~lsu_pkt_dc1.word))) |
-                                  (~start_addr_in_dccm_region_dc1 & ~non_dccm_access_ok)) & lsu_pkt_dc1.valid & ~lsu_pkt_dc1.dma;
+                                  (addr_in_pic_dc1 & (start_addr_dc1[1:0] != 2'b0))) & lsu_pkt_dc1.valid & ~lsu_pkt_dc1.dma;
    end else begin
       assign access_fault_dc1  = ((start_addr_in_dccm_region_dc1 & ~start_addr_in_dccm_dc1) | 
                                   (end_addr_in_dccm_region_dc1 & ~end_addr_in_dccm_dc1)     |
                                   (start_addr_in_pic_region_dc1 & ~start_addr_in_pic_dc1)   | 
                                   (end_addr_in_pic_region_dc1 & ~end_addr_in_pic_dc1)       |
-                                  ((addr_in_pic_dc1 & ((start_addr_dc1[1:0] != 2'b0) | ~lsu_pkt_dc1.word))) |
-                                  (~start_addr_in_pic_region_dc1 & ~start_addr_in_dccm_region_dc1 & ~non_dccm_access_ok)) & lsu_pkt_dc1.valid & ~lsu_pkt_dc1.dma;
+                                  (addr_in_pic_dc1 & (start_addr_dc1[1:0] != 2'b0))) & lsu_pkt_dc1.valid & ~lsu_pkt_dc1.dma;
    end
    
    // Misaligned happens due to 2 reasons
@@ -180,4 +155,3 @@ module lsu_addrcheck
    rvdff #(.WIDTH(1)) is_sideeffects_dc3ff (.din(is_sideeffects_dc2), .dout(is_sideeffects_dc3), .clk(lsu_freeze_c2_dc3_clk), .*);
 					      
 endmodule // lsu_addrcheck
-

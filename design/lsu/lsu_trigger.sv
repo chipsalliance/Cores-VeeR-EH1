@@ -22,9 +22,7 @@
 // Comments:
 //
 //********************************************************************************
-module lsu_trigger 
-   import swerv_types::*;
-(
+module lsu_trigger (
    input logic 	       clk,                          // clock
    input logic 	       lsu_free_c2_clk,              // clock
    input logic 	       rst_l,                        // reset

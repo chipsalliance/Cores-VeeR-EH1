@@ -41,7 +41,7 @@ ifeq ($(strip $(ASM_TEST_DIR)),)
 	ASM_TEST_DIR = ${RV_ROOT}/testbench/asm
 endif
 
-defines = ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh ${RV_ROOT}/design/include/build.h ${RV_ROOT}/design/include/global.h ${RV_ROOT}/design/include/swerv_types.sv 
+defines = ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh ${RV_ROOT}/design/include/def.sv
 includes = -I${RV_ROOT}/design/include -I${RV_ROOT}/design/lib -I${RV_ROOT}/design/dmi -I${RV_ROOT}/configs/snapshots/$(snapshot)
 
 # CFLAGS for verilator generated Makefiles. Without -std=c++11 it complains for `auto` variables
@@ -54,55 +54,55 @@ VERILATOR_MAKE_FLAGS = OPT_FAST=""
 all: clean verilator
 
 clean:
-	rm -rf obj_dir *.hex build ${RV_ROOT}/configs/snapshots/$(snapshot)
+	rm -rf obj_dir *.hex build
 
 verilator: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
-	echo '`undef ASSERT_ON' >> ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
 	$(VERILATOR) '-UASSERT_ON' --cc -CFLAGS ${CFLAGS} $(defines) $(includes) ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
-		-f ${RV_ROOT}/testbench/flist.verilator --top-module swerv_wrapper
+		-f ${RV_ROOT}/design/flist.verilator --top-module swerv_wrapper
 	$(MAKE) -C obj_dir/ -f Vswerv_wrapper.mk $(VERILATOR_MAKE_FLAGS)
 
 vcs: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
 	$(VCS) -full64 -assert svaext -sverilog +define+RV_OPENSOURCE +error+500 +incdir+${RV_ROOT}/design/lib +incdir+${RV_ROOT}/design/include \
 		${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
 		+incdir+${RV_ROOT}/design/dmi +incdir+${RV_ROOT}/configs/snapshots/$(snapshot)  +libext+.v ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
-		 $(defines)-f ${RV_ROOT}/testbench/flist.vcs -l vcs.log
+		${RV_ROOT}/design/include/def.sv -f ${RV_ROOT}/design/flist.vcs -l vcs.log
 
 irun: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
 	$(IRUN) -64bit -elaborate -ida -access +rw -q -sv -sysv  -nowarn CUVIHR -nclibdirpath ${PWD} -nclibdirname swerv.build \
-		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh+.h\
-		$(defines)  -incdir ${RV_ROOT}/configs/snapshots/$(snapshot) -f ${RV_ROOT}/testbench/flist.vcs -elaborate  -snapshot default
+		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh\
+		${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh ${RV_ROOT}/design/include/def.sv \
+		-incdir ${RV_ROOT}/configs/snapshots/$(snapshot) -f ${RV_ROOT}/design/flist.vcs -elaborate  -snapshot default
 
 ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh:
 	$(SWERV_CONFIG) -snapshot=$(snapshot)
 
 verilator-run: program.hex
-	snapshot=ahb_lite
-	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
-	echo '`undef ASSERT_ON' >> ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
+	snapshot=ahb
+	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb
 	$(VERILATOR) '-UASSERT_ON' --cc -CFLAGS ${CFLAGS} $(defines) $(includes) ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
 		${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench \
-		-f ${RV_ROOT}/testbench/flist.verilator --top-module tb_top -exe test_tb_top.cpp --trace --autoflush
+		-f ${RV_ROOT}/design/flist.verilator --top-module tb_top -exe test_tb_top.cpp --trace --autoflush
 	cp ${RV_ROOT}/testbench/test_tb_top.cpp obj_dir/
 	$(MAKE) -C obj_dir/ -f Vtb_top.mk $(VERILATOR_MAKE_FLAGS)
 	./obj_dir/Vtb_top
 
 irun-run: program.hex
-	snapshot=ahb_lite
-	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
+	snapshot=ahb
+	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb
 	$(IRUN) -64bit -ida -access +rw -q -sv -sysv  -nowarn CUVIHR -nclibdirpath ${PWD} -nclibdirname swerv.build \
-		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh+.h\
-		$(defines) -top tb_top  ${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench ${RV_ROOT}/testbench/ahb_sif.sv\
-		-incdir ${RV_ROOT}/configs/snapshots/$(snapshot) -f ${RV_ROOT}/testbench/flist.vcs -snapshot default
+		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh\
+		${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh ${RV_ROOT}/design/include/def.sv \
+		-top tb_top  ${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench ${RV_ROOT}/testbench/ahb_sif.sv\
+		-incdir ${RV_ROOT}/configs/snapshots/$(snapshot) -f ${RV_ROOT}/design/flist.vcs -snapshot default
 
 vcs-run: program.hex
-	snapshot=ahb_lite
-	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
+	snapshot=ahb
+	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb
 	cp ${RV_ROOT}/testbench/hex/*.hex .
 	$(VCS) -full64 -assert svaext -sverilog +define+RV_OPENSOURCE +error+500 +incdir+${RV_ROOT}/design/lib +incdir+${RV_ROOT}/design/include \
 		${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
-		+incdir+${RV_ROOT}/design/dmi +incdir+${RV_ROOT}/configs/snapshots/$(snapshot)  +libext+.v  \
-		$(defines) -f ${RV_ROOT}/testbench/flist.vcs ${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench ${RV_ROOT}/testbench/ahb_sif.sv -l vcs.log
+		+incdir+${RV_ROOT}/design/dmi +incdir+${RV_ROOT}/configs/snapshots/$(snapshot)  +libext+.v ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
+		${RV_ROOT}/design/include/def.sv -f ${RV_ROOT}/design/flist.vcs ${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench ${RV_ROOT}/testbench/ahb_sif.sv -l vcs.log
 	./simv
 
 program.hex: $(ASM_TEST_DIR)/$(ASM_TEST).s ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh

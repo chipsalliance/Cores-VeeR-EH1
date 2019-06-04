@@ -27,8 +27,7 @@
 // //********************************************************************************
 
 module lsu_dccm_ctl  
-   import swerv_types::*;
-(
+  (
    input logic                             lsu_freeze_c2_dc2_clk,     // clocks
    input logic                             lsu_freeze_c2_dc3_clk,
    input logic                             lsu_dccm_c1_dc3_clk,
@@ -66,7 +65,6 @@ module lsu_dccm_ctl
    output logic [`RV_DCCM_ECC_WIDTH-1:0]   dccm_data_ecc_hi_dc3,      // data from the dccm + ecc
    output logic [`RV_DCCM_ECC_WIDTH-1:0]   dccm_data_ecc_lo_dc3,      
    output logic [`RV_DCCM_DATA_WIDTH-1:0]  lsu_ld_data_dc3,           // right justified, ie load byte will have data at 7:0
-   output logic [`RV_DCCM_DATA_WIDTH-1:0]  lsu_ld_data_corr_dc3,      // right justified, ie load byte will have data at 7:0
    output logic [31:0]                     picm_mask_data_dc3,        // pic data to stbuf
    output logic                            lsu_stbuf_commit_any,      // stbuf wins the dccm port or is to pic
    output logic                            lsu_dccm_rden_dc3,         // dccm read
@@ -114,18 +112,16 @@ module lsu_dccm_ctl
    logic [63:0]  dccm_dout_dc3, dccm_corr_dout_dc3;
    logic [63:0]  stbuf_fwddata_dc3;
    logic [7:0]   stbuf_fwdbyteen_dc3;
-   logic [63:0]  lsu_rdata_dc3, lsu_rdata_corr_dc3;
+   logic [63:0]  lsu_rdata_dc3;
    logic [63:0]  picm_rd_data_dc3;
    logic [31:0]  picm_rd_data_lo_dc3;
-   logic [63:32] lsu_ld_data_dc3_nc, lsu_ld_data_corr_dc3_nc;
+   logic [63:32] lsu_ld_data_dc3_nc;
    
    assign dccm_dma_rvalid      = lsu_pkt_dc3.valid & lsu_pkt_dc3.load & lsu_pkt_dc3.dma;
+   //assign dccm_dma_rdata[63:0] = dma_rdata_dc3[63:0];
    assign dccm_dma_ecc_error   = lsu_double_ecc_error_dc3;
-   assign dccm_dma_rdata[63:0] = lsu_rdata_corr_dc3[63:0];
-  
    
-   assign {lsu_ld_data_dc3_nc[63:32],      lsu_ld_data_dc3[31:0]}      = lsu_rdata_dc3[63:0] >> 8*lsu_addr_dc3[1:0];
-   assign {lsu_ld_data_corr_dc3_nc[63:32], lsu_ld_data_corr_dc3[31:0]} = lsu_rdata_corr_dc3[63:0] >> 8*lsu_addr_dc3[1:0];
+   assign {lsu_ld_data_dc3_nc[63:32], lsu_ld_data_dc3[31:0]} = lsu_rdata_dc3[63:0] >> 8*lsu_addr_dc3[1:0];
    
    assign dccm_dout_dc3[63:0] = {dccm_data_hi_dc3[DCCM_DATA_WIDTH-1:0], dccm_data_lo_dc3[DCCM_DATA_WIDTH-1:0]};
    assign dccm_corr_dout_dc3[63:0] = {store_ecc_datafn_hi_dc3[DCCM_DATA_WIDTH-1:0], store_ecc_datafn_lo_dc3[DCCM_DATA_WIDTH-1:0]};
@@ -133,10 +129,10 @@ module lsu_dccm_ctl
    assign stbuf_fwdbyteen_dc3[7:0] = {stbuf_fwdbyteen_hi_dc3[DCCM_BYTE_WIDTH-1:0], stbuf_fwdbyteen_lo_dc3[DCCM_BYTE_WIDTH-1:0]};
 
    for (genvar i=0; i<8; i++) begin: GenLoop
-      assign lsu_rdata_dc3[(8*i)+7:8*i]      = stbuf_fwdbyteen_dc3[i] ? stbuf_fwddata_dc3[(8*i)+7:8*i] : 
-                                                                        (addr_in_pic_dc3 ? picm_rd_data_dc3[(8*i)+7:8*i] :  dccm_dout_dc3[(8*i)+7:8*i]);
-      assign lsu_rdata_corr_dc3[(8*i)+7:8*i] = stbuf_fwdbyteen_dc3[i] ? stbuf_fwddata_dc3[(8*i)+7:8*i] : 
-                                                                        (addr_in_pic_dc3 ? picm_rd_data_dc3[(8*i)+7:8*i] :  dccm_corr_dout_dc3[(8*i)+7:8*i]);
+      assign lsu_rdata_dc3[(8*i)+7:8*i] = stbuf_fwdbyteen_dc3[i] ? stbuf_fwddata_dc3[(8*i)+7:8*i] : 
+                                                                   (addr_in_pic_dc3 ? picm_rd_data_dc3[(8*i)+7:8*i] :  dccm_dout_dc3[(8*i)+7:8*i]);
+      assign dccm_dma_rdata[(8*i)+7:8*i] = stbuf_fwdbyteen_dc3[i] ? stbuf_fwddata_dc3[(8*i)+7:8*i] : 
+                                                                   (addr_in_pic_dc3 ? picm_rd_data_dc3[(8*i)+7:8*i] :  dccm_corr_dout_dc3[(8*i)+7:8*i]);
    end
 
    assign lsu_stbuf_commit_any = stbuf_reqvld_any & ~lsu_freeze_dc3 & (

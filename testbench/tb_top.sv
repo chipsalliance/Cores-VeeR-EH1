@@ -27,7 +27,6 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
 
    logic        [31:0]                  reset_vector;
    logic        [31:0]                  nmi_vector;
-   logic        [31:1]                  jtag_id;
 
    logic        [31:0]                  ic_haddr        ;
    logic        [2:0]                   ic_hburst       ;
@@ -74,10 +73,10 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
    logic        [31:0]                  trace_rv_i_tval_ip;
 
    logic                                o_debug_mode_status;
-   logic        [1:0]                   dec_tlu_perfcnt0;
-   logic        [1:0]                   dec_tlu_perfcnt1;
-   logic        [1:0]                   dec_tlu_perfcnt2;
-   logic        [1:0]                   dec_tlu_perfcnt3;
+   logic                                dec_tlu_perfcnt0;
+   logic                                dec_tlu_perfcnt1;
+   logic                                dec_tlu_perfcnt2;
+   logic                                dec_tlu_perfcnt3;
 
 
    logic                                jtag_tdo;
@@ -91,30 +90,15 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
    logic                                dma_hready       ;
    logic                                dma_hresp        ;
 
-   logic                                mpc_debug_halt_req; 
-   logic                                mpc_debug_run_req;
-   logic                                mpc_reset_run_req;
-   logic                                mpc_debug_halt_ack;
-   logic                                mpc_debug_run_ack;
-   logic                                debug_brkpt_status;
-
    logic        [31:0]                  cycleCnt       ;
    logic                                mailbox_data_val;
    logic                                finished;
-
-   wire                                 dma_hready_out;
-
-
    //assign mailbox_write = &{i_ahb_lsu.Write, i_ahb_lsu.Last_HADDR==32'hD0580000, i_ahb_lsu.HRESETn==1};
    assign mailbox_write = i_ahb_lsu.mailbox_write;
    //assign mailbox_write = i_ahb_lsu.mailbox_write & !core_clk;
    assign mailbox_data_val = (i_ahb_lsu.WriteData[7:0] > 8'h5) & (i_ahb_lsu.WriteData[7:0] < 8'h7f);
 
    assign finished = finished | &{i_ahb_lsu.mailbox_write, (i_ahb_lsu.WriteData[7:0] == 8'hff)};
-
-   assign jtag_id[31:28] = 4'b1;
-   assign jtag_id[27:12] = '0;
-   assign jtag_id[11:1]  = 11'h45;
 
 `ifndef VERILATOR
    `define FORCE force
@@ -172,7 +156,6 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
 
 `ifndef VERILATOR
      core_clk = 0;
-     reset_l = 0;
 `endif
 
      reset_vector = 32'h80000000;
@@ -212,7 +195,6 @@ end
             .rst_vec            ( 31'h40000000  ),
             .nmi_int            ( nmi_int       ),
             .nmi_vec            ( 31'h77000000  ),
-            .jtag_id            (jtag_id[31:1]),
 
             .haddr              ( ic_haddr      ),
             .hburst             ( ic_hburst     ),
@@ -273,10 +255,8 @@ end
            .dma_hwdata          ( '0    ),
 
            .dma_hrdata          ( dma_hrdata    ),
+           .dma_hready          ( dma_hready    ),
            .dma_hresp           ( dma_hresp     ),
-           .dma_hsel            ( 1'b1            ), 
-           .dma_hreadyin        ( dma_hready_out  ),
-           .dma_hreadyout       ( dma_hready_out  ),
 
            .timer_int           ( 1'b0     ),
            `ifdef TB_RESTRUCT
@@ -309,14 +289,6 @@ end
            .jtag_tdi            ( 1'b0  ),          // JTAG tdi
            .jtag_trst_n         ( 1'b0  ),       // JTAG Reset
            .jtag_tdo            ( jtag_tdo ),          // JTAG TDO
-
-	        .mpc_debug_halt_ack ( mpc_debug_halt_ack),
-	        .mpc_debug_halt_req ( 1'b0),
-	        .mpc_debug_run_ack ( mpc_debug_run_ack),
-	        .mpc_debug_run_req ( 1'b1),
-	        .mpc_reset_run_req ( 1'b1),             // Start running after reset
-            .debug_brkpt_status (debug_brkpt_status),
-
            .i_cpu_halt_req      ( 1'b0  ),    // Async halt req to CPU
            .o_cpu_halt_ack      ( o_cpu_halt_ack ),    // core response to halt
            .o_cpu_halt_status   ( o_cpu_halt_status ), // 1'b1 indicates core is halted

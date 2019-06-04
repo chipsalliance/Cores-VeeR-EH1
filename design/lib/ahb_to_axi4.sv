@@ -75,12 +75,10 @@ module ahb_to_axi4 #(parameter TAG  = 1) (
    input logic [1:0]       ahb_htrans,    // Transaction type (possible values 0,2 only right now)
    input logic             ahb_hwrite,    // ahb bus write
    input logic [63:0]      ahb_hwdata,    // ahb bus write data
-   input logic             ahb_hsel,      // this slave was selected
-   input logic             ahb_hreadyin,  // previous hready was accepted or not	
-   
-   output logic [63:0]      ahb_hrdata,      // ahb bus read data 
-   output logic             ahb_hreadyout,   // slave ready to accept transaction
-   output logic             ahb_hresp        // slave response (high indicates erro)
+
+   output logic [63:0]      ahb_hrdata,   // ahb bus read data 
+   output logic             ahb_hready,   // slave ready to accept transaction
+   output logic             ahb_hresp     // slave response (high indicates erro)
 
 );
 
@@ -98,9 +96,8 @@ module ahb_to_axi4 #(parameter TAG  = 1) (
    logic                    buf_read_error_in, buf_read_error;
    logic [63:0]             buf_rdata;    
    
-   logic                    ahb_hready; 
    logic                    ahb_hready_q; 
-   logic [1:0]              ahb_htrans_in, ahb_htrans_q;
+   logic [1:0]              ahb_htrans_q;
    logic [2:0]              ahb_hsize_q;
    logic                    ahb_hwrite_q;
    logic [31:0]             ahb_haddr_q;
@@ -136,16 +133,16 @@ module ahb_to_axi4 #(parameter TAG  = 1) (
       case (buf_state)
          IDLE: begin  // No commands recieved 
                   buf_nxtstate      = ahb_hwrite ? WR : RD;     
-                  buf_state_en      = ahb_hready & ahb_htrans[1] & ahb_hsel;                 // only transition on a valid hrtans
+                  buf_state_en      = ahb_hready & ahb_htrans[1];                                // only transition on a valid hrtans
           end
          WR: begin // Write command recieved last cycle  
-                  buf_nxtstate      = (ahb_hresp | (ahb_htrans[1:0] == 2'b0) | ~ahb_hsel) ? IDLE : (ahb_hwrite ? WR : RD);  
-         	  buf_state_en      = (~cmdbuf_full | ahb_hresp) ;
-                  cmdbuf_wr_en      = ~cmdbuf_full & ~(ahb_hresp | ((ahb_htrans[1:0] == 2'b01) & ahb_hsel));   // Dont send command to the buffer in case of an error or when the master is not ready with the data now.
+                  buf_nxtstate      = (ahb_hresp | (ahb_htrans[1:0] == 2'b0)) ? IDLE : ahb_hwrite ? WR : RD;  
+         	  buf_state_en      = ~cmdbuf_full | ahb_hresp;
+                  cmdbuf_wr_en      = ~cmdbuf_full & ~(ahb_hresp | (ahb_htrans[1:0] == 2'b01));    // Dont send command to the buffer in case of an error or when the master is not ready with the data now.
 	 end
 	 RD: begin // Read command recieved last cycle.
 	         buf_nxtstate      = ahb_hresp ? IDLE :PEND;                                       // If error go to idle, else wait for read data
-	    	 buf_state_en      = (~cmdbuf_full | ahb_hresp);                                   // only when command can go, or if its an error
+	    	 buf_state_en      = ~cmdbuf_full | ahb_hresp;                                     // only when command can go, or if its an error
 	         cmdbuf_wr_en      = ~ahb_hresp & ~cmdbuf_full;                                    // send command only when no error
 	 end
          PEND: begin // Read Command has been sent. Waiting on Data. 
@@ -165,13 +162,11 @@ module ahb_to_axi4 #(parameter TAG  = 1) (
                                 ({8{ahb_hsize_q[2:0] == 3'b11}} & 8'b1111_1111);
      
    // AHB signals
-   assign ahb_hreadyout       = ahb_hresp ? (ahb_hresp_q & ~ahb_hready_q) :
+   assign ahb_hready       = ahb_hresp ? ~ahb_hready_q :
                                          ((~cmdbuf_full | (buf_state == IDLE)) & ~(buf_state == RD | buf_state == PEND)  & ~buf_read_error);
-  
-   assign ahb_hready          = ahb_hreadyout & ahb_hreadyin;
-   assign ahb_htrans_in[1:0]  = {2{ahb_hsel}} & ahb_htrans[1:0];
-   assign ahb_hrdata[63:0]    = buf_rdata[63:0];
-   assign ahb_hresp        = ((ahb_htrans_q[1:0] != 2'b0) & (buf_state != IDLE)  &  
+   
+   assign ahb_hrdata[63:0] = buf_rdata[63:0];
+   assign ahb_hresp        = ((ahb_htrans_q[1:0] != 2'b0) &  
                              ((~(ahb_addr_in_dccm | ahb_addr_in_iccm)) |                                                                                   // request not for ICCM or DCCM
                              ((ahb_addr_in_iccm | (ahb_addr_in_dccm &  ahb_hwrite_q)) & ~((ahb_hsize_q[1:0] == 2'b10) | (ahb_hsize_q[1:0] == 2'b11))) |    // ICCM Rd/Wr OR DCCM Wr not the right size
                              ((ahb_hsize_q[2:0] == 3'h1) & ahb_haddr_q[0])   |                                                                             // HW size but unaligned
@@ -185,12 +180,12 @@ module ahb_to_axi4 #(parameter TAG  = 1) (
    rvdff  #(.WIDTH(1))  buf_read_error_ff(.din(buf_read_error_in),  .dout(buf_read_error),  .clk(ahb_clk),       .*);          // buf_read_error will be high only one cycle
    
    // All the Master signals are captured before presenting it to the command buffer. We check for Hresp before sending it to the cmd buffer.
-   rvdff  #(.WIDTH(1))    hresp_ff  (.din(ahb_hresp),          .dout(ahb_hresp_q),       .clk(ahb_clk),      .*);
-   rvdff  #(.WIDTH(1))    hready_ff (.din(ahb_hready),         .dout(ahb_hready_q),      .clk(ahb_clk),      .*);
-   rvdff  #(.WIDTH(2))    htrans_ff (.din(ahb_htrans_in[1:0]), .dout(ahb_htrans_q[1:0]), .clk(ahb_clk),      .*);
-   rvdff  #(.WIDTH(3))    hsize_ff  (.din(ahb_hsize[2:0]),     .dout(ahb_hsize_q[2:0]),  .clk(ahb_addr_clk), .*);
-   rvdff  #(.WIDTH(1))    hwrite_ff (.din(ahb_hwrite),         .dout(ahb_hwrite_q),      .clk(ahb_addr_clk), .*);
-   rvdff  #(.WIDTH(32))   haddr_ff  (.din(ahb_haddr[31:0]),    .dout(ahb_haddr_q[31:0]), .clk(ahb_addr_clk), .*); 
+   rvdff #(.WIDTH(1))    hresp_ff  (.din(ahb_hresp),       .dout(ahb_hresp_q),       .clk(ahb_clk),      .*);
+   rvdff #(.WIDTH(1))    hready_ff (.din(ahb_hready),      .dout(ahb_hready_q),      .clk(ahb_clk),      .*);
+   rvdff #(.WIDTH(2))    htrans_ff (.din(ahb_htrans[1:0]), .dout(ahb_htrans_q[1:0]), .clk(ahb_clk),      .*);
+   rvdff #(.WIDTH(3))    hsize_ff  (.din(ahb_hsize[2:0]),  .dout(ahb_hsize_q[2:0]),  .clk(ahb_addr_clk), .*);
+   rvdff #(.WIDTH(1))    hwrite_ff (.din(ahb_hwrite),      .dout(ahb_hwrite_q),      .clk(ahb_addr_clk), .*);
+   rvdff #(.WIDTH(32))   haddr_ff  (.din(ahb_haddr[31:0]), .dout(ahb_haddr_q[31:0]), .clk(ahb_addr_clk), .*); 
    
    // Clock header logic
    assign ahb_bus_addr_clk_en = bus_clk_en & (ahb_hready & ahb_htrans[1]);

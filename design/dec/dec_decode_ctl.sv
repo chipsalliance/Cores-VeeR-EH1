@@ -15,8 +15,7 @@
 
 
 module dec_decode_ctl
-   import swerv_types::*;
-(
+  (
    input logic [15:0] dec_i0_cinst_d,         // 16b compressed instruction
    input logic [15:0] dec_i1_cinst_d,
 
@@ -26,7 +25,7 @@ module dec_decode_ctl
    output logic [31:1] dec_i0_pc_wb1,         // 31b pc at wb+1 for trace encoder
    output logic [31:1] dec_i1_pc_wb1,  
 
-   
+  
    input logic                                lsu_nonblock_load_valid_dc3,     // valid nonblock load at dc3			
    input logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_tag_dc3,       // -> corresponding tag				
    input logic 	                              lsu_nonblock_load_inv_dc5,       // invalidate request for nonblock load dc5	
@@ -41,17 +40,17 @@ module dec_decode_ctl
    input logic dec_tlu_wr_pause_wb,                   // pause instruction at wb
    input logic dec_tlu_pipelining_disable,            // pipeline disable - presync, i0 decode only
    input logic dec_tlu_dual_issue_disable,            // i0 decode only
-   
+  
    input logic dec_tlu_sec_alu_disable,               // no alu ops sent to secondary alus
-   
+  
    input logic [3:0]  lsu_trigger_match_dc3,          // lsu trigger matches
 
    input logic lsu_pmu_misaligned_dc3,                // perf mon: load/store misalign
    input logic dec_tlu_debug_stall,                   // debug stall decode
    input logic dec_tlu_flush_leak_one_wb,             // leak1 instruction
-   
+  
    input logic dec_debug_fence_d,                     // debug fence instruction
-   
+  
    input logic [1:0] dbg_cmd_wrdata,                  // disambiguate fence, fence_i
 
    input logic dec_i0_icaf_d,                         // icache access fault	     
@@ -70,11 +69,10 @@ module dec_decode_ctl
    input logic [15:0] ifu_illegal_inst,               // 16b illegal inst from aligner
 
    input logic [31:1] dec_i0_pc_d,                    // pc
-   
+  
    input logic lsu_freeze_dc3,                        // freeze pipe: decode -> dc3
-   input logic lsu_halt_idle_any,                     // lsu idle: if fence instr & ~lsu_halt_idle_any then stall decode
-   
-   input logic lsu_load_stall_any,                    // stall any store at load
+   input logic lsu_idle_any,                          // lsu idle: if fence instr & ~lsu_idle then stall decode
+  
    input logic lsu_store_stall_any,                   // stall any store at decode
    input logic dma_dccm_stall_any,                    // stall any load/store at decode
 
@@ -89,20 +87,19 @@ module dec_decode_ctl
    input logic dec_tlu_flush_pause_wb,          // don't clear pause state on initial lower flush
    input logic dec_tlu_presync_d,		// CSR read needs to be presync'd
    input logic dec_tlu_postsync_d,              // CSR ops that need to be postsync'd 
-   
+  
    input logic [31:0] exu_mul_result_e3,        // multiply result
 
    input logic dec_i0_pc4_d,               // inst is 4B inst else 2B
    input logic dec_i1_pc4_d,
-   
+  
    input logic [31:0] dec_csr_rddata_d,    // csr read data at wb
    input logic dec_csr_legal_d,            // csr indicates legal operation
 
    input logic [31:0] exu_csr_rs1_e1,      // rs1 for csr instr
-   
+  
    input logic [31:0] lsu_result_dc3,      // load result
-   input logic [31:0] lsu_result_corr_dc4, // corrected load result
- 
+
    input logic exu_i0_flush_final,         // lower flush or i0 flush at e2
    input logic exu_i1_flush_final,         // lower flush or i1 flush at e2
 
@@ -124,7 +121,7 @@ module dec_decode_ctl
    input logic 	clk,                       // for rvdffe's
    input logic  active_clk,                // clk except for halt / pause
    input logic  free_clk,                  // free running clock
-   
+  
    input logic  clk_override,              // test stuff
    input logic 	rst_l,
 
@@ -192,7 +189,7 @@ module dec_decode_ctl
    output mul_pkt_t    mul_p,                   // multiply packet
 
    output div_pkt_t    div_p,                   // divide packet
-   
+  
    output logic [11:0] dec_lsu_offset_d,
    output logic        dec_i0_lsu_d,        // chose which gpr value to use
    output logic        dec_i1_lsu_d,
@@ -204,7 +201,7 @@ module dec_decode_ctl
    // review
    output logic        flush_final_e3,      // flush final at e3: i0  or i1
    output logic        i0_flush_final_e3,   // i0 flush final at e3
-   
+  
    output logic        dec_csr_ren_d,       // valid csr decode
    output logic        dec_csr_wen_unq_d,       // valid csr with write - for csr legal
    output logic        dec_csr_any_unq_d,       // valid csr - for csr legal    
@@ -213,12 +210,12 @@ module dec_decode_ctl
    output logic [11:0] dec_csr_wraddr_wb,     // write address for csr
    output logic [31:0] dec_csr_wrdata_wb,   // csr write data at wb 
    output logic        dec_csr_stall_int_ff, // csr is mie/mstatus
-   
+  
    output 	       dec_tlu_i0_valid_e4,  // i0 valid inst at e4
    output 	       dec_tlu_i1_valid_e4,
- 	       
+  
    output 	       trap_pkt_t dec_tlu_packet_e4,   // trap packet
-   
+  
    output logic        dec_fence_pending, // tell TLU to stall DMA
    output logic [31:1] dec_tlu_i0_pc_e4,  // i0 trap pc
    output logic [31:1] dec_tlu_i1_pc_e4,
@@ -251,9 +248,9 @@ module dec_decode_ctl
 
    output predict_pkt_t  i0_predict_p_d,        // i0 predict packet decode
    output predict_pkt_t  i1_predict_p_d,
-   
+  
    output logic          dec_i0_lsu_decode_d,   // i0 lsu decode
-   
+  
    output logic [31:0] i0_result_e4_eff,        // i0 e4 result taking freeze into account
    output logic [31:0] i1_result_e4_eff,
    output logic [31:0] i0_result_e2,            // i0 result e2
@@ -272,10 +269,7 @@ module dec_decode_ctl
    output logic [4:0] dec_nonblock_load_waddr,      // logical write addr for nonblock load
    output logic       dec_nonblock_load_freeze_dc2, // lsu must freeze nonblock load due to younger dependency in pipe
    output logic       dec_pause_state,              // core in pause state
-   output logic       dec_pause_state_cg,           // pause state for clock-gating
-
-   output logic       dec_i0_load_e4,          // pipe down if load is i0 or not in case of lsu_freeze
-   
+  
    input  logic        scan_mode
    );
    
@@ -291,7 +285,7 @@ module dec_decode_ctl
    logic 	       i0_valid_d, i1_valid_d;
 
    logic [31:0]        i0_result_e1, i1_result_e1;
-   logic [31:0]                      i1_result_e2;
+   logic [31:0]        i1_result_e2;
    logic [31:0]        i0_result_e3, i1_result_e3;
    logic [31:0]        i0_result_e4, i1_result_e4;
    logic [31:0]        i0_result_wb, i1_result_wb;   
@@ -316,17 +310,17 @@ module dec_decode_ctl
 
    logic 	       postsync_stall;
    logic 	       ps_stall;
- 
+   
    logic 	       prior_inflight, prior_inflight_e1e4, prior_inflight_wb;
    
    logic 	       csr_clr_d, csr_set_d, csr_write_d;
    
 
-   logic 	csr_clr_e1,csr_set_e1,csr_write_e1,csr_imm_e1;
-   logic [31:0] csr_mask_e1;
-   logic [31:0] write_csr_data_e1;
-   logic [31:0] write_csr_data_in;
-   logic [31:0] write_csr_data;
+   logic 	       csr_clr_e1,csr_set_e1,csr_write_e1,csr_imm_e1;
+   logic [31:0]        csr_mask_e1;
+   logic [31:0]        write_csr_data_e1;
+   logic [31:0]        write_csr_data_in;
+   logic [31:0]        write_csr_data;
    logic 	       csr_data_wen;
 
    logic [4:0] 	       csrimm_e1;
@@ -356,77 +350,77 @@ module dec_decode_ctl
 
    logic [31:0]        i0_result_e3_final, i1_result_e3_final;
    logic [31:0]        i0_result_wb_raw,   i1_result_wb_raw;
-   logic [12:1]	last_br_immed_d;
-   logic 	i1_depend_i0_d;
-   logic 	i0_rs1_depend_i0_e1, i0_rs1_depend_i0_e2, i0_rs1_depend_i0_e3, i0_rs1_depend_i0_e4, i0_rs1_depend_i0_wb;
-   logic 	i0_rs1_depend_i1_e1, i0_rs1_depend_i1_e2, i0_rs1_depend_i1_e3, i0_rs1_depend_i1_e4, i0_rs1_depend_i1_wb;   
-   logic 	i0_rs2_depend_i0_e1, i0_rs2_depend_i0_e2, i0_rs2_depend_i0_e3, i0_rs2_depend_i0_e4, i0_rs2_depend_i0_wb;
-   logic 	i0_rs2_depend_i1_e1, i0_rs2_depend_i1_e2, i0_rs2_depend_i1_e3, i0_rs2_depend_i1_e4, i0_rs2_depend_i1_wb;   
-   logic 	i1_rs1_depend_i0_e1, i1_rs1_depend_i0_e2, i1_rs1_depend_i0_e3, i1_rs1_depend_i0_e4, i1_rs1_depend_i0_wb;
-   logic 	i1_rs1_depend_i1_e1, i1_rs1_depend_i1_e2, i1_rs1_depend_i1_e3, i1_rs1_depend_i1_e4, i1_rs1_depend_i1_wb;   
-   logic 	i1_rs2_depend_i0_e1, i1_rs2_depend_i0_e2, i1_rs2_depend_i0_e3, i1_rs2_depend_i0_e4, i1_rs2_depend_i0_wb;
-   logic 	i1_rs2_depend_i1_e1, i1_rs2_depend_i1_e2, i1_rs2_depend_i1_e3, i1_rs2_depend_i1_e4, i1_rs2_depend_i1_wb;   
-   logic 	i1_rs1_depend_i0_d, i1_rs2_depend_i0_d;
+   logic [12:1]        last_br_immed_d;
+   logic 	       i1_depend_i0_d;
+   logic 	       i0_rs1_depend_i0_e1, i0_rs1_depend_i0_e2, i0_rs1_depend_i0_e3, i0_rs1_depend_i0_e4, i0_rs1_depend_i0_wb;
+   logic 	       i0_rs1_depend_i1_e1, i0_rs1_depend_i1_e2, i0_rs1_depend_i1_e3, i0_rs1_depend_i1_e4, i0_rs1_depend_i1_wb;   
+   logic 	       i0_rs2_depend_i0_e1, i0_rs2_depend_i0_e2, i0_rs2_depend_i0_e3, i0_rs2_depend_i0_e4, i0_rs2_depend_i0_wb;
+   logic 	       i0_rs2_depend_i1_e1, i0_rs2_depend_i1_e2, i0_rs2_depend_i1_e3, i0_rs2_depend_i1_e4, i0_rs2_depend_i1_wb;   
+   logic 	       i1_rs1_depend_i0_e1, i1_rs1_depend_i0_e2, i1_rs1_depend_i0_e3, i1_rs1_depend_i0_e4, i1_rs1_depend_i0_wb;
+   logic 	       i1_rs1_depend_i1_e1, i1_rs1_depend_i1_e2, i1_rs1_depend_i1_e3, i1_rs1_depend_i1_e4, i1_rs1_depend_i1_wb;   
+   logic 	       i1_rs2_depend_i0_e1, i1_rs2_depend_i0_e2, i1_rs2_depend_i0_e3, i1_rs2_depend_i0_e4, i1_rs2_depend_i0_wb;
+   logic 	       i1_rs2_depend_i1_e1, i1_rs2_depend_i1_e2, i1_rs2_depend_i1_e3, i1_rs2_depend_i1_e4, i1_rs2_depend_i1_wb;   
+   logic 	       i1_rs1_depend_i0_d, i1_rs2_depend_i0_d;
 
-   logic 	i0_secondary_d, i1_secondary_d;
-   logic 	i0_secondary_block_d, i1_secondary_block_d;
-   logic 	non_block_case_d;
-   logic 	i0_div_decode_d;
-   logic [31:0] i0_result_e4_final, i1_result_e4_final;
-   logic 	i0_load_block_d;
-   logic 	i0_mul_block_d;
-   logic [3:0] 	i0_rs1_depth_d, i0_rs2_depth_d;
-   logic [3:0] 	i1_rs1_depth_d, i1_rs2_depth_d;   
+   logic 	       i0_secondary_d, i1_secondary_d;
+   logic 	       i0_secondary_block_d, i1_secondary_block_d;
+   logic 	       non_block_case_d;
+   logic 	       i0_div_decode_d;
+   logic [31:0]        i0_result_e4_final, i1_result_e4_final;
+   logic 	       i0_load_block_d;
+   logic 	       i0_mul_block_d;
+   logic [3:0] 	       i0_rs1_depth_d, i0_rs2_depth_d;
+   logic [3:0] 	       i1_rs1_depth_d, i1_rs2_depth_d;   
 
-   logic 	i0_rs1_match_e1_e2, i0_rs1_match_e1_e3;
-   logic 	i0_rs2_match_e1_e2, i0_rs2_match_e1_e3;   
-   logic 	i1_rs1_match_e1_e2, i1_rs1_match_e1_e3;
-   logic 	i1_rs2_match_e1_e2, i1_rs2_match_e1_e3;   
+   logic 	       i0_rs1_match_e1_e2, i0_rs1_match_e1_e3;
+   logic 	       i0_rs2_match_e1_e2, i0_rs2_match_e1_e3;   
+   logic 	       i1_rs1_match_e1_e2, i1_rs1_match_e1_e3;
+   logic 	       i1_rs2_match_e1_e2, i1_rs2_match_e1_e3;   
 
-   logic        i0_load_stall_d,  i1_load_stall_d;
-   logic        i0_store_stall_d, i1_store_stall_d;   
+   logic 	       i0_load_stall_d,  i1_load_stall_d;
+   logic 	       i0_store_stall_d, i1_store_stall_d;   
 
-   logic 	i0_predict_nt, i0_predict_t;
-   logic 	i1_predict_nt, i1_predict_t;   
+   logic 	       i0_predict_nt, i0_predict_t;
+   logic 	       i1_predict_nt, i1_predict_t;   
    
-   logic 	i0_notbr_error, i0_br_toffset_error;
-   logic 	i1_notbr_error, i1_br_toffset_error;
-   logic        i0_ret_error,   i1_ret_error;
-   logic        i0_br_error, i1_br_error;   
-   logic        i0_br_error_all, i1_br_error_all;   
-   logic [11:0] i0_br_offset, i1_br_offset;
+   logic 	       i0_notbr_error, i0_br_toffset_error;
+   logic 	       i1_notbr_error, i1_br_toffset_error;
+   logic 	       i0_ret_error,   i1_ret_error;
+   logic 	       i0_br_error, i1_br_error;   
+   logic 	       i0_br_error_all, i1_br_error_all;   
+   logic [11:0]        i0_br_offset, i1_br_offset;
 
-   logic 	freeze;
+   logic 	       freeze;
 
-   logic [20:1] i0_pcall_imm, i1_pcall_imm;    // predicted jal's
-   logic 	i0_pcall_12b_offset, i1_pcall_12b_offset;
-   logic 	i0_pcall_raw,   i1_pcall_raw;
-   logic 	i0_pcall_case,  i1_pcall_case;   
-   logic 	i0_pcall,  i1_pcall;
+   logic [20:1]        i0_pcall_imm, i1_pcall_imm;    // predicted jal's
+   logic 	       i0_pcall_12b_offset, i1_pcall_12b_offset;
+   logic 	       i0_pcall_raw,   i1_pcall_raw;
+   logic 	       i0_pcall_case,  i1_pcall_case;   
+   logic 	       i0_pcall,  i1_pcall;
 
-   logic 	i0_pja_raw,   i1_pja_raw;
-   logic 	i0_pja_case,  i1_pja_case;   
-   logic 	i0_pja,  i1_pja;
+   logic 	       i0_pja_raw,   i1_pja_raw;
+   logic 	       i0_pja_case,  i1_pja_case;   
+   logic 	       i0_pja,  i1_pja;
 
-   logic 	i0_pret_case, i1_pret_case;
-   logic 	i0_pret_raw, i0_pret;
-   logic 	i1_pret_raw, i1_pret;   
+   logic 	       i0_pret_case, i1_pret_case;
+   logic 	       i0_pret_raw, i0_pret;
+   logic 	       i1_pret_raw, i1_pret;   
    
-   logic 	i0_jal, i1_jal;  // jal's that are not predicted 
+   logic 	       i0_jal, i1_jal;  // jal's that are not predicted 
    
 
-   logic 	i0_predict_br, i1_predict_br;
+   logic 	       i0_predict_br, i1_predict_br;
 
-   logic 	freeze_prior1, freeze_prior2;
+   logic 	       freeze_prior1, freeze_prior2;
 
-   logic [31:0] i0_result_e4_freeze, i1_result_e4_freeze;
-   logic [31:0] i0_result_wb_freeze, i1_result_wb_freeze;   
-   logic [31:0] i1_result_wb_eff, i0_result_wb_eff;
-   logic [2:0] 	i1rs1_intra, i1rs2_intra;
-   logic 	i1_rs1_intra_bypass, i1_rs2_intra_bypass;
-   logic 	store_data_bypass_c1, store_data_bypass_c2;
-   logic [1:0] 	store_data_bypass_e4_c1, store_data_bypass_e4_c2, store_data_bypass_e4_c3;
-   logic        store_data_bypass_i0_e2_c2;
+   logic [31:0]        i0_result_e4_freeze, i1_result_e4_freeze;
+   logic [31:0]        i0_result_wb_freeze, i1_result_wb_freeze;   
+   logic [31:0]        i1_result_wb_eff, i0_result_wb_eff;
+   logic [2:0] 	       i1rs1_intra, i1rs2_intra;
+   logic 	       i1_rs1_intra_bypass, i1_rs2_intra_bypass;
+   logic 	       store_data_bypass_c1, store_data_bypass_c2;
+   logic [1:0] 	       store_data_bypass_e4_c1, store_data_bypass_e4_c2, store_data_bypass_e4_c3;
+   logic 	       store_data_bypass_i0_e2_c2;
    
    class_pkt_t i0_rs1_class_d, i0_rs2_class_d;
    class_pkt_t i1_rs1_class_d, i1_rs2_class_d;   
@@ -435,79 +429,78 @@ module dec_decode_ctl
    class_pkt_t i1_dc, i1_e1c, i1_e2c, i1_e3c, i1_e4c, i1_wbc;
 
 
-   logic i0_rs1_match_e1, i0_rs1_match_e2, i0_rs1_match_e3;
-   logic i1_rs1_match_e1, i1_rs1_match_e2, i1_rs1_match_e3;   
-   logic i0_rs2_match_e1, i0_rs2_match_e2, i0_rs2_match_e3;
-   logic i1_rs2_match_e1, i1_rs2_match_e2, i1_rs2_match_e3;   
+   logic 	       i0_rs1_match_e1, i0_rs1_match_e2, i0_rs1_match_e3;
+   logic 	       i1_rs1_match_e1, i1_rs1_match_e2, i1_rs1_match_e3;   
+   logic 	       i0_rs2_match_e1, i0_rs2_match_e2, i0_rs2_match_e3;
+   logic 	       i1_rs2_match_e1, i1_rs2_match_e2, i1_rs2_match_e3;   
    
-   logic       i0_secondary_stall_d;
+   logic 	       i0_secondary_stall_d;
 
-   logic       i0_ap_pc2, i0_ap_pc4;
-   logic       i1_ap_pc2, i1_ap_pc4;   
+   logic 	       i0_ap_pc2, i0_ap_pc4;
+   logic 	       i1_ap_pc2, i1_ap_pc4;   
 
-   logic        div_wen_wb;
-   logic 	i0_rd_en_d;
-   logic 	i1_rd_en_d;
-   logic [4:0] 	i1_rd_d;
-   logic [4:0] 	i0_rd_d;
+   logic 	       div_wen_wb;
+   logic 	       i0_rd_en_d;
+   logic 	       i1_rd_en_d;
+   logic [4:0] 	       i1_rd_d;
+   logic [4:0] 	       i0_rd_d;
 
-   logic 	load_ldst_bypass_c1;
-   logic 	load_mul_rs1_bypass_e1;
-   logic 	load_mul_rs2_bypass_e1;      
+   logic 	       load_ldst_bypass_c1;
+   logic 	       load_mul_rs1_bypass_e1;
+   logic 	       load_mul_rs2_bypass_e1;      
    
-   logic 	leak1_i0_stall_in, leak1_i0_stall;
-   logic 	leak1_i1_stall_in, leak1_i1_stall;   
-   logic 	leak1_mode;
+   logic 	       leak1_i0_stall_in, leak1_i0_stall;
+   logic 	       leak1_i1_stall_in, leak1_i1_stall;   
+   logic 	       leak1_mode;
 
-   logic 	i0_csr_write_only_d;
+   logic 	       i0_csr_write_only_d;
 
-   logic 	prior_inflight_e1e3, prior_inflight_eff;
-   logic 	any_csr_d;
+   logic 	       prior_inflight_e1e3, prior_inflight_eff;
+   logic 	       any_csr_d;
 
-   logic 	prior_csr_write;
+   logic 	       prior_csr_write;
 
-   logic [5:0] i0_pipe_en;
-   logic       i0_e1_ctl_en, i0_e2_ctl_en, i0_e3_ctl_en, i0_e4_ctl_en, i0_wb_ctl_en;
-   logic       i0_e1_data_en, i0_e2_data_en, i0_e3_data_en, i0_e4_data_en, i0_wb_data_en, i0_wb1_data_en;   
+   logic [5:0] 	       i0_pipe_en;
+   logic 	       i0_e1_ctl_en, i0_e2_ctl_en, i0_e3_ctl_en, i0_e4_ctl_en, i0_wb_ctl_en;
+   logic 	       i0_e1_data_en, i0_e2_data_en, i0_e3_data_en, i0_e4_data_en, i0_wb_data_en, i0_wb1_data_en;   
    
-   logic [5:0] i1_pipe_en;
-   logic       i1_e1_ctl_en, i1_e2_ctl_en, i1_e3_ctl_en, i1_e4_ctl_en, i1_wb_ctl_en;
-   logic       i1_e1_data_en, i1_e2_data_en, i1_e3_data_en, i1_e4_data_en, i1_wb_data_en, i1_wb1_data_en;   
+   logic [5:0] 	       i1_pipe_en;
+   logic 	       i1_e1_ctl_en, i1_e2_ctl_en, i1_e3_ctl_en, i1_e4_ctl_en, i1_wb_ctl_en;
+   logic 	       i1_e1_data_en, i1_e2_data_en, i1_e3_data_en, i1_e4_data_en, i1_wb_data_en, i1_wb1_data_en;   
 
-   logic debug_fence_i;
-   logic debug_fence;
+   logic 	       debug_fence_i;
+   logic 	       debug_fence;
 
-   logic i0_csr_write;
-   logic presync_stall;
+   logic 	       i0_csr_write;
+   logic 	       presync_stall;
 
-   logic i0_instr_error;
-   logic i0_icaf_d;
-   logic i1_icaf_d;
+   logic 	       i0_instr_error;
+   logic 	       i0_icaf_d;
+   logic 	       i1_icaf_d;
 
-   logic i0_not_alu_eff, i1_not_alu_eff;
+   logic 	       i0_not_alu_eff, i1_not_alu_eff;
    
-   logic disable_secondary;
+   logic 	       disable_secondary;
 
-   logic clear_pause;
-   logic pause_state_in, pause_state;
-   logic pause_stall;
+   logic 	       clear_pause;
+   logic 	       pause_state_in, pause_state;
+   logic 	       pause_stall;
    
-   logic [31:1] i1_pc_wb;
+   logic [31:1]        i1_pc_wb;
 
-   logic 	i0_brp_valid;
-   logic 	nonblock_load_cancel;
-   logic 	lsu_idle;
-   logic 	csr_read_e1;
-   logic 	i0_block_d;
-   logic 	i1_block_d;
-   logic 	ps_stall_in;
+   logic 	       i0_brp_valid;
+   logic 	       nonblock_load_cancel;
+   logic 	       lsu_idle;
+   logic 	       csr_read_e1;
+   logic 	       i0_block_d;
+   logic 	       i1_block_d;
+   logic 	       ps_stall_in;
    
-   logic 	freeze_after_unfreeze1;
-   logic 	freeze_after_unfreeze2;
-   logic 	unfreeze_cycle1;
-   logic 	unfreeze_cycle2;
+   logic 	       freeze_after_unfreeze1;
+   logic 	       freeze_after_unfreeze2;
+   logic 	       unfreeze_cycle1;
+   logic 	       unfreeze_cycle2;
    
-   logic 	tlu_wr_pause_wb1, tlu_wr_pause_wb2;
 
    assign freeze = lsu_freeze_dc3;
 
@@ -518,7 +511,7 @@ module dec_decode_ctl
 `endif
    
    
-// branch prediction
+   // branch prediction
 
 
    // in leak1_mode, ignore any predictions for i0, treat branch as if we haven't seen it before
@@ -600,7 +593,6 @@ module dec_decode_ctl
 	 i0_dp.rs2 = 1'b1;
 	 i0_dp.lor = 1'b1;
 	 i0_dp.legal = 1'b1;
-	 i0_dp.postsync = 1'b1;
       end
 
       i1_dp = i1_dp_raw;
@@ -611,13 +603,12 @@ module dec_decode_ctl
 	 i1_dp.rs2 = 1'b1;
 	 i1_dp.lor = 1'b1;
 	 i1_dp.legal = 1'b1;
-	 i1_dp.postsync = 1'b1;
       end
       
    end
    
    assign flush_lower_wb = dec_tlu_flush_lower_wb;
-      
+   
    assign i0[31:0] = dec_i0_instr_d[31:0];
 
    assign i1[31:0] = dec_i1_instr_d[31:0];   
@@ -666,7 +657,7 @@ module dec_decode_ctl
    
    assign i1_predict_nt = ~(dec_i1_brp.hist[1] & dec_i1_brp.valid) & i1_predict_br;
    assign i1_predict_t  =  (dec_i1_brp.hist[1] & dec_i1_brp.valid) & i1_predict_br;   
- 
+   
    assign i1_ap.valid =  (i1_dc.sec | i1_dc.alu | i1_dp.alu);
    assign i1_ap.add =    i1_dp.add;
    assign i1_ap.sub =    i1_dp.sub;
@@ -685,7 +676,7 @@ module dec_decode_ctl
 
    assign i1_ap.csr_write = 1'b0;
    assign i1_ap.csr_imm   = 1'b0;
-  
+   
    assign i1_ap.jal    =    i1_jal;
    
    assign i1_ap_pc2 = ~dec_i1_pc4_d;
@@ -698,31 +689,31 @@ module dec_decode_ctl
    localparam NBLOAD_SIZE_MSB = `RV_LSU_NUM_NBLOAD-1;
    localparam NBLOAD_TAG_MSB  = `RV_LSU_NUM_NBLOAD_WIDTH-1;   
    
-// non block load cam logic
- 
+   // non block load cam logic
+   
    logic 	             cam_write, cam_inv_reset, cam_data_reset;
    logic [NBLOAD_TAG_MSB:0]  cam_write_tag, cam_inv_reset_tag, cam_data_reset_tag;
    logic [NBLOAD_SIZE_MSB:0] cam_wen; 
 
    logic [NBLOAD_TAG_MSB:0]  load_data_tag;
    logic [NBLOAD_SIZE_MSB:0] nonblock_load_write;
-  
+   
    load_cam_pkt_t [NBLOAD_SIZE_MSB:0] cam;
    load_cam_pkt_t [NBLOAD_SIZE_MSB:0] cam_in;   
 
-   logic [4:0] nonblock_load_rd;
-   logic i1_nonblock_load_stall,     i0_nonblock_load_stall;
-   logic i1_nonblock_boundary_stall, i0_nonblock_boundary_stall;
-   logic i0_depend_load_e1_d, i0_depend_load_e2_d;
-   logic i1_depend_load_e1_d, i1_depend_load_e2_d;
-   logic    depend_load_e1_d,  depend_load_e2_d,  depend_load_same_cycle_d;
-   logic    depend_load_e2_e1,                    depend_load_same_cycle_e1;
-   logic                                          depend_load_same_cycle_e2;
+   logic [4:0] 		     nonblock_load_rd;
+   logic 		     i1_nonblock_load_stall,     i0_nonblock_load_stall;
+   logic 		     i1_nonblock_boundary_stall, i0_nonblock_boundary_stall;
+   logic 		     i0_depend_load_e1_d, i0_depend_load_e2_d;
+   logic 		     i1_depend_load_e1_d, i1_depend_load_e2_d;
+   logic 		     depend_load_e1_d,  depend_load_e2_d,  depend_load_same_cycle_d;
+   logic 		     depend_load_e2_e1,                    depend_load_same_cycle_e1;
+   logic 		     depend_load_same_cycle_e2;
 
-   logic nonblock_load_valid_dc4, nonblock_load_valid_wb;
-   logic i0_load_kill_wen, i1_load_kill_wen;
+   logic 		     nonblock_load_valid_dc4, nonblock_load_valid_wb;
+   logic 		     i0_load_kill_wen, i1_load_kill_wen;
 
-   logic found;
+   logic 		     found;
    always_comb begin
       found = 0;
       cam_wen[NBLOAD_SIZE_MSB:0] = '0;
@@ -754,7 +745,7 @@ module dec_decode_ctl
    assign nonblock_load_rd[4:0] = (e3d.i0load) ? e3d.i0rd[4:0] : e3d.i1rd[4:0];  // rd data
 
    logic [NBLOAD_SIZE_MSB:0] cam_inv_reset_val, cam_data_reset_val;
-   logic       i1_wen_wb, i0_wen_wb;
+   logic 		     i1_wen_wb, i0_wen_wb;
    
    // checks
 
@@ -765,7 +756,7 @@ module dec_decode_ctl
    assert_dec_cam_data_reset_onehot:   assert #0 ($onehot0(cam_data_reset_val[NBLOAD_SIZE_MSB:0]));
 `endif   
    
-    // case of multiple loads to same dest ie. x1 ... you have to invalidate the older one  
+   // case of multiple loads to same dest ie. x1 ... you have to invalidate the older one  
 
    for (genvar i=0; i<NBLOAD_SIZE; i++) begin : cam_array
 
@@ -882,7 +873,7 @@ end : cam_array
    assign dec_nonblock_load_freeze_dc2 = depend_load_e2_d | depend_load_e2_e1 | depend_load_same_cycle_e2;
    
 
-// don't writeback a nonblock load
+   // don't writeback a nonblock load
 
    rvdffs #(1) e4nbloadff (.*, .clk(active_clk), .en(i0_e4_ctl_en), .din(lsu_nonblock_load_valid_dc3),  .dout(nonblock_load_valid_dc4) );
    rvdffs #(1) wbnbloadff (.*, .clk(active_clk), .en(i0_wb_ctl_en), .din(    nonblock_load_valid_dc4),  .dout(nonblock_load_valid_wb) );   
@@ -894,9 +885,9 @@ end : cam_array
 
    
 
-// end non block load cam logic
+   // end non block load cam logic
    
-// pmu start
+   // pmu start
    
    inst_t i0_itype, i1_itype;
 
@@ -915,7 +906,7 @@ end : cam_array
    always_comb begin
       i0_itype = NULL;
       i1_itype = NULL;      
-   
+      
       if (i0_legal_decode_d) begin
 	 if (i0_dp.mul)                  i0_itype = MUL;
 	 if (i0_dp.load)                 i0_itype = LOAD;
@@ -949,18 +940,18 @@ end : cam_array
 
    
 
-// end pmu
+   // end pmu
    
    dec_dec_ctl i0_dec (.inst(i0[31:0]),.out(i0_dp_raw));
    
    dec_dec_ctl i1_dec (.inst(i1[31:0]),.out(i1_dp_raw));				
 
-   rvdff #(1) lsu_idle_ff (.*, .clk(active_clk), .din(lsu_halt_idle_any), .dout(lsu_idle));
+   rvdff #(1) lsu_idle_ff (.*, .clk(active_clk), .din(lsu_idle_any), .dout(lsu_idle));
    
 
    // can't make this clock active_clock
    assign leak1_i1_stall_in = (dec_tlu_flush_leak_one_wb | (leak1_i1_stall & ~dec_tlu_flush_lower_wb));
-  
+   
    rvdff #(1) leak1_i1_stall_ff (.*, .clk(free_clk), .din(leak1_i1_stall_in), .dout(leak1_i1_stall));
 
    assign leak1_mode = leak1_i1_stall;
@@ -1029,7 +1020,7 @@ end : cam_array
 				   ({12{~i0_dp.lsu & i1_dp.lsu & i1_dp.store}} & {i1[31:25],i1[11:7]});
    
    
-				   
+   
    assign dec_i0_lsu_d = i0_dp.lsu;
    assign dec_i1_lsu_d = i1_dp.lsu;   
 
@@ -1054,7 +1045,7 @@ end : cam_array
 
    assign mul_p.load_mul_rs1_bypass_e1 = load_mul_rs1_bypass_e1;
    assign mul_p.load_mul_rs2_bypass_e1 = load_mul_rs2_bypass_e1;   
- 
+   
    
    assign lsu_p.valid = lsu_decode_d;
    
@@ -1134,11 +1125,11 @@ end : cam_array
 
    
    rvdffs #(5) csrmiscff (.*, 
-			.en(~freeze),
-			.clk(active_clk),
-			.din({ dec_csr_ren_d,  csr_clr_d,  csr_set_d,  csr_write_d,  i0_dp.csr_imm}),
-		        .dout({csr_read_e1,    csr_clr_e1, csr_set_e1, csr_write_e1, csr_imm_e1})
-		       );
+			  .en(~freeze),
+			  .clk(active_clk),
+			  .din({ dec_csr_ren_d,  csr_clr_d,  csr_set_d,  csr_write_d,  i0_dp.csr_imm}),
+		          .dout({csr_read_e1,    csr_clr_e1, csr_set_e1, csr_write_e1, csr_imm_e1})
+			  );
    
    
 
@@ -1157,32 +1148,27 @@ end : cam_array
 				    ({32{csr_write_e1}} & (                       csr_mask_e1[31:0]));
 
 
-// pause instruction
-//   logic pause_state_ff;
+   // pause instruction
+   //   logic pause_state_ff;
    
    assign clear_pause = (dec_tlu_flush_lower_wb & ~dec_tlu_flush_pause_wb) | 
 			(pause_state & (write_csr_data[31:1] == 31'b0));        // if 0 or 1 then exit pause state - 1 cycle pause
    
    assign pause_state_in = (dec_tlu_wr_pause_wb | pause_state) & ~clear_pause;
-			    
+   
    rvdff #(1) pause_state_f (.*, .clk(free_clk), .din(pause_state_in), .dout(pause_state));
 
-   
    assign dec_pause_state = pause_state;
    
-   rvdff #(2) pause_state_wb_ff (.*, .clk(free_clk), .din({dec_tlu_wr_pause_wb,tlu_wr_pause_wb1}), .dout({tlu_wr_pause_wb1,tlu_wr_pause_wb2}));
-
-   
-   assign dec_pause_state_cg = pause_state & ~tlu_wr_pause_wb1 & ~tlu_wr_pause_wb2;
    
    
-// end pause
+   // end pause
    
    assign csr_data_wen = ((csr_clr_e1 | csr_set_e1 | csr_write_e1) & csr_read_e1 & ~freeze) | dec_tlu_wr_pause_wb | pause_state;
    
    assign write_csr_data_in[31:0] = (pause_state)         ? (write_csr_data[31:0] - 32'b1) :
 				    (dec_tlu_wr_pause_wb) ? dec_csr_wrdata_wb[31:0] : write_csr_data_e1[31:0];
-				  
+   
    // will hold until write-back at which time the CSR will be updated while GPR is possibly written with prior CSR
    rvdffe #(32) write_csr_ff (.*, .en(csr_data_wen), .din(write_csr_data_in[31:0]), .dout(write_csr_data[31:0]));
 
@@ -1193,12 +1179,12 @@ end : cam_array
    
 
    
-// read the csr value through rs2 immed port
+   // read the csr value through rs2 immed port
    assign dec_i0_immed_d[31:0] = ({32{ i0_dp.csr_read}} & dec_csr_rddata_d[31:0]) |
 				 ({32{~i0_dp.csr_read}} & i0_immed_d[31:0]);
 
-// end csr stuff   
-      
+   // end csr stuff   
+   
    assign     i0_immed_d[31:0] = ({32{i0_dp.imm12}} &   { {20{i0[31]}},i0[31:20] }) |  // jalr
 				 ({32{i0_dp.shimm5}} &    {27'b0, i0[24:20]}) |
 				 ({32{i0_jalimm20}} &   { {12{i0[31]}},i0[19:12],i0[20],i0[30:21],1'b0}) |
@@ -1206,8 +1192,8 @@ end : cam_array
 				 ({32{i0_csr_write_only_d & i0_dp.csr_imm}} & {27'b0,i0[19:15]});  // for csr's that only write csr, dont read csr
    
 
-//   assign dec_i0_br_immed_d[12:1] = ({12{ i0_ap.predict_nt }} &           {i0[31],i0[7],i0[30:25],i0[11:8]}) |
-//				      ({12{ i0_ap.predict_t | i0_ap.jal}} & {10'b0,i0_ap_pc4,i0_ap_pc2});           
+   //   assign dec_i0_br_immed_d[12:1] = ({12{ i0_ap.predict_nt }} &           {i0[31],i0[7],i0[30:25],i0[11:8]}) |
+   //				      ({12{ i0_ap.predict_t | i0_ap.jal}} & {10'b0,i0_ap_pc4,i0_ap_pc2});           
 
    // all conditional branches are currently predict_nt
    // change this to generate the sequential address for all other cases for NPC requirements at commit
@@ -1244,8 +1230,8 @@ end : cam_array
 
 
 
-   assign i0_load_stall_d = i0_dp.load & (lsu_load_stall_any | dma_dccm_stall_any);
-   assign i1_load_stall_d = i1_dp.load & (lsu_load_stall_any | dma_dccm_stall_any);
+   assign i0_load_stall_d = i0_dp.load & (dma_dccm_stall_any);
+   assign i1_load_stall_d = i1_dp.load & (dma_dccm_stall_any);
    
    assign i0_store_stall_d =  i0_dp.store & (lsu_store_stall_any | dma_dccm_stall_any);
    assign i1_store_stall_d =  i1_dp.store & (lsu_store_stall_any | dma_dccm_stall_any);   
@@ -1259,16 +1245,16 @@ end : cam_array
 
    logic debug_fence_raw;
    
-// some CSR reads need to be presync'd
+   // some CSR reads need to be presync'd
    assign i0_presync = i0_dp.presync | dec_tlu_presync_d | debug_fence_i | debug_fence_raw | dec_tlu_pipelining_disable;  // both fence's presync
-// some CSR writes need to be postsync'd
-   assign i0_postsync = i0_dp.postsync | dec_tlu_postsync_d | debug_fence_i | // only fence_i postsync
+   // some CSR writes need to be postsync'd
+   assign i0_postsync = i0_dp.postsync | dec_tlu_postsync_d | debug_fence_i | i0_instr_error | // only fence_i postsync
 			(i0_csr_write_only_d & (i0[31:20] == 12'h7c2));   // wr_pause must postsync 
    
    assign i1_mul2_block_d  = i1_dp.mul & i0_dp.mul;
 
 
-// debug fence csr
+   // debug fence csr
 
    assign debug_fence_i     = dec_debug_fence_d & dbg_cmd_wrdata[0];
    assign debug_fence_raw   = dec_debug_fence_d & dbg_cmd_wrdata[1];
@@ -1279,7 +1265,7 @@ end : cam_array
    assign i0_csr_write = i0_dp.csr_write & ~dec_debug_fence_d;
    
    
-// end debug
+   // end debug
    
 
    // lets make ebreak, ecall, mret postsync, so break sync into pre and post
@@ -1307,8 +1293,8 @@ end : cam_array
 		       i0_secondary_block_d;
 
    assign i1_block_d = leak1_i1_stall | 
-		      (i0_jal) |            // no i1 after a jal, will flush
-		    ( (i0_br_error_all | (|dec_i0_trigger_match_d[3:0]) | ((i0_dp.condbr | i0_dp.jal) & i0_secondary_d)) & i1_dp.load ) |  // if branch or branch error then don't allow i1 load
+		       (i0_jal) |            // no i1 after a jal, will flush
+		       ( (i0_br_error_all | ((i0_dp.condbr | i0_dp.jal) & i0_secondary_d)) & i1_dp.load ) |  // if branch or branch error then don't allow i1 load
 		       i0_presync | i0_postsync |
 		       i1_dp.presync | i1_dp.postsync |
 		       i1_icaf_d |        // instruction access fault is i0 only
@@ -1391,9 +1377,9 @@ end : cam_array
    assign ps_stall_in =  (dec_i0_decode_d & (i0_jal | (i0_postsync) | ~i0_legal))  |
 			 (dec_i1_decode_d &  i1_jal ) |
 			 ((ps_stall & prior_inflight_e1e4) & ~div_wen_wb);
- 
-  
-    rvdffs #(1) postsync_stallff (.*, .clk(free_clk), .en(~freeze), .din(ps_stall_in), .dout(ps_stall));
+   
+   
+   rvdffs #(1) postsync_stallff (.*, .clk(free_clk), .en(~freeze), .din(ps_stall_in), .dout(ps_stall));
    
    assign postsync_stall = (ps_stall | div_stall);
    
@@ -1450,12 +1436,7 @@ end : cam_array
    assign flush_final_e3 = i0_flush_final_e3 | i1_flush_final_e3;
 
    
-   
-
-
 // scheduling logic for primary and secondary alu's
-
-   
    
    assign i0_rs1_depend_i0_e1 = dec_i0_rs1_en_d & e1d.i0v & (e1d.i0rd[4:0] == i0r.rs1[4:0]);
    assign i0_rs1_depend_i0_e2 = dec_i0_rs1_en_d & e2d.i0v & (e2d.i0rd[4:0] == i0r.rs1[4:0]);
@@ -1522,20 +1503,20 @@ end : cam_array
 
    
    rvdffe #(32) freeze_i0_wbff (.*, 
-			      .en(freeze_after_unfreeze1), 
-			      .din( (freeze_after_unfreeze2) ? i0_result_wb[31:0] : i0_result_e4_freeze[31:0]), 
-			      .dout(i0_result_wb_freeze[31:0])
-			      );
+				.en(freeze_after_unfreeze1), 
+				.din( (freeze_after_unfreeze2) ? i0_result_wb[31:0] : i0_result_e4_freeze[31:0]), 
+				.dout(i0_result_wb_freeze[31:0])
+				);
    
    rvdffe #(32) freeze_i1_wbff (.*, 
-			      .en(freeze_after_unfreeze1), 
-			      .din( (freeze_after_unfreeze2) ? i1_result_wb[31:0] : i1_result_e4_freeze[31:0]), 
-			      .dout(i1_result_wb_freeze[31:0])
-			      );
+				.en(freeze_after_unfreeze1), 
+				.din( (freeze_after_unfreeze2) ? i1_result_wb[31:0] : i1_result_e4_freeze[31:0]), 
+				.dout(i1_result_wb_freeze[31:0])
+				);
    
 
    
-// define bypasses for e2 stage - 1 is youngest
+   // define bypasses for e2 stage - 1 is youngest
 
    assign dd.i0rs1bype2[1:0] = {  i0_dp.alu & i0_rs1_depth_d[3:0] == 4'd5 & i0_rs1_class_d.sec,
                               	  i0_dp.alu & i0_rs1_depth_d[3:0] == 4'd6 & i0_rs1_class_d.sec };
@@ -1580,14 +1561,14 @@ end : cam_array
 
 
    
-// define bypasses for e3 stage before secondary alu's
+   // define bypasses for e3 stage before secondary alu's
    
 
    assign i1_rs1_depend_i0_d = dec_i1_rs1_en_d & i0_dp.rd & (i1r.rs1[4:0] == i0r.rd[4:0]);
    assign i1_rs2_depend_i0_d = dec_i1_rs2_en_d & i0_dp.rd & (i1r.rs2[4:0] == i0r.rd[4:0]);
    
 
-// i0   
+   // i0   
    assign dd.i0rs1bype3[3:0] = { i0_dp.alu & i0_rs1_depth_d[3:0]==4'd1 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul),
 				 i0_dp.alu & i0_rs1_depth_d[3:0]==4'd2 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul),
 				 i0_dp.alu & i0_rs1_depth_d[3:0]==4'd3 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul),
@@ -1598,7 +1579,7 @@ end : cam_array
 				 i0_dp.alu & i0_rs2_depth_d[3:0]==4'd3 & (i0_rs2_class_d.sec | i0_rs2_class_d.load | i0_rs2_class_d.mul),
                               	 i0_dp.alu & i0_rs2_depth_d[3:0]==4'd4 & (i0_rs2_class_d.sec | i0_rs2_class_d.load | i0_rs2_class_d.mul) };
    
-// i1
+   // i1
    
    assign i1rs1_intra[2:0] = {   i1_dp.alu & i0_dp.alu  & i1_rs1_depend_i0_d,
 				 i1_dp.alu & i0_dp.mul  & i1_rs1_depend_i0_d,
@@ -1635,12 +1616,8 @@ end : cam_array
    assign dec_i1_rs1_bypass_en_e3 = |e3d.i1rs1bype3[6:0];
    assign dec_i1_rs2_bypass_en_e3 = |e3d.i1rs2bype3[6:0];   
 
-
-
    
 
-
-   
    assign i1_result_e4_eff[31:0] = (unfreeze_cycle1) ? i1_result_e4_freeze[31:0] :
 				   i1_result_e4_final[31:0];
    
@@ -1675,9 +1652,6 @@ end : cam_array
 				        ({32{e3d.i1rs2bype3[1]}} & i1_result_wb_eff[31:0]) |
 					({32{e3d.i1rs2bype3[0]}} & i0_result_wb_eff[31:0]);
    
-
-   
-
 // order the producers as follows:  i1_e1 - 1, i0_e1 - 2, i1_e2 - 3, ..., i1_wb - 9, i0_wb - 10
 
    
@@ -1870,26 +1844,26 @@ end : cam_array
    assign i0_not_alu_eff = (~i0_dp.alu | disable_secondary);
    assign i1_not_alu_eff = (~i1_dp.alu | disable_secondary);
    
-// stores will bypass load data in the lsu pipe
+   // stores will bypass load data in the lsu pipe
    assign i0_load_block_d = (i0_not_alu_eff & i0_rs1_class_d.load & i0_rs1_match_e1) |
 			    (i0_not_alu_eff & i0_rs1_class_d.load & i0_rs1_match_e2 & ~i0_dp.load & ~i0_dp.store & ~i0_dp.mul) | // can bypass load to address of load/store
 			    (i0_not_alu_eff & i0_rs2_class_d.load & i0_rs2_match_e1 & ~i0_dp.store) |
 			    (i0_not_alu_eff & i0_rs2_class_d.load & i0_rs2_match_e2 & ~i0_dp.store & ~i0_dp.mul);      
-			    
+   
    assign i1_load_block_d = (i1_not_alu_eff & i1_rs1_class_d.load & i1_rs1_match_e1) |
 			    (i1_not_alu_eff & i1_rs1_class_d.load & i1_rs1_match_e2 & ~i1_dp.load & ~i1_dp.store & ~i1_dp.mul) |
 			    (i1_not_alu_eff & i1_rs2_class_d.load & i1_rs2_match_e1 & ~i1_dp.store) |
 			    (i1_not_alu_eff & i1_rs2_class_d.load & i1_rs2_match_e2 & ~i1_dp.store & ~i1_dp.mul);			    
-			    
+   
    assign i0_mul_block_d = (i0_not_alu_eff & i0_rs1_class_d.mul & i0_rs1_match_e1_e2) |
 			   (i0_not_alu_eff & i0_rs2_class_d.mul & i0_rs2_match_e1_e2);
-			    
+   
    assign i1_mul_block_d = (i1_not_alu_eff & i1_rs1_class_d.mul & i1_rs1_match_e1_e2) |
 			   (i1_not_alu_eff & i1_rs2_class_d.mul & i1_rs2_match_e1_e2);
-			    
+   
    assign i0_secondary_block_d = ((~i0_dp.alu & i0_rs1_class_d.sec & i0_rs1_match_e1_e3) |
 				  (~i0_dp.alu & i0_rs2_class_d.sec & i0_rs2_match_e1_e3 & ~i0_dp.store)) & ~disable_secondary;
-  
+   
    assign i1_secondary_block_d = ((~i1_dp.alu & i1_rs1_class_d.sec & i1_rs1_match_e1_e3) |
 				  (~i1_dp.alu & i1_rs2_class_d.sec & i1_rs2_match_e1_e3 & ~i1_dp.store) & ~disable_secondary);
 
@@ -1902,7 +1876,7 @@ end : cam_array
    assign dec_tlu_i0_valid_e4 = (e4d.i0valid & ~e4d.i0div & ~flush_lower_wb) | exu_div_finish;
    assign dec_tlu_i1_valid_e4 = e4d.i1valid & ~flush_lower_wb;
    
-			       
+   
    trap_pkt_t   dt, e1t_in, e1t, e2t_in, e2t, e3t_in, e3t, e4t;
 
    assign dt.legal     =  i0_legal_decode_d                ;
@@ -1912,7 +1886,7 @@ end : cam_array
    assign dt.sbecc     =   dec_i0_sbecc_d & i0_legal_decode_d;   
    assign dt.fence_i   = (i0_dp.fence_i | debug_fence_i) & i0_legal_decode_d;
 
-// put pmu info into the trap packet   
+   // put pmu info into the trap packet   
    assign dt.pmu_i0_itype = i0_itype;
    assign dt.pmu_i1_itype = i1_itype;   
    assign dt.pmu_i0_br_unpred = i0_br_unpred;
@@ -1944,13 +1918,13 @@ end : cam_array
    rvdffe  #($bits(trap_pkt_t) ) trap_e3ff (.*, .en(i0_e3_ctl_en), .din(e2t_in),  .dout(e3t));   
 
 
-    always_comb begin
+   always_comb begin
       e3t_in = e3t;
 
-       e3t_in.i0trigger[3:0] = ({4{(e3d.i0load | e3d.i0store)}} & lsu_trigger_match_dc3[3:0]) | e3t.i0trigger[3:0];
-       e3t_in.i1trigger[3:0] = ~{4{i0_flush_final_e3}} & (({4{~(e3d.i0load | e3d.i0store)}} & lsu_trigger_match_dc3[3:0]) | e3t.i1trigger[3:0]);
+      e3t_in.i0trigger[3:0] = ({4{(e3d.i0load | e3d.i0store)}} & lsu_trigger_match_dc3[3:0]) | e3t.i0trigger[3:0];
+      e3t_in.i1trigger[3:0] = ~{4{i0_flush_final_e3}} & (({4{~(e3d.i0load | e3d.i0store)}} & lsu_trigger_match_dc3[3:0]) | e3t.i1trigger[3:0]);
 
-       e3t_in.pmu_lsu_misaligned = lsu_pmu_misaligned_dc3;   // only valid if a load/store is valid in e3 stage
+      e3t_in.pmu_lsu_misaligned = lsu_pmu_misaligned_dc3;   // only valid if a load/store is valid in e3 stage
 
       if (freeze | flush_lower_wb) e3t_in = '0 ;
    end   
@@ -1959,48 +1933,32 @@ end : cam_array
    rvdffe #( $bits(trap_pkt_t) ) trap_e4ff (.*, .en(i0_e4_ctl_en), .din(e3t_in),  .dout(e4t));
 
    
-   logic freeze_before;
-   logic freeze_e3, freeze_e4;
-   logic [3:0] e4t_i0trigger;
-   logic [3:0] e4t_i1trigger;
-   logic       e4d_i0load;
-   
-   assign freeze_e3 = freeze & ~freeze_before;
-   
-   rvdff #(1) freeze_before_ff (.*, .clk(active_clk), .din(freeze), .dout(freeze_before));
-
-   rvdff #(1) freeze_e4_ff     (.*, .clk(active_clk), .din(freeze_e3), .dout(freeze_e4));   
-
-// these signals pipe down in the event of a freeze at dc3, needed by trap to compute triggers for a load   
-   rvdffe #(9) e4_trigger_ff   (.*, .en(freeze_e3), .din({e3d.i0load,e3t.i0trigger[3:0],e3t.i1trigger[3:0]}), .dout({e4d_i0load,e4t_i0trigger[3:0],e4t_i1trigger[3:0]}));
-   
    always_comb begin
 
       if (exu_div_finish)    // wipe data for exu_div_finish - safer
 	dec_tlu_packet_e4 = '0;
       else
 	dec_tlu_packet_e4 = e4t;
+      
+
+      
 
       dec_tlu_packet_e4.legal = e4t.legal | exu_div_finish;
       dec_tlu_packet_e4.i0trigger[3:0] = (exu_div_finish) ? div_trigger[3:0] : e4t.i0trigger[3:0];
 
       dec_tlu_packet_e4.pmu_divide = exu_div_finish;
-
-      if (freeze_e4) begin  // in case of freeze, pipe down trigger information
-	 dec_tlu_packet_e4.i0trigger[3:0] = e4t_i0trigger[3:0];
-	 dec_tlu_packet_e4.i1trigger[3:0] = e4t_i1trigger[3:0];
-      end
       
    end   
 
-   assign dec_i0_load_e4 = e4d_i0load;
+
    
    
-//   assign dec_tlu_packet_e4 = e4t;
+   
+   //   assign dec_tlu_packet_e4 = e4t;
 
    
 
-// end tlu stuff
+   // end tlu stuff
 
    class_pkt_t i0_e4c_in, i1_e4c_in;
    
@@ -2009,7 +1967,7 @@ end : cam_array
    assign i0_dc.load  = i0_dp.load & i0_legal_decode_d;
    assign i0_dc.sec = i0_dp.alu &  i0_secondary_d & i0_legal_decode_d;
    assign i0_dc.alu = i0_dp.alu & ~i0_secondary_d & i0_legal_decode_d;					
-					
+   
    rvdffs #( $bits(class_pkt_t) ) i0_e1c_ff (.*, .en(i0_e1_ctl_en), .clk(active_clk), .din(i0_dc),   .dout(i0_e1c));
    rvdffs #( $bits(class_pkt_t) ) i0_e2c_ff (.*, .en(i0_e2_ctl_en), .clk(active_clk), .din(i0_e1c),  .dout(i0_e2c));
    rvdffs #( $bits(class_pkt_t) ) i0_e3c_ff (.*, .en(i0_e3_ctl_en), .clk(active_clk), .din(i0_e2c),  .dout(i0_e3c));
@@ -2025,7 +1983,7 @@ end : cam_array
    assign i1_dc.load  = i1_dp.load & dec_i1_decode_d;   
    assign i1_dc.sec = i1_dp.alu &  i1_secondary_d & dec_i1_decode_d;
    assign i1_dc.alu = i1_dp.alu & ~i1_secondary_d & dec_i1_decode_d;					
-					
+   
    rvdffs #( $bits(class_pkt_t) ) i1_e1c_ff (.*, .en(i0_e1_ctl_en), .clk(active_clk), .din(i1_dc),   .dout(i1_e1c));
    rvdffs #( $bits(class_pkt_t) ) i1_e2c_ff (.*, .en(i0_e2_ctl_en), .clk(active_clk), .din(i1_e1c),  .dout(i1_e2c));
    rvdffs #( $bits(class_pkt_t) ) i1_e3c_ff (.*, .en(i0_e3_ctl_en), .clk(active_clk), .din(i1_e2c),  .dout(i1_e3c));
@@ -2035,7 +1993,7 @@ end : cam_array
    rvdffs #( $bits(class_pkt_t) ) i1_e4c_ff (.*, .en(i0_e4_ctl_en), .clk(active_clk), .din(i1_e4c_in), .dout(i1_e4c));
 
    rvdffs #( $bits(class_pkt_t) ) i1_wbc_ff (.*, .en(i0_wb_ctl_en), .clk(active_clk), .din(i1_e4c),    .dout(i1_wbc));					
-       
+   
    dest_pkt_t  dd, e1d, e2d, e3d, e4d, wbd;
 
    dest_pkt_t e1d_in, e2d_in, e3d_in, e4d_in;
@@ -2168,7 +2126,7 @@ end : cam_array
 
    always_comb begin
 
-      if (exu_div_finish)    // wipe data for exu_div_finish - bug where csr_wen was set for fast divide
+      if (exu_div_finish)    
 	e4d_in = '0;
       else
 	e4d_in = e4d;
@@ -2207,7 +2165,7 @@ end : cam_array
    
    assign dec_i1_wdata_wb[31:0] = i1_result_wb[31:0];
 
-// divide stuff
+   // divide stuff
 
    
    assign div_stall = exu_div_stall | div_stall_ff;   // hold for 1 extra cycle so wb can happen before next inst
@@ -2249,10 +2207,10 @@ end : cam_array
    rvdffe #(32) i1e4resultff (.*, .en(i1_e4_data_en), .din(i1_result_e3_final[31:0]), .dout(i1_result_e4[31:0]));   
    
    assign i0_result_e4_final[31:0] =
-				     (          e4d.i0secondary) ? exu_i0_result_e4[31:0] : (e4d.i0v & e4d.i0load) ? lsu_result_corr_dc4[31:0] : i0_result_e4[31:0];				    
+				    (          e4d.i0secondary) ? exu_i0_result_e4[31:0] : i0_result_e4[31:0];				    
    
    assign i1_result_e4_final[31:0] = 
-				     (e4d.i1v & e4d.i1secondary) ? exu_i1_result_e4[31:0] : (e4d.i1v & e4d.i1load) ? lsu_result_corr_dc4[31:0] :i1_result_e4[31:0];
+				     (e4d.i1v & e4d.i1secondary) ? exu_i1_result_e4[31:0] : i1_result_e4[31:0];
 
    rvdffe #(32) i0wbresultff (.*, .en(i0_wb_data_en), .din(i0_result_e4_final[31:0]), .dout(i0_result_wb_raw[31:0]));
    rvdffe #(32) i1wbresultff (.*, .en(i1_wb_data_en), .din(i1_result_e4_final[31:0]), .dout(i1_result_wb_raw[31:0]));   
@@ -2262,22 +2220,22 @@ end : cam_array
    assign i1_result_wb[31:0] = i1_result_wb_raw[31:0];
 
    logic [12:1] last_br_immed_e1, last_br_immed_e2;
-					  
+   
    rvdffe #(12) e1brpcff (.*, .en(i0_e1_data_en), .din(last_br_immed_d[12:1] ), .dout(last_br_immed_e1[12:1]));
    rvdffe #(12) e2brpcff (.*, .en(i0_e2_data_en), .din(last_br_immed_e1[12:1]), .dout(last_br_immed_e2[12:1]));
 
 
-   logic [31:0]        i0_inst_d, i1_inst_d;
-   logic [31:0]        i0_inst_e1, i1_inst_e1;   
-   logic [31:0]        i0_inst_e2, i1_inst_e2;
-   logic [31:0]        i0_inst_e3, i1_inst_e3;
-   logic [31:0]        i0_inst_e4, i1_inst_e4;
-   logic [31:0]        i0_inst_wb, i1_inst_wb;
-   logic [31:0]        i0_inst_wb1,i1_inst_wb1;   
+   logic [31:0] i0_inst_d, i1_inst_d;
+   logic [31:0] i0_inst_e1, i1_inst_e1;   
+   logic [31:0] i0_inst_e2, i1_inst_e2;
+   logic [31:0] i0_inst_e3, i1_inst_e3;
+   logic [31:0] i0_inst_e4, i1_inst_e4;
+   logic [31:0] i0_inst_wb, i1_inst_wb;
+   logic [31:0] i0_inst_wb1,i1_inst_wb1;   
 
-   logic [31:0]        div_inst;
+   logic [31:0] div_inst;
    
-// trace stuff
+   // trace stuff
 
    rvdffe #(32) divinstff   (.*, .en(i0_div_decode_d), .din(i0_inst_d[31:0]), .dout(div_inst[31:0]));
    
@@ -2303,7 +2261,7 @@ end : cam_array
    assign dec_i1_inst_wb1[31:0] = i1_inst_wb1[31:0];   
 
    logic [31:1] i0_pc_wb, i0_pc_wb1;
-   logic [31:1]           i1_pc_wb1;   
+   logic [31:1] i1_pc_wb1;   
 
    rvdffe #(31) i0wbpcff  (.*, .en(i0_wb_data_en | exu_div_finish), .din(dec_tlu_i0_pc_e4[31:1]), .dout(i0_pc_wb[31:1]));
    rvdffe #(31) i0wb1pcff (.*, .en(i0_wb1_data_en | div_wen_wb),    .din(i0_pc_wb[31:1]),         .dout(i0_pc_wb1[31:1]));      
@@ -2313,6 +2271,8 @@ end : cam_array
    assign dec_i0_pc_wb1[31:1] = i0_pc_wb1[31:1];
    assign dec_i1_pc_wb1[31:1] = i1_pc_wb1[31:1];   
    
+   // end trace
+
    
    // pipe the pc's down the pipe
    assign i0_pc_e1[31:1] = exu_i0_pc_e1[31:1];
@@ -2338,23 +2298,17 @@ end : cam_array
    assign last_pc_e2[31:1] = (e2d.i1valid) ? i1_pc_e2[31:1] : i0_pc_e2[31:1];
    
    rvbradder ibradder_correct (
-		     .pc(last_pc_e2[31:1]),
-		     .offset(last_br_immed_e2[12:1]),
-		     .dout(pred_correct_npc_e2[31:1])
-		     );
+			       .pc(last_pc_e2[31:1]),
+			       .offset(last_br_immed_e2[12:1]),
+			       .dout(pred_correct_npc_e2[31:1])
+			       );
 
 
 
    // needed for debug triggers 
    rvdffe #(31) i1wbpcff (.*, .en(i1_wb_data_en), .din(dec_tlu_i1_pc_e4[31:1]), .dout(i1_pc_wb[31:1]));   
-
-
-
-  
-   
    
    // bit 9 is priority match, bit 0 lowest priority, i1_e1, i0_e1, i1_e2, ... i1_wb, i0_wb
-
 
    
    assign i0_rs1bypass[9:0] = {   i0_rs1_depth_d[3:0] == 4'd1  &  i0_rs1_class_d.alu,
@@ -2404,9 +2358,6 @@ end : cam_array
 				  i1_rs2_depth_d[3:0] == 4'd9  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec),
 				  i1_rs2_depth_d[3:0] == 4'd10 & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec) };
    
-
-
-
    assign dec_i0_rs1_bypass_en_d = |i0_rs1bypass[9:0];
    assign dec_i0_rs2_bypass_en_d = |i0_rs2bypass[9:0];
    assign dec_i1_rs1_bypass_en_d = |i1_rs1bypass[9:0];
@@ -2461,10 +2412,6 @@ end : cam_array
 				       ({32{i1_rs2bypass[0]}} & i0_result_wb[31:0]);
    
    
-   
-   
-   
-   
 endmodule
 
 // file "decode" is human readable file that has all of the instruction decodes defined and is part of git repo
@@ -2483,8 +2430,7 @@ endmodule
 // 2) espresso -Dso -oeqntott legal.e | addassign -pre out. > legal_equation
 
 module dec_dec_ctl
-   import swerv_types::*;
-(
+  (
    input logic [31:0] inst,
 
    output dec_pkt_t out

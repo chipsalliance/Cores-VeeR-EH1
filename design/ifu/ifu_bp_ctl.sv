@@ -25,8 +25,7 @@
 //********************************************************************************
 
 module ifu_bp_ctl
-   import swerv_types::*;
-(
+  (
 		    
    input logic clk,
    input logic active_clk,
@@ -302,6 +301,7 @@ module ifu_bp_ctl
    
    // based on the fetch group offset(PC[3:2]) and direction bits, findfirst from fetchPC
    // this sel is zero/onehot
+
    // Put the table below in a file and run espresso to generate the btb_sel_f2 and btb_vmask_raw_f2 equations
    // espresso -oeqntott -eeat <file> | addassign
 //
