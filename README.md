@@ -1,6 +1,6 @@
 # SweRV RISC-V Core<sup>TM</sup> 1.1 from Western Digital
 
-This repository contains the SweRV Core<sup>TM</sup> 1.1 design RTL
+This repository contains the SweRV Core<sup>TM</sup> 1.1 design RTL. The previous version can be found in [branch 1.0.](https://github.com/chipsalliance/Cores-SweRV/tree/1.0)
 
 ## License
 
