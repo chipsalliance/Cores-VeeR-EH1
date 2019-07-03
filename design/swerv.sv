@@ -28,7 +28,6 @@ module swerv
    input logic [31:1]           rst_vec,
    input logic                  nmi_int,
    input logic [31:1]           nmi_vec,                            
-   input logic [31:1]           jtag_id,
    output logic                 core_rst_l,   // This is "rst_l | dbg_rst_l"  
 
    output logic [63:0] trace_rv_i_insn_ip,
@@ -370,14 +369,14 @@ module swerv
    input   logic                 dbg_bus_clk_en,
    input   logic                 dma_bus_clk_en,
 
-   // JTAG ports               
-   input logic             jtag_tck, // JTAG clk
-   input logic             jtag_tms, // JTAG TMS  
-   input logic             jtag_tdi, // JTAG tdi
-   input logic             jtag_trst_n, // JTAG Reset
-   output logic            jtag_tdo, // JTAG TDO
-   
-                            
+   //Debug module
+   input  logic                  dmi_reg_en,
+   input  logic [6:0]            dmi_reg_addr,
+   input  logic                  dmi_reg_wr_en,
+   input  logic [31:0]           dmi_reg_wdata,
+   output logic [31:0]           dmi_reg_rdata,
+   input  logic                  dmi_hard_reset,
+
    input logic [`RV_PIC_TOTAL_INT:1]           extintsrc_req,
    input logic                   timer_int,
    input logic                   scan_mode
@@ -971,41 +970,7 @@ module swerv
       .clk_override(dec_tlu_misc_clk_override),
       .*
    );
- 
-   // inputs from the JTAG - these will become input ports to the echx
-   logic                   dmi_reg_en;                // read or write
-   logic [6:0]             dmi_reg_addr;              // address of DM register
-   logic                   dmi_reg_wr_en;             // write instruction
-   logic [31:0]            dmi_reg_wdata;             // write data
-   // outputs from the dbg back to jtag
-   logic [31:0]            dmi_reg_rdata;
-   logic                   dmi_hard_reset;
-   
-   logic                   jtag_tdoEn;
-         
-  // Instantiat the JTAG/DMI             
-   dmi_wrapper  dmi_wrapper (
-           .scan_mode(scan_mode),           // scan mode
 
-           // JTAG signals
-           .trst_n(jtag_trst_n),           // JTAG reset
-           .tck   (jtag_tck),              // JTAG clock
-           .tms   (jtag_tms),              // Test mode select   
-           .tdi   (jtag_tdi),              // Test Data Input
-           .tdo   (jtag_tdo),              // Test Data Output           
-           .tdoEnable (jtag_tdoEn),       // Test Data Output enable             
-
-           // Processor Signals
-           .core_rst_n  (rst_l),          // Core reset, active low                  
-           .core_clk    (clk),            // Core clock                  
-           .jtag_id     (jtag_id),        // 32 bit JTAG ID 
-           .rd_data     (dmi_reg_rdata),  // 32 bit Read data from  Processor                       
-           .reg_wr_data (dmi_reg_wdata),  // 32 bit Write data to Processor                      
-           .reg_wr_addr (dmi_reg_addr),   // 32 bit Write address to Processor                   
-           .reg_en      (dmi_reg_en),     // 1 bit  Write interface bit to Processor                                   
-           .reg_wr_en   (dmi_reg_wr_en),   // 1 bit  Write enable to Processor               
-           .dmi_hard_reset   (dmi_hard_reset)   //a hard reset of the DTM, causing the DTM to forget about any outstanding DMI transactions
-); 
    
    // -----------------   DEBUG END -----------------------------
 
