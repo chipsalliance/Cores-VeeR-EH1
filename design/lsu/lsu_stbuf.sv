@@ -37,6 +37,9 @@ module lsu_stbuf
    input logic        lsu_freeze_c2_dc3_clk,              // freeze clock 
    input logic        lsu_freeze_c1_dc2_clk,              // freeze clock
    input logic        lsu_freeze_c1_dc3_clk,              // freeze clock
+
+   input logic        lsu_freeze_c1_dc3_clken,            
+
    input logic        lsu_c1_dc4_clk,                     // lsu pipe clock
    input logic        lsu_c1_dc5_clk,                     // lsu pipe clock
    input logic        lsu_c2_dc4_clk,                     // lsu pipe clock
@@ -385,8 +388,8 @@ module lsu_stbuf
    rvdff #(.WIDTH(BYTE_WIDTH)) stbuf_fwdbyteen_hi_dc3ff (.din(stbuf_fwdbyteen_hi_fn_dc2[BYTE_WIDTH-1:0]), .dout(stbuf_fwdbyteen_hi_dc3[BYTE_WIDTH-1:0]), .clk(lsu_freeze_c1_dc3_clk), .*);
    rvdff #(.WIDTH(BYTE_WIDTH)) stbuf_fwdbyteen_lo_dc3ff (.din(stbuf_fwdbyteen_lo_fn_dc2[BYTE_WIDTH-1:0]), .dout(stbuf_fwdbyteen_lo_dc3[BYTE_WIDTH-1:0]), .clk(lsu_freeze_c1_dc3_clk), .*);
 
-   rvdff #(.WIDTH(DATA_WIDTH)) stbuf_fwddata_hi_dc3ff (.din(stbuf_fwddata_hi_fn_dc2[DATA_WIDTH-1:0]), .dout(stbuf_fwddata_hi_dc3[DATA_WIDTH-1:0]), .clk(lsu_freeze_c1_dc3_clk), .*);
-   rvdff #(.WIDTH(DATA_WIDTH)) stbuf_fwddata_lo_dc3ff (.din(stbuf_fwddata_lo_fn_dc2[DATA_WIDTH-1:0]), .dout(stbuf_fwddata_lo_dc3[DATA_WIDTH-1:0]), .clk(lsu_freeze_c1_dc3_clk), .*);
+   rvdffe #(.WIDTH(DATA_WIDTH)) stbuf_fwddata_hi_dc3ff (.din(stbuf_fwddata_hi_fn_dc2[DATA_WIDTH-1:0]), .dout(stbuf_fwddata_hi_dc3[DATA_WIDTH-1:0]), .en(lsu_freeze_c1_dc3_clken), .*);
+   rvdffe #(.WIDTH(DATA_WIDTH)) stbuf_fwddata_lo_dc3ff (.din(stbuf_fwddata_lo_fn_dc2[DATA_WIDTH-1:0]), .dout(stbuf_fwddata_lo_dc3[DATA_WIDTH-1:0]), .en(lsu_freeze_c1_dc3_clken), .*);
 
 `ifdef ASSERT_ON
 

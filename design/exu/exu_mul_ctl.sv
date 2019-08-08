@@ -74,8 +74,8 @@ module exu_mul_ctl
    rvdff  #(1)  ld_rs1_byp_e1_ff (.*, .din(mp.load_mul_rs1_bypass_e1), .dout(load_mul_rs1_bypass_e1), .clk(exu_mul_c1_e1_clk));
    rvdff  #(1)  ld_rs2_byp_e1_ff (.*, .din(mp.load_mul_rs2_bypass_e1), .dout(load_mul_rs2_bypass_e1), .clk(exu_mul_c1_e1_clk));
 
-   rvdff  #(32) a_e1_ff          (.*, .din(a[31:0]),                   .dout(a_ff_e1[31:0]),          .clk(exu_mul_c1_e1_clk));
-   rvdff  #(32) b_e1_ff          (.*, .din(b[31:0]),                   .dout(b_ff_e1[31:0]),          .clk(exu_mul_c1_e1_clk));
+   rvdffe  #(32) a_e1_ff          (.*, .din(a[31:0]),                   .dout(a_ff_e1[31:0]),          .en(mul_c1_e1_clken));
+   rvdffe  #(32) b_e1_ff          (.*, .din(b[31:0]),                   .dout(b_ff_e1[31:0]),          .en(mul_c1_e1_clken));
 
 
 
@@ -91,8 +91,8 @@ module exu_mul_ctl
    rvdffs #(1)  valid_e2_ff      (.*, .din(valid_e1),                  .dout(valid_e2),               .clk(active_clk),        .en(~freeze));
    rvdff  #(1)  low_e2_ff        (.*, .din(low_e1),                    .dout(low_e2),                 .clk(exu_mul_c1_e2_clk));
 
-   rvdff  #(33) a_e2_ff          (.*, .din({rs1_neg_e1, a_e1[31:0]}),  .dout(a_ff_e2[32:0]),          .clk(exu_mul_c1_e2_clk));
-   rvdff  #(33) b_e2_ff          (.*, .din({rs2_neg_e1, b_e1[31:0]}),  .dout(b_ff_e2[32:0]),          .clk(exu_mul_c1_e2_clk));
+   rvdffe  #(33) a_e2_ff          (.*, .din({rs1_neg_e1, a_e1[31:0]}),  .dout(a_ff_e2[32:0]),          .en(mul_c1_e2_clken));
+   rvdffe  #(33) b_e2_ff          (.*, .din({rs2_neg_e1, b_e1[31:0]}),  .dout(b_ff_e2[32:0]),          .en(mul_c1_e2_clken));
 
 
 
@@ -105,7 +105,7 @@ module exu_mul_ctl
 
 
    rvdff  #(1)  low_e3_ff        (.*, .din(low_e2),                    .dout(low_e3),                 .clk(exu_mul_c1_e3_clk));
-   rvdff  #(64) prod_e3_ff       (.*, .din(prod_e2[63:0]),             .dout(prod_e3[63:0]),          .clk(exu_mul_c1_e3_clk));
+   rvdffe  #(64) prod_e3_ff       (.*, .din(prod_e2[63:0]),             .dout(prod_e3[63:0]),          .en(mul_c1_e3_clken));
 
 
 

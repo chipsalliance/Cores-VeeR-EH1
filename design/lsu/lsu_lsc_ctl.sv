@@ -29,22 +29,26 @@ module lsu_lsc_ctl
    import swerv_types::*;
 (
    input logic         rst_l,
+   input logic         clk,
+ 
    // clocks per pipe
    input logic        lsu_c1_dc4_clk,                            
    input logic        lsu_c1_dc5_clk,                            
    input logic        lsu_c2_dc4_clk,                            
    input logic        lsu_c2_dc5_clk,
    // freez clocks per pipe                   
-   input logic        lsu_freeze_c1_dc1_clk,                            
+   input logic        lsu_freeze_c1_dc1_clken,                            
+   input logic        lsu_freeze_c1_dc2_clken,
    input logic        lsu_freeze_c1_dc2_clk,                            
-   input logic        lsu_freeze_c1_dc3_clk,                            
+   input logic        lsu_freeze_c1_dc3_clken,
+   input logic        lsu_freeze_c1_dc3_clk,                             
    input logic        lsu_freeze_c2_dc1_clk,                            
    input logic        lsu_freeze_c2_dc2_clk,                            
    input logic        lsu_freeze_c2_dc3_clk,                            
    
-   input logic        lsu_store_c1_dc1_clk,
-   input logic        lsu_store_c1_dc2_clk,
-   input logic        lsu_store_c1_dc3_clk,
+   input logic        lsu_store_c1_dc1_clken,
+   input logic        lsu_store_c1_dc2_clken,
+   input logic        lsu_store_c1_dc3_clken,
    input logic        lsu_store_c1_dc4_clk,
    input logic        lsu_store_c1_dc5_clk,
                                                  
@@ -167,8 +171,8 @@ module lsu_lsc_ctl
    assign lsu_rs1_d[31:0] = dma_dccm_req ? dma_mem_addr[31:0] : exu_lsu_rs1_d[31:0];
    assign lsu_offset_d[11:0] = dec_lsu_offset_d[11:0] & ~{12{dma_dccm_req}};
 
-   rvdff #(32) rs1ff (.*, .din(lsu_rs1_d[31:0]), .dout(rs1_dc1_raw[31:0]), .clk(lsu_freeze_c1_dc1_clk));
-   rvdff #(12) offsetff (.*, .din(lsu_offset_d[11:0]), .dout(offset_dc1[11:0]), .clk(lsu_freeze_c1_dc1_clk));
+   rvdffe #(32) rs1ff (.*, .din(lsu_rs1_d[31:0]), .dout(rs1_dc1_raw[31:0]), .en(lsu_freeze_c1_dc1_clken));
+   rvdffe #(12) offsetff (.*, .din(lsu_offset_d[11:0]), .dout(offset_dc1[11:0]), .en(lsu_freeze_c1_dc1_clken));
 
    assign rs1_dc1[31:0] = (lsu_pkt_dc1.load_ldst_bypass_c1) ? lsu_result_dc3[31:0] : rs1_dc1_raw[31:0];
    
@@ -245,9 +249,9 @@ module lsu_lsc_ctl
    rvdff #(1) lsu_pkt_vlddc4ff (.*, .din(lsu_pkt_dc4_in.valid), .dout(lsu_pkt_dc4.valid), .clk(lsu_c2_dc4_clk));
    rvdff #(1) lsu_pkt_vlddc5ff (.*, .din(lsu_pkt_dc5_in.valid), .dout(lsu_pkt_dc5.valid), .clk(lsu_c2_dc5_clk));   
    
-   rvdff #($bits(lsu_pkt_t)-1) lsu_pkt_dc1ff (.*, .din(lsu_pkt_dc1_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc1[$bits(lsu_pkt_t)-1:1]), .clk(lsu_freeze_c1_dc1_clk));
-   rvdff #($bits(lsu_pkt_t)-1) lsu_pkt_dc2ff (.*, .din(lsu_pkt_dc2_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc2[$bits(lsu_pkt_t)-1:1]), .clk(lsu_freeze_c1_dc2_clk));
-   rvdff #($bits(lsu_pkt_t)-1) lsu_pkt_dc3ff (.*, .din(lsu_pkt_dc3_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc3[$bits(lsu_pkt_t)-1:1]), .clk(lsu_freeze_c1_dc3_clk));
+   rvdffe #($bits(lsu_pkt_t)-1) lsu_pkt_dc1ff (.*, .din(lsu_pkt_dc1_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc1[$bits(lsu_pkt_t)-1:1]), .en(lsu_freeze_c1_dc1_clken));
+   rvdffe #($bits(lsu_pkt_t)-1) lsu_pkt_dc2ff (.*, .din(lsu_pkt_dc2_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc2[$bits(lsu_pkt_t)-1:1]), .en(lsu_freeze_c1_dc2_clken));
+   rvdffe #($bits(lsu_pkt_t)-1) lsu_pkt_dc3ff (.*, .din(lsu_pkt_dc3_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc3[$bits(lsu_pkt_t)-1:1]), .en(lsu_freeze_c1_dc3_clken));
    rvdff #($bits(lsu_pkt_t)-1) lsu_pkt_dc4ff (.*, .din(lsu_pkt_dc4_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc4[$bits(lsu_pkt_t)-1:1]), .clk(lsu_c1_dc4_clk));
    rvdff #($bits(lsu_pkt_t)-1) lsu_pkt_dc5ff (.*, .din(lsu_pkt_dc5_in[$bits(lsu_pkt_t)-1:1]), .dout(lsu_pkt_dc5[$bits(lsu_pkt_t)-1:1]), .clk(lsu_c1_dc5_clk));   
    
@@ -295,19 +299,20 @@ module lsu_lsc_ctl
    
    rvdff #(32) lsu_result_corr_dc4ff (.*, .din(lsu_result_corr_dc3[31:0]), .dout(lsu_result_corr_dc4[31:0]), .clk(lsu_c1_dc4_clk));
 
-   rvdff #(64) sddc1ff (.*, .din(store_data_d[63:0]),  .dout(store_data_dc1[63:0]), .clk(lsu_store_c1_dc1_clk));
-   rvdff #(64) sddc2ff (.*, .din(store_data_dc2_in[63:0]), .dout(store_data_pre_dc2[63:0]), .clk(lsu_store_c1_dc2_clk));
-   rvdffs #(64) sddc3ff (.*, .din(store_data_dc2[63:0]), .dout(store_data_pre_dc3[63:0]), .en(~lsu_freeze_dc3), .clk(lsu_store_c1_dc3_clk));
+   rvdffe #(64) sddc1ff (.*, .din(store_data_d[63:0]),  .dout(store_data_dc1[63:0]), .en(lsu_store_c1_dc1_clken));
+   rvdffe #(64) sddc2ff (.*, .din(store_data_dc2_in[63:0]), .dout(store_data_pre_dc2[63:0]), .en(lsu_store_c1_dc2_clken));
+   rvdffe #(64) sddc3ff (.*, .din(store_data_dc2[63:0]), .dout(store_data_pre_dc3[63:0]), .en(~lsu_freeze_dc3 & lsu_store_c1_dc3_clken) );
+   
    rvdff #(32) sddc4ff (.*, .din(store_data_dc3[31:0]), .dout(store_data_dc4[31:0]), .clk(lsu_store_c1_dc4_clk));
    rvdff #(32) sddc5ff (.*, .din(store_data_dc4[31:0]), .dout(store_data_dc5[31:0]), .clk(lsu_store_c1_dc5_clk));   
    
-   rvdff #(32) sadc2ff (.*, .din(lsu_addr_dc1[31:0]), .dout(lsu_addr_dc2[31:0]), .clk(lsu_freeze_c1_dc2_clk));
-   rvdff #(32) sadc3ff (.*, .din(lsu_addr_dc2[31:0]), .dout(lsu_addr_dc3[31:0]), .clk(lsu_freeze_c1_dc3_clk));
+   rvdffe #(32) sadc2ff (.*, .din(lsu_addr_dc1[31:0]), .dout(lsu_addr_dc2[31:0]), .en(lsu_freeze_c1_dc2_clken));
+   rvdffe #(32) sadc3ff (.*, .din(lsu_addr_dc2[31:0]), .dout(lsu_addr_dc3[31:0]), .en(lsu_freeze_c1_dc3_clken));
    rvdff #(32) sadc4ff (.*, .din(lsu_addr_dc3[31:0]), .dout(lsu_addr_dc4[31:0]), .clk(lsu_c1_dc4_clk));
    rvdff #(32) sadc5ff (.*, .din(lsu_addr_dc4[31:0]), .dout(lsu_addr_dc5[31:0]), .clk(lsu_c1_dc5_clk));   
    
-   rvdff #(32) end_addr_dc2ff (.*, .din(end_addr_dc1[31:0]), .dout(end_addr_dc2[31:0]), .clk(lsu_freeze_c1_dc2_clk));
-   rvdff #(32) end_addr_dc3ff (.*, .din(end_addr_dc2[31:0]), .dout(end_addr_dc3[31:0]), .clk(lsu_freeze_c1_dc3_clk));
+   rvdffe #(32) end_addr_dc2ff (.*, .din(end_addr_dc1[31:0]), .dout(end_addr_dc2[31:0]), .en(lsu_freeze_c1_dc2_clken));
+   rvdffe #(32) end_addr_dc3ff (.*, .din(end_addr_dc2[31:0]), .dout(end_addr_dc3[31:0]), .en(lsu_freeze_c1_dc3_clken));
    rvdff #(32) end_addr_dc4ff (.*, .din(end_addr_dc3[31:0]), .dout(end_addr_dc4[31:0]), .clk(lsu_c1_dc4_clk));
    rvdff #(32) end_addr_dc5ff (.*, .din(end_addr_dc4[31:0]), .dout(end_addr_dc5[31:0]), .clk(lsu_c1_dc5_clk));   
 

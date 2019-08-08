@@ -117,7 +117,7 @@ module dbg (
 `include "global.h"
    
    typedef enum logic [2:0] {IDLE=3'b000, HALTING=3'b001, HALTED=3'b010, CMD_START=3'b011, CMD_WAIT=3'b100, CMD_DONE=3'b101, RESUMING=3'b110} state_t;
-   typedef enum logic [3:0] {SBIDLE=4'b0, WAIT=4'b1, CMD_RD=4'b10, CMD_WR=4'b11, CMD_WR_ADDR=4'b100, CMD_WR_DATA=4'b101, RSP_RD=4'b110, RSP_WR=4'b111, DONE=4'b1000} sb_state_t;
+   typedef enum logic [3:0] {SBIDLE=4'h0, WAIT_RD=4'h1, WAIT_WR=4'h2, CMD_RD=4'h3, CMD_WR=4'h4, CMD_WR_ADDR=4'h5, CMD_WR_DATA=4'h6, RSP_RD=4'h7, RSP_WR=4'h8, DONE=4'h9} sb_state_t;
    
    state_t       dbg_state;       
    state_t       dbg_nxtstate;
@@ -233,8 +233,8 @@ module dbg (
    assign sb_free_clken = dmi_reg_en | sb_state_en | (sb_state != SBIDLE) | clk_override;
    assign bus_clken = (sb_axi_awvalid | sb_axi_wvalid | sb_axi_arvalid | sb_axi_bvalid | sb_axi_rvalid | clk_override) & dbg_bus_clk_en;
 
-   rvclkhdr dbg_free_cgc     (.en(dbg_free_clken), .l1clk(dbg_free_clk), .*);
-   rvclkhdr sb_free_cgc     (.en(sb_free_clken), .l1clk(sb_free_clk), .*);
+   rvoclkhdr dbg_free_cgc     (.en(dbg_free_clken), .l1clk(dbg_free_clk), .*);
+   rvoclkhdr sb_free_cgc     (.en(sb_free_clken), .l1clk(sb_free_clk), .*);
    rvclkhdr bus_cgc (.en(bus_clken), .l1clk(bus_clk), .*);
    
    // end clocking section  
@@ -494,15 +494,21 @@ module dbg (
       sbaddress0_reg_wren1   = 1'b0;    
       case (sb_state)
             SBIDLE: begin
-                     sb_nxtstate            = WAIT;
+                     sb_nxtstate            = sbdata0wr_access ? WAIT_WR : WAIT_RD;
 	             sb_state_en            = sbdata0wr_access | sbreadondata_access | sbreadonaddr_access;
 	             sbcs_sbbusy_wren       = sb_state_en;                                                 // set the single read bit if it is a singlread command
 	             sbcs_sbbusy_din        = 1'b1;
                      sbcs_sberror_wren      = sbcs_wren & (|dmi_reg_wdata[14:12]);                                            // write to clear the error bits
 	             sbcs_sberror_din[2:0]  = ~dmi_reg_wdata[14:12] & sbcs_reg[14:12];
             end               
-            WAIT: begin
-                     sb_nxtstate           = (sbcs_unaligned | sbcs_illegal_size) ? DONE : (sbcs_reg[15] | sbcs_reg[20]) ? CMD_RD : CMD_WR;
+            WAIT_RD: begin
+                     sb_nxtstate           = (sbcs_unaligned | sbcs_illegal_size) ? DONE : CMD_RD;
+                     sb_state_en           = dbg_bus_clk_en | sbcs_unaligned | sbcs_illegal_size;
+                     sbcs_sberror_wren     = sbcs_unaligned | sbcs_illegal_size;
+	             sbcs_sberror_din[2:0] = sbcs_unaligned ? 3'b011 : 3'b100;
+            end
+            WAIT_WR: begin
+                     sb_nxtstate           = (sbcs_unaligned | sbcs_illegal_size) ? DONE : CMD_WR;
                      sb_state_en           = dbg_bus_clk_en | sbcs_unaligned | sbcs_illegal_size;
                      sbcs_sberror_wren     = sbcs_unaligned | sbcs_illegal_size;
 	             sbcs_sberror_din[2:0] = sbcs_unaligned ? 3'b011 : 3'b100;
@@ -571,7 +577,7 @@ module dbg (
    rvdffs #(.WIDTH(1)) axi_rvalid_ff (.din(sb_axi_rvalid), .dout(sb_axi_rvalid_q), .en(dbg_bus_clk_en), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk), .*);
    rvdffs #(.WIDTH(1)) axi_rready_ff (.din(sb_axi_rready), .dout(sb_axi_rready_q), .en(dbg_bus_clk_en), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk), .*);
    rvdff  #(.WIDTH(2)) axi_rresp_ff (.din(sb_axi_rresp[1:0]), .dout(sb_axi_rresp_q[1:0]), .rst_l(dbg_dm_rst_l), .clk(bus_clk), .*);
-   rvdff  #(.WIDTH(64)) axi_rdata_ff (.din(sb_axi_rdata[63:0]), .dout(sb_axi_rdata_q[63:0]), .rst_l(dbg_dm_rst_l), .clk(bus_clk), .*);
+   rvdffe  #(.WIDTH(64)) axi_rdata_ff (.din(sb_axi_rdata[63:0]), .dout(sb_axi_rdata_q[63:0]), .rst_l(dbg_dm_rst_l), .en(bus_clken), .*);
 
    // AXI Request signals
    assign sb_axi_awvalid              = ((sb_state == CMD_WR) | (sb_state == CMD_WR_ADDR)) & ~(sb_axi_awvalid_q & sb_axi_awready_q);

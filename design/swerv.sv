@@ -957,10 +957,10 @@ module swerv
    trace_pkt_t  trace_rv_trace_pkt;
 
    
-   assign active_state = ~dec_pause_state_cg | dec_tlu_flush_lower_wb;
+   assign active_state = ~dec_pause_state_cg | dec_tlu_flush_lower_wb | dec_tlu_misc_clk_override;
    
-   rvclkhdr free_cg   ( .en(1'b1),         .l1clk(free_clk), .* );
-   rvclkhdr active_cg ( .en(active_state), .l1clk(active_clk), .* );   
+   rvoclkhdr free_cg   ( .en(1'b1),         .l1clk(free_clk), .* );
+   rvoclkhdr active_cg ( .en(active_state), .l1clk(active_clk), .* );   
 
    
    assign core_dbg_cmd_done = dma_dbg_cmd_done | dec_dbg_cmd_done;

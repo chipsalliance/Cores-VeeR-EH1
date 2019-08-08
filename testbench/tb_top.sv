@@ -22,7 +22,6 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
 `ifndef VERILATOR
    logic                                reset_l;
    logic                                core_clk;
-   logic                                finished;
 `endif
    logic                                nmi_int;
 
@@ -101,6 +100,7 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
 
    logic        [31:0]                  cycleCnt       ;
    logic                                mailbox_data_val;
+   logic                                finished;
 
    wire                                 dma_hready_out;
 

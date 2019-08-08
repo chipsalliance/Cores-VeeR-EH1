@@ -256,13 +256,14 @@ module lsu
    // Clocks
    logic        lsu_c1_dc3_clk, lsu_c1_dc4_clk, lsu_c1_dc5_clk;                           
    logic        lsu_c2_dc3_clk, lsu_c2_dc4_clk, lsu_c2_dc5_clk;                           
-   logic        lsu_freeze_c1_dc1_clk, lsu_freeze_c1_dc2_clk, lsu_freeze_c1_dc3_clk;   
-   logic        lsu_store_c1_dc1_clk, lsu_store_c1_dc2_clk, lsu_store_c1_dc3_clk, lsu_store_c1_dc4_clk, lsu_store_c1_dc5_clk;
+   logic        lsu_freeze_c1_dc2_clk, lsu_freeze_c1_dc3_clk;
+   logic        lsu_freeze_c1_dc1_clken, lsu_freeze_c1_dc2_clken, lsu_freeze_c1_dc3_clken;   
+   logic        lsu_store_c1_dc1_clken, lsu_store_c1_dc2_clken, lsu_store_c1_dc3_clken, lsu_store_c1_dc4_clk, lsu_store_c1_dc5_clk;
                       
    logic        lsu_freeze_c2_dc1_clk, lsu_freeze_c2_dc2_clk, lsu_freeze_c2_dc3_clk, lsu_freeze_c2_dc4_clk;                           
    logic        lsu_stbuf_c1_clk;
    logic        lsu_bus_ibuf_c1_clk, lsu_bus_obuf_c1_clk, lsu_bus_buf_c1_clk;
-   logic        lsu_dccm_c1_dc3_clk, lsu_pic_c1_dc3_clk;
+   logic        lsu_dccm_c1_dc3_clk, lsu_pic_c1_dc3_clken;
    logic        lsu_busm_clk;
    logic        lsu_free_c2_clk;
    

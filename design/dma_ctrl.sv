@@ -405,8 +405,8 @@ module dma_ctrl (
    assign dma_buffer_c1_clken = (axi_mstr_valid & dma_bus_clk_en) | dbg_cmd_valid | dec_tlu_stall_dma | clk_override;
    assign dma_free_clken = (axi_mstr_valid | axi_mstr_valid_q | axi_slv_valid | axi_slv_sent_q | dbg_cmd_valid | dma_dbg_cmd_done | dma_dbg_cmd_done_q | (|fifo_valid[DEPTH-1:0]) | wrbuf_vld | rdbuf_vld | dec_tlu_stall_dma | clk_override);
 
-   rvclkhdr dma_buffer_c1cgc ( .en(dma_buffer_c1_clken), .l1clk(dma_buffer_c1_clk), .* );
-   rvclkhdr dma_free_cgc (.en(dma_free_clken), .l1clk(dma_free_clk), .*);
+   rvoclkhdr dma_buffer_c1cgc ( .en(dma_buffer_c1_clken), .l1clk(dma_buffer_c1_clk), .* );
+   rvoclkhdr dma_free_cgc (.en(dma_free_clken), .l1clk(dma_free_clk), .*);
    rvclkhdr dma_bus_cgc (.en(dma_bus_clk_en), .l1clk(dma_bus_clk), .*);
    
    // Write channel buffer

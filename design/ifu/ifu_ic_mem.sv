@@ -1,6 +1,6 @@
 //********************************************************************************
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2019 Western Digital Corporation or its affiliates.
+// Copyright 2019 Western Digital Corporation or it's affiliates.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -225,7 +225,7 @@ localparam NUM_SUBBANKS=4 ;
 
      for (genvar i=0; i<NUM_WAYS; i++) begin: WAYS
 
-	rvclkhdr bank_way_c1_cgc  ( .en(ic_bank_way_clken[i]), .l1clk(ic_bank_way_clk[i]), .* );
+	rvoclkhdr bank_way_c1_cgc  ( .en(ic_bank_way_clken[i]), .l1clk(ic_bank_way_clk[i]), .* );
 
 	for (genvar k=0; k<NUM_SUBBANKS; k++) begin: SUBBANKS   // 16B subbank
 

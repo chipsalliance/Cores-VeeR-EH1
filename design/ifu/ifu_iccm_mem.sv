@@ -82,10 +82,10 @@ module ifu_iccm_mem
       assign iccm_lo0_clken[i]      =  wren_bank_lo0[i] |  (rden_bank[i] | clk_override);   // Do not override the writes  
       assign iccm_lo1_clken[i]      =  wren_bank_lo1[i] |  (rden_bank[i] | clk_override);   // Do not override the writes  
 
-      rvclkhdr iccm_hi0_c1_cgc  ( .en(iccm_hi0_clken[i]), .l1clk(iccm_hi0_clk[i]), .* );
-      rvclkhdr iccm_hi1_c1_cgc  ( .en(iccm_hi1_clken[i]), .l1clk(iccm_hi1_clk[i]), .* );
-      rvclkhdr iccm_lo0_c1_cgc  ( .en(iccm_lo0_clken[i]), .l1clk(iccm_lo0_clk[i]), .* );
-      rvclkhdr iccm_lo1_c1_cgc  ( .en(iccm_lo1_clken[i]), .l1clk(iccm_lo1_clk[i]), .* );
+      rvoclkhdr iccm_hi0_c1_cgc  ( .en(iccm_hi0_clken[i]), .l1clk(iccm_hi0_clk[i]), .* );
+      rvoclkhdr iccm_hi1_c1_cgc  ( .en(iccm_hi1_clken[i]), .l1clk(iccm_hi1_clk[i]), .* );
+      rvoclkhdr iccm_lo0_c1_cgc  ( .en(iccm_lo0_clken[i]), .l1clk(iccm_lo0_clk[i]), .* );
+      rvoclkhdr iccm_lo1_c1_cgc  ( .en(iccm_lo1_clken[i]), .l1clk(iccm_lo1_clk[i]), .* );
  
 
       assign  addr_bank[i][ICCM_INDEX_BITS-1:0] = iccm_rw_addr[ICCM_BITS-1:(ICCM_BANK_BITS+2)];

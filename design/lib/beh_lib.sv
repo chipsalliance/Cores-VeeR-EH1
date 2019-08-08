@@ -112,6 +112,25 @@ module rvclkhdr
 
 endmodule
 
+module rvoclkhdr
+  (
+   input  logic en,
+   input  logic clk,
+   input  logic scan_mode,
+   output logic l1clk
+   );
+
+   logic 	TE;
+   assign       TE = scan_mode;
+
+`ifdef RV_FPGA_OPTIMIZE
+   assign l1clk = clk;
+`else
+   `TEC_RV_ICG rvclkhdr ( .*, .E(en), .CP(clk), .Q(l1clk));
+`endif
+
+endmodule
+
 module rvdffe #( parameter WIDTH=1 )
    ( 
      input  logic [WIDTH-1:0] din,
@@ -124,6 +143,12 @@ module rvdffe #( parameter WIDTH=1 )
 
    logic 		      l1clk;
 
+`ifdef RV_FPGA_OPTIMIZE
+   begin: genblock
+     rvdffs #(WIDTH) dff ( .* );
+   end
+`else
+   
 `ifndef PHYSICAL   
    if (WIDTH >= 8) begin: genblock
 `endif
@@ -133,6 +158,8 @@ module rvdffe #( parameter WIDTH=1 )
    end
    else 
       $error("%m: rvdffe width must be >= 8");
+`endif
+
 `endif
    
 endmodule // rvdffe

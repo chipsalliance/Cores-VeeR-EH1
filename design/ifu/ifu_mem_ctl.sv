@@ -488,15 +488,15 @@ module ifu_mem_ctl
 
   
 
-   rvdff #(31) ifu_fetch_addr_f2_ff (.*, 
-                    .clk (fetch_f1_f2_c1_clk),
+   rvdffe #(31) ifu_fetch_addr_f2_ff (.*, 
+                    .en (fetch_f1_f2_c1_clken),
 		    .din ({fetch_addr_f1[31:1]}), 
 		    .dout({ifu_fetch_addr_int_f2[31:1]}));
 
    assign vaddr_f2[3:1] = ifu_fetch_addr_int_f2[3:1] ;
 
    rvdff #(1)  unc_miss_ff     (.*, .clk(fetch_f1_f2_c1_clk), .din (uncacheable_miss_in), .dout(uncacheable_miss_ff));
-   rvdff #(31) imb_f2_ff       (.*, .clk(fetch_f1_f2_c1_clk), .din ({imb_in[31:1]}), .dout({imb_ff[31:1]}));
+   rvdffe #(31) imb_f2_ff       (.*, .en(fetch_f1_f2_c1_clken), .din ({imb_in[31:1]}), .dout({imb_ff[31:1]}));
    rvdff #(3)  mb_rep_wayf2_ff (.*, .clk(fetch_f1_f2_c1_clk), .din ({way_status_mb_in[2:0]}), .dout({way_status_mb_ff[2:0]}));
 
    rvdff #(4)  mb_tagv_ff      (.*, .clk(fetch_f1_f2_c1_clk), .din ({tagv_mb_in[3:0]}), .dout({tagv_mb_ff[3:0]}));
@@ -732,8 +732,8 @@ assign ic_fetch_val_f2[0] = fetch_req_f2_qual ;
   assign write_byp_second_data        =   axi_ifu_wr_en_new & ({byp_tag_ff[IFU_BUS_TAG-1:1],1'b1}  == ifu_axi_rid_ff[IFU_BUS_TAG-1:0]);
 
  // First Half flops
-  rvdff #(64) byp_data_first_half (.*, 
-            .clk(byp_data_first_c1_clk),
+  rvdffe #(64) byp_data_first_half (.*, 
+            .en(byp_data_first_c1_clken),
        	    .din (ifu_wr_data_new[63:0]), 
        	    .dout(ifu_byp_data_first_half[63:0]));
 
@@ -752,8 +752,8 @@ assign ic_fetch_val_f2[0] = fetch_req_f2_qual ;
 
 
  // Second Half flops
-  rvdff #(64) byp_data_second_half (.*, 
-            .clk(byp_data_second_c1_clk),
+  rvdffe #(64) byp_data_second_half (.*, 
+            .en(byp_data_second_c1_clken),
        	    .din (ifu_wr_data_new[63:0]), 
        	    .dout(ifu_byp_data_second_half[63:0]));
 
@@ -1410,7 +1410,7 @@ assign ic_debug_ic_array_sel_word2_in = (ic_debug_addr[3:2] == 2'b10) & ic_debug
 assign ic_debug_ic_array_sel_word3_in = (ic_debug_addr[3:2] == 2'b11) & ic_debug_rd_en & ~ic_debug_tag_array ;
 assign ic_debug_ict_array_sel_in      =  ic_debug_rd_en & ic_debug_tag_array ;
 
-rvdff #(09) ifu_debug_sel_ff (.*, .clk (debug_c1_clk),
+rvdffe #(09) ifu_debug_sel_ff (.*, .en (debug_c1_clken),
 		    .din ({ic_debug_ic_array_sel_word0_in,
                            ic_debug_ic_array_sel_word1_in,
                            ic_debug_ic_array_sel_word2_in,
@@ -1444,7 +1444,7 @@ assign ifu_ic_debug_rd_data_in[41:0] = ( {42{ic_debug_ict_array_sel_ff   }} &  {
                                        ( {42{ic_debug_ic_array_sel_word2 }} &  {ic_rd_data [125:84]})  |
                                        ( {42{ic_debug_ic_array_sel_word3 }} &  {ic_rd_data [167:126]}) ;
 
-rvdff #(42) ifu_debug_data_ff (.*, .clk (debug_data_clk),
+rvdffe #(42) ifu_debug_data_ff (.*, .en (debug_data_clken),
 		    .din ({
                            ifu_ic_debug_rd_data_in[41:0]
                           }), 
@@ -1460,7 +1460,7 @@ assign ifu_ic_debug_rd_data_in[33:0] = ( {34{ic_debug_ict_array_sel_ff   }} &  {
                                        ( {34{ic_debug_ic_array_sel_word2 }} &  {ic_rd_data [101:68]})  |
                                        ( {34{ic_debug_ic_array_sel_word3 }} &  {ic_rd_data [135:102]}) ;
 
-rvdff #(34) ifu_debug_data_ff (.*, .clk (debug_data_clk),
+rvdffe #(34) ifu_debug_data_ff (.*, .en (debug_data_clken),
 		    .din ({
                            ifu_ic_debug_rd_data_in[33:0]
                           }), 

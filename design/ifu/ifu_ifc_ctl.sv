@@ -98,7 +98,7 @@ module ifu_ifc_ctl
    logic 	 ifc_fetch_req_f2_raw;
 
    logic ifc_f2_clk;
-   rvclkhdr ifu_fa2_cgc ( .en(ifc_fetch_req_f1 | clk_override), .l1clk(ifc_f2_clk), .* );
+   rvoclkhdr ifu_fa2_cgc ( .en(ifc_fetch_req_f1 | clk_override), .l1clk(ifc_f2_clk), .* );
 
    // FSM assignment
    typedef enum  logic [1:0] { IDLE=2'b00, FETCH=2'b01, STALL=2'b10, WFM=2'b11} state_t;

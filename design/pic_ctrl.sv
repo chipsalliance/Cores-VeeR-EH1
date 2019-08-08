@@ -147,11 +147,11 @@ logic [TOTAL_INT-1:0]                        extintsrc_req_gw;
    assign gw_config_c1_clken  = (addr_config_gw_base_match & (picm_wren_ff | picm_rden_ff))   | clk_override;
    
    // C1 - 1 clock pulse for data 
-   rvclkhdr pic_addr_c1_cgc   ( .en(pic_addr_c1_clken), .l1clk(pic_addr_c1_clk), .* );
-   rvclkhdr pic_data_c1_cgc   ( .en(pic_data_c1_clken), .l1clk(pic_data_c1_clk), .* );
-   rvclkhdr pic_pri_c1_cgc    ( .en(pic_pri_c1_clken),  .l1clk(pic_pri_c1_clk),  .* );
-   rvclkhdr pic_int_c1_cgc    ( .en(pic_int_c1_clken),  .l1clk(pic_int_c1_clk),  .* );
-   rvclkhdr gw_config_c1_cgc  ( .en(gw_config_c1_clken),  .l1clk(gw_config_c1_clk),  .* );
+   rvoclkhdr pic_addr_c1_cgc   ( .en(pic_addr_c1_clken), .l1clk(pic_addr_c1_clk), .* );
+   rvoclkhdr pic_data_c1_cgc   ( .en(pic_data_c1_clken), .l1clk(pic_data_c1_clk), .* );
+   rvoclkhdr pic_pri_c1_cgc    ( .en(pic_pri_c1_clken),  .l1clk(pic_pri_c1_clk),  .* );
+   rvoclkhdr pic_int_c1_cgc    ( .en(pic_int_c1_clken),  .l1clk(pic_int_c1_clk),  .* );
+   rvoclkhdr gw_config_c1_cgc  ( .en(gw_config_c1_clken),  .l1clk(gw_config_c1_clk),  .* );
    
 // ------ end clock gating section ------------------------
    

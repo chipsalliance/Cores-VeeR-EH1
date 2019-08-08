@@ -391,16 +391,16 @@ module dec_tlu_ctl
    // for CSRs that have inpipe writes only
 
    logic csr_wr_clk;
-   rvclkhdr csrwr_wb_cgc ( .en(dec_csr_wen_wb_mod | clk_override), .l1clk(csr_wr_clk), .* );
+   rvoclkhdr csrwr_wb_cgc ( .en(dec_csr_wen_wb_mod | clk_override), .l1clk(csr_wr_clk), .* );
    logic lsu_e3_e4_clk, lsu_e4_e5_clk;
-   rvclkhdr lsu_e3_e4_cgc ( .en(lsu_error_pkt_dc3.exc_valid | lsu_error_pkt_dc4.exc_valid | lsu_error_pkt_dc3.single_ecc_error | lsu_error_pkt_dc4.single_ecc_error | clk_override), .l1clk(lsu_e3_e4_clk), .* );
-   rvclkhdr lsu_e4_e5_cgc ( .en(lsu_error_pkt_dc4.exc_valid | lsu_exc_valid_wb | clk_override), .l1clk(lsu_e4_e5_clk), .* );
+   rvoclkhdr lsu_e3_e4_cgc ( .en(lsu_error_pkt_dc3.exc_valid | lsu_error_pkt_dc4.exc_valid | lsu_error_pkt_dc3.single_ecc_error | lsu_error_pkt_dc4.single_ecc_error | clk_override), .l1clk(lsu_e3_e4_clk), .* );
+   rvoclkhdr lsu_e4_e5_cgc ( .en(lsu_error_pkt_dc4.exc_valid | lsu_exc_valid_wb | clk_override), .l1clk(lsu_e4_e5_clk), .* );
 
    logic e4e5_clk, e4_valid, e5_valid, e4e5_valid, internal_dbg_halt_mode_f;
    assign e4_valid = dec_tlu_i0_valid_e4 | dec_tlu_i1_valid_e4;
    assign e4e5_valid = e4_valid | e5_valid;
-   rvclkhdr e4e5_cgc ( .en(e4e5_valid | clk_override), .l1clk(e4e5_clk), .* );
-   rvclkhdr e4e5_int_cgc ( .en(e4e5_valid | internal_dbg_halt_mode_f | i_cpu_run_req_d1 | interrupt_valid | interrupt_valid_wb | reset_delayed | pause_expired_e4 | pause_expired_wb | clk_override), .l1clk(e4e5_int_clk), .* );
+   rvoclkhdr e4e5_cgc ( .en(e4e5_valid | clk_override), .l1clk(e4e5_clk), .* );
+   rvoclkhdr e4e5_int_cgc ( .en(e4e5_valid | internal_dbg_halt_mode_f | i_cpu_run_req_d1 | interrupt_valid | interrupt_valid_wb | reset_delayed | pause_expired_e4 | pause_expired_wb | clk_override), .l1clk(e4e5_int_clk), .* );
 
 
    assign lsu_freeze_pulse_e3 = lsu_freeze_dc3 & ~lsu_freeze_e4;
@@ -2091,7 +2091,7 @@ module dec_tlu_ctl
    //--------------------------------------------------------------------------------
    logic usoc_tclk;
    
-   rvclkhdr usoctrace_cgc ( .en(i0_valid_wb | exc_or_int_valid_wb | interrupt_valid_wb | dec_tlu_i0_valid_wb1 | 
+   rvoclkhdr usoctrace_cgc ( .en(i0_valid_wb | exc_or_int_valid_wb | interrupt_valid_wb | dec_tlu_i0_valid_wb1 | 
 				dec_tlu_i0_exc_valid_wb1 | dec_tlu_i1_exc_valid_wb1 | dec_tlu_int_valid_wb1 | clk_override), .l1clk(usoc_tclk), .* );
    rvdff #(10)  traceff (.*,   .clk(usoc_tclk), 
 			.din ({i0_valid_wb, i1_valid_wb, 
