@@ -144,9 +144,15 @@ module rvdffe #( parameter WIDTH=1 )
    logic 		      l1clk;
 
 `ifdef RV_FPGA_OPTIMIZE
+
+`ifndef PHYSICAL   
    begin: genblock
+`endif
      rvdffs #(WIDTH) dff ( .* );
+`ifndef PHYSICAL   
    end
+`endif
+
 `else
    
 `ifndef PHYSICAL   
