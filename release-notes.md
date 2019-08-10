@@ -1,3 +1,15 @@
+# SweRV RISC-V Core<sup>TM</sup> 1.1.1 from Western Digital
+## Release Notes
+1. SWERV core RISCV compatibility improvements
+    * The ebreak and ecall instructions are no longer counted in the MINSRET
+	  control and status register.
+    * Write to SBDATA0 does not start an SB write access when
+	  sbreadonaddr/dbreadondata is set.
+
+1. FPGA support: Add fpga_optimize option to swerv.config which
+   eliminates over 90% of clock-gating enabling faster FPGA
+   simulation.
+
 # SweRV RISC-V Core<sup>TM</sup> 1.1 from Western Digital
 ## Release Notes
 1. SWERV core RISCV compatibility improvements
