@@ -315,7 +315,7 @@ module dec_tlu_ctl
  `endif
    logic 	ebreak_e4, ebreak_to_debug_mode_e4, ecall_e4, illegal_e4, illegal_e4_qual, mret_e4, inst_acc_e4, fence_i_e4,
 		ic_perr_e4, iccm_sbecc_e4, ebreak_to_debug_mode_wb, kill_ebreak_count_wb, inst_acc_second_e4;
-   logic 	ebreak_wb, illegal_wb,  illegal_raw_wb, inst_acc_wb, inst_acc_second_wb, fence_i_wb, ic_perr_wb, iccm_sbecc_wb;
+   logic 	ebreak_wb, ecall_wb, illegal_wb,  illegal_raw_wb, inst_acc_wb, inst_acc_second_wb, fence_i_wb, ic_perr_wb, iccm_sbecc_wb;
    logic ce_int_ready, ext_int_ready, timer_int_ready, mhwakeup_ready, 
 	 take_ext_int, take_ce_int, take_timer_int, take_nmi, take_nmi_wb;
    logic i0_exception_valid_e4, interrupt_valid, i0_exception_valid_wb, interrupt_valid_wb, exc_or_int_valid, exc_or_int_valid_wb, mdccme_ce_req, miccme_ce_req, mice_ce_req;
@@ -868,10 +868,10 @@ module dec_tlu_ctl
 
    assign illegal_e4_qual = illegal_e4 & ~dec_tlu_dbg_halted;
 
-   rvdff #(10)  exctype_wb_ff (.*, .clk(e4e5_clk), 
-			        .din({ic_perr_e4, iccm_sbecc_e4, ebreak_e4, ebreak_to_debug_mode_e4, illegal_e4,     
+   rvdff #(11)  exctype_wb_ff (.*, .clk(e4e5_clk), 
+			        .din({ic_perr_e4, iccm_sbecc_e4, ebreak_e4, ebreak_to_debug_mode_e4, ecall_e4, illegal_e4,     
 				      illegal_e4_qual,  inst_acc_e4, inst_acc_second_e4, fence_i_e4, mret_e4}), 
-                               .dout({ic_perr_wb, iccm_sbecc_wb, ebreak_wb, ebreak_to_debug_mode_wb, illegal_raw_wb, 
+                               .dout({ic_perr_wb, iccm_sbecc_wb, ebreak_wb, ebreak_to_debug_mode_wb, ecall_wb, illegal_raw_wb, 
 				      illegal_wb,       inst_acc_wb, inst_acc_second_wb, fence_i_wb, mret_wb}));
 
    assign dec_tlu_fence_i_wb = fence_i_wb;
@@ -1107,7 +1107,9 @@ module dec_tlu_ctl
    assign wr_mcyclel_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MCYCLEL);
 
    logic mcyclel_cout_in;
-   
+
+   assign kill_ebreak_count_wb = ebreak_to_debug_mode_wb & dcsr[`DCSR_STOPC];
+
    assign mcyclel_cout_in = ~(kill_ebreak_count_wb | (dec_tlu_dbg_halted & dcsr[`DCSR_STOPC]) | dec_tlu_pmu_fw_halted);
    
    assign {mcyclel_cout, mcyclel_inc[31:0]} = mcyclel[31:0] + {31'b0, mcyclel_cout_in}; 
@@ -1139,14 +1141,14 @@ module dec_tlu_ctl
    // one instruction will be the value read by the following instruction (i.e., the increment of instret
    // caused by the first instruction retiring happens before the write of the new value)."
    `define MINSTRETL 12'hb02
+   logic i0_valid_no_ebreak_ecall_wb;
+   assign i0_valid_no_ebreak_ecall_wb = i0_valid_wb & ~(ebreak_wb | ecall_wb | ebreak_to_debug_mode_wb);
 
-   assign kill_ebreak_count_wb = ebreak_to_debug_mode_wb & dcsr[`DCSR_STOPC];
-   
    assign wr_minstretl_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MINSTRETL);
 
-   assign {minstretl_cout, minstretl_inc[31:0]} = minstretl[31:0] + {31'b0,i0_valid_wb} + {31'b0,i1_valid_wb}; 
+   assign {minstretl_cout, minstretl_inc[31:0]} = minstretl[31:0] + {31'b0,i0_valid_no_ebreak_ecall_wb} + {31'b0,i1_valid_wb}; 
 
-   assign minstret_enable = (i0_valid_wb & ~(dec_tlu_dbg_halted & dcsr[`DCSR_STOPC]) & ~kill_ebreak_count_wb) | i1_valid_wb | wr_minstretl_wb;
+   assign minstret_enable = i0_valid_no_ebreak_ecall_wb | i1_valid_wb | wr_minstretl_wb;
    
    assign minstretl_ns[31:0] = wr_minstretl_wb ? dec_csr_wrdata_wb[31:0] : minstretl_inc[31:0]; 
    rvdffe #(32)  minstretl_ff (.*, .en(minstret_enable), .din(minstretl_ns[31:0]), .dout(minstretl[31:0]));
