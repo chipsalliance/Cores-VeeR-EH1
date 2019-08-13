@@ -1,4 +1,4 @@
-# SweRV RISC-V Core<sup>TM</sup> 1.1.1 from Western Digital
+# SweRV RISC-V Core<sup>TM</sup> 1.2 from Western Digital
 ## Release Notes
 1. SWERV core RISCV compatibility improvements
     * The ebreak and ecall instructions are no longer counted in the MINSRET
@@ -9,6 +9,8 @@
 1. FPGA support: Add fpga_optimize option to swerv.config which
    eliminates over 90% of clock-gating enabling faster FPGA
    simulation.
+   
+1. Usability: Untabified all the verilog files.
 
 # SweRV RISC-V Core<sup>TM</sup> 1.1 from Western Digital
 ## Release Notes
