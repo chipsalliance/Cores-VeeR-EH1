@@ -4,13 +4,14 @@
     * The ebreak and ecall instructions are no longer counted in the MINSRET
 	  control and status register.
     * Write to SBDATA0 does not start SB write access when both
-	  sbreadonaddr/sbreadondata are zero.
+	  sbreadonaddr/sbreadondata are zero. This fixes issue number
+	  5 on github.
 
 1. FPGA support: Add fpga_optimize option to swerv.config which
    eliminates over 90% of clock-gating enabling faster FPGA
    simulation.
    
-1. Usability: Untabified all the verilog files.
+1. Usability: Untabified all the verilog files.  This fixes issue number 3 on github.
 
 # SweRV RISC-V Core<sup>TM</sup> 1.1 from Western Digital
 ## Release Notes
