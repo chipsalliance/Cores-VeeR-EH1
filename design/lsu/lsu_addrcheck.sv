@@ -27,7 +27,7 @@ module lsu_addrcheck
 (
    input logic         lsu_freeze_c2_dc2_clk,       // clock
    input logic         lsu_freeze_c2_dc3_clk,
-   input logic 	       rst_l,                       // reset
+   input logic         rst_l,                       // reset
 
    input logic [31:0]  start_addr_dc1,              // start address for lsu
    input logic [31:0]  end_addr_dc1,                // end address for lsu
@@ -44,7 +44,7 @@ module lsu_addrcheck
    output logic        access_fault_dc1,            // access fault
    output logic        misaligned_fault_dc1,        // misaligned 
    
-   input  logic        scan_mode						   
+   input  logic        scan_mode                                                   
 );
  
 `include "global.h"
@@ -66,11 +66,11 @@ module lsu_addrcheck
    `endif
    
    logic        is_sideeffects_dc1, is_aligned_dc1;
-   logic 	start_addr_in_dccm_dc1, end_addr_in_dccm_dc1;
+   logic        start_addr_in_dccm_dc1, end_addr_in_dccm_dc1;
    logic        start_addr_in_dccm_region_dc1, end_addr_in_dccm_region_dc1;
-   logic 	start_addr_in_pic_dc1, end_addr_in_pic_dc1;
+   logic        start_addr_in_pic_dc1, end_addr_in_pic_dc1;
    logic        start_addr_in_pic_region_dc1, end_addr_in_pic_region_dc1;
-   logic [4:0] 	csr_idx;
+   logic [4:0]  csr_idx;
    logic        addr_in_iccm;
    logic        non_dccm_access_ok;
    
@@ -119,10 +119,10 @@ module lsu_addrcheck
       .in_region(end_addr_in_pic_region_dc1)
    );
 
-   assign addr_in_dccm_dc1        = (start_addr_in_dccm_dc1 & end_addr_in_dccm_dc1);					      
-   assign addr_in_pic_dc1         = (start_addr_in_pic_dc1 & end_addr_in_pic_dc1);					      
+   assign addr_in_dccm_dc1        = (start_addr_in_dccm_dc1 & end_addr_in_dccm_dc1);                                          
+   assign addr_in_pic_dc1         = (start_addr_in_pic_dc1 & end_addr_in_pic_dc1);                                            
  
-   assign addr_external_dc1   = ~(addr_in_dccm_dc1 | addr_in_pic_dc1);  //~addr_in_dccm_region_dc1;					      
+   assign addr_external_dc1   = ~(addr_in_dccm_dc1 | addr_in_pic_dc1);  //~addr_in_dccm_region_dc1;                                           
    assign csr_idx[4:0]       = {start_addr_dc1[31:28], 1'b1};
    assign is_sideeffects_dc1 = dec_tlu_mrac_ff[csr_idx] & ~(start_addr_in_dccm_region_dc1 | start_addr_in_pic_region_dc1 | addr_in_iccm);  //every region has the 2 LSB indicating ( 1: sideeffects/no_side effects, and 0: cacheable ). Ignored in internal regions  
    assign is_aligned_dc1    = (lsu_pkt_dc1.word & (start_addr_dc1[1:0] == 2'b0)) |
@@ -134,7 +134,7 @@ module lsu_addrcheck
                              (((`RV_DATA_ACCESS_ENABLE0 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK0)) == (`RV_DATA_ACCESS_ADDR0 | `RV_DATA_ACCESS_MASK0)) |
                                (`RV_DATA_ACCESS_ENABLE1 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK1)) == (`RV_DATA_ACCESS_ADDR1 | `RV_DATA_ACCESS_MASK1)) |
                                (`RV_DATA_ACCESS_ENABLE2 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK2)) == (`RV_DATA_ACCESS_ADDR2 | `RV_DATA_ACCESS_MASK2)) |
-                               (`RV_DATA_ACCESS_ENABLE3 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK3)) == (`RV_DATA_ACCESS_ADDR3 | `RV_DATA_ACCESS_MASK3)) |			       
+                               (`RV_DATA_ACCESS_ENABLE3 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK3)) == (`RV_DATA_ACCESS_ADDR3 | `RV_DATA_ACCESS_MASK3)) |                               
                                (`RV_DATA_ACCESS_ENABLE4 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK4)) == (`RV_DATA_ACCESS_ADDR4 | `RV_DATA_ACCESS_MASK4)) |
                                (`RV_DATA_ACCESS_ENABLE5 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK5)) == (`RV_DATA_ACCESS_ADDR5 | `RV_DATA_ACCESS_MASK5)) |
                                (`RV_DATA_ACCESS_ENABLE6 & ((start_addr_dc1[31:0] | `RV_DATA_ACCESS_MASK6)) == (`RV_DATA_ACCESS_ADDR6 | `RV_DATA_ACCESS_MASK6)) |
@@ -178,6 +178,6 @@ module lsu_addrcheck
 
    rvdff #(.WIDTH(1)) is_sideeffects_dc2ff (.din(is_sideeffects_dc1), .dout(is_sideeffects_dc2), .clk(lsu_freeze_c2_dc2_clk), .*);
    rvdff #(.WIDTH(1)) is_sideeffects_dc3ff (.din(is_sideeffects_dc2), .dout(is_sideeffects_dc3), .clk(lsu_freeze_c2_dc3_clk), .*);
-					      
+                                              
 endmodule // lsu_addrcheck
 

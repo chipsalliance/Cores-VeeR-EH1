@@ -25,11 +25,11 @@
 module swerv_wrapper  
    import swerv_types::*;
 (
-   input logic 			     clk,
-   input logic 			     rst_l,
-   input logic [31:1] 		     rst_vec,
+   input logic                       clk,
+   input logic                       rst_l,
+   input logic [31:1]                rst_vec,
    input logic                       nmi_int,
-   input logic [31:1]                nmi_vec,			    
+   input logic [31:1]                nmi_vec,                       
    input logic [31:1]                jtag_id,
                        
 
@@ -223,37 +223,37 @@ module swerv_wrapper
    output logic [`RV_DMA_BUS_TAG-1:0]   dma_axi_rid,
    output logic [63:0]                  dma_axi_rdata,
    output logic [1:0]                   dma_axi_rresp,
-   output logic                         dma_axi_rlast,		       
+   output logic                         dma_axi_rlast,                 
                        
 `endif
 
 `ifdef RV_BUILD_AHB_LITE
  //// AHB LITE BUS
-   output logic [31:0] 		     haddr,
-   output logic [2:0] 		     hburst,
-   output logic 		     hmastlock,
-   output logic [3:0] 		     hprot,
-   output logic [2:0] 		     hsize,
-   output logic [1:0] 		     htrans,
-   output logic 		     hwrite,
+   output logic [31:0]               haddr,
+   output logic [2:0]                hburst,
+   output logic                      hmastlock,
+   output logic [3:0]                hprot,
+   output logic [2:0]                hsize,
+   output logic [1:0]                htrans,
+   output logic                      hwrite,
 
-   input logic [63:0] 		     hrdata,
-   input logic 			     hready,
-   input logic 			     hresp,
+   input logic [63:0]                hrdata,
+   input logic                       hready,
+   input logic                       hresp,
 
    // LSU AHB Master
-   output logic [31:0] 		     lsu_haddr,
-   output logic [2:0] 		     lsu_hburst,
-   output logic 		     lsu_hmastlock,
-   output logic [3:0] 		     lsu_hprot,
-   output logic [2:0] 		     lsu_hsize,
-   output logic [1:0] 		     lsu_htrans,
-   output logic 		     lsu_hwrite,
-   output logic [63:0] 		     lsu_hwdata,
+   output logic [31:0]               lsu_haddr,
+   output logic [2:0]                lsu_hburst,
+   output logic                      lsu_hmastlock,
+   output logic [3:0]                lsu_hprot,
+   output logic [2:0]                lsu_hsize,
+   output logic [1:0]                lsu_htrans,
+   output logic                      lsu_hwrite,
+   output logic [63:0]               lsu_hwdata,
 
-   input logic [63:0] 		     lsu_hrdata,
-   input logic 			     lsu_hready,
-   input logic 			     lsu_hresp,
+   input logic [63:0]                lsu_hrdata,
+   input logic                       lsu_hready,
+   input logic                       lsu_hresp,
    // Debug Syster Bus AHB
    output logic [31:0]               sb_haddr,
    output logic [2:0]                sb_hburst,
@@ -263,39 +263,39 @@ module swerv_wrapper
    output logic [1:0]                sb_htrans,
    output logic                      sb_hwrite,
    output logic [63:0]               sb_hwdata,
-		                    
+                                    
    input  logic [63:0]               sb_hrdata,
    input  logic                      sb_hready,
    input  logic                      sb_hresp,
    
    // DMA Slave
-   input logic [31:0] 		     dma_haddr,
-   input logic [2:0] 		     dma_hburst,
-   input logic 			     dma_hmastlock,
-   input logic [3:0] 		     dma_hprot,
-   input logic [2:0] 		     dma_hsize,
-   input logic [1:0] 		     dma_htrans,
-   input logic 			     dma_hwrite,
-   input logic [63:0] 		     dma_hwdata,
+   input logic [31:0]                dma_haddr,
+   input logic [2:0]                 dma_hburst,
+   input logic                       dma_hmastlock,
+   input logic [3:0]                 dma_hprot,
+   input logic [2:0]                 dma_hsize,
+   input logic [1:0]                 dma_htrans,
+   input logic                       dma_hwrite,
+   input logic [63:0]                dma_hwdata,
    input logic                       dma_hsel,
-   input logic                       dma_hreadyin,		      
+   input logic                       dma_hreadyin,                    
  
-   output logic [63:0] 		     dma_hrdata,
-   output logic 		     dma_hreadyout,
-   output logic 		     dma_hresp,
+   output logic [63:0]               dma_hrdata,
+   output logic                      dma_hreadyout,
+   output logic                      dma_hresp,
 
 `endif
 
 
    // clk ratio signals
-   input logic 			     lsu_bus_clk_en, // Clock ratio b/w cpu core clk & AHB master interface
+   input logic                       lsu_bus_clk_en, // Clock ratio b/w cpu core clk & AHB master interface
    input logic                       ifu_bus_clk_en, // Clock ratio b/w cpu core clk & AHB master interface
    input logic                       dbg_bus_clk_en, // Clock ratio b/w cpu core clk & AHB master interface
-   input logic 			     dma_bus_clk_en, // Clock ratio b/w cpu core clk & AHB slave interface	       
+   input logic                       dma_bus_clk_en, // Clock ratio b/w cpu core clk & AHB slave interface             
 
    
 //   input logic                   ext_int,
-   input logic 			     timer_int,
+   input logic                       timer_int,
    input logic [`RV_PIC_TOTAL_INT:1] extintsrc_req,
 
    output logic [1:0] dec_tlu_perfcnt0, // toggles when perf counter 0 has an event inc
@@ -303,12 +303,12 @@ module swerv_wrapper
    output logic [1:0] dec_tlu_perfcnt2,
    output logic [1:0] dec_tlu_perfcnt3,
 
-   // ports added by the soc team	       
-   input logic 			     jtag_tck, // JTAG clk
-   input logic 			     jtag_tms, // JTAG TMS  
-   input logic 			     jtag_tdi, // JTAG tdi
-   input logic 			     jtag_trst_n, // JTAG Reset
-   output logic 		     jtag_tdo, // JTAG TDO
+   // ports added by the soc team              
+   input logic                       jtag_tck, // JTAG clk
+   input logic                       jtag_tms, // JTAG TMS  
+   input logic                       jtag_tdi, // JTAG tdi
+   input logic                       jtag_trst_n, // JTAG Reset
+   output logic                      jtag_tdo, // JTAG TDO
    // external MPC halt/run interface
    input logic mpc_debug_halt_req, // Async halt request
    input logic mpc_debug_run_req, // Async run request
@@ -317,14 +317,14 @@ module swerv_wrapper
    output logic mpc_debug_run_ack, // Run ack
    output logic debug_brkpt_status, // debug breakpoint
 
-   input logic 			     i_cpu_halt_req, // Async halt req to CPU
-   output logic 		     o_cpu_halt_ack, // core response to halt
-   output logic 		     o_cpu_halt_status, // 1'b1 indicates core is halted
+   input logic                       i_cpu_halt_req, // Async halt req to CPU
+   output logic                      o_cpu_halt_ack, // core response to halt
+   output logic                      o_cpu_halt_status, // 1'b1 indicates core is halted
    output logic                      o_debug_mode_status, // Core to the PMU that core is in debug mode. When core is in debug mode, the PMU should refrain from sendng a halt or run request
-   input logic 			     i_cpu_run_req, // Async restart req to CPU
-   output logic 		     o_cpu_run_ack, // Core response to run req
-   input logic 			     scan_mode, // To enable scan mode
-   input logic 			     mbist_mode // to enable mbist 
+   input logic                       i_cpu_run_req, // Async restart req to CPU
+   output logic                      o_cpu_run_ack, // Core response to run req
+   input logic                       scan_mode, // To enable scan mode
+   input logic                       mbist_mode // to enable mbist 
 );
 
 `include "global.h"   
@@ -336,7 +336,7 @@ module swerv_wrapper
    logic [DCCM_BITS-1:0]  dccm_rd_addr_lo;
    logic [DCCM_BITS-1:0]  dccm_rd_addr_hi;
    logic [DCCM_FDATA_WIDTH-1:0]  dccm_wr_data;
-		      
+                      
    logic [DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_lo;
    logic [DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_hi;
 
@@ -396,14 +396,14 @@ module swerv_wrapper
    // Instantiate the swerv core
    swerv swerv (
           .*
-	  );
+          );
    
    // Instantiate the mem
    mem  mem (
-	.rst_l(core_rst_l),
-	.*
-	);
-		 
-		 
+        .rst_l(core_rst_l),
+        .*
+        );
+                 
+                 
 endmodule
    

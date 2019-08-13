@@ -76,7 +76,7 @@ module ahb_to_axi4 #(parameter TAG  = 1) (
    input logic             ahb_hwrite,    // ahb bus write
    input logic [63:0]      ahb_hwdata,    // ahb bus write data
    input logic             ahb_hsel,      // this slave was selected
-   input logic             ahb_hreadyin,  // previous hready was accepted or not	
+   input logic             ahb_hreadyin,  // previous hready was accepted or not        
    
    output logic [63:0]      ahb_hrdata,      // ahb bus read data 
    output logic             ahb_hreadyout,   // slave ready to accept transaction
@@ -92,7 +92,7 @@ module ahb_to_axi4 #(parameter TAG  = 1) (
                               PEND   = 2'b11     // Waiting on Read Data from core
                             } state_t;
    state_t      buf_state, buf_nxtstate;
-   logic 	buf_state_en;
+   logic        buf_state_en;
     
    // Buffer signals (one entry buffer)
    logic                    buf_read_error_in, buf_read_error;
@@ -111,7 +111,7 @@ module ahb_to_axi4 #(parameter TAG  = 1) (
    logic                    ahb_addr_in_dccm, ahb_addr_in_iccm, ahb_addr_in_pic;  
    logic                    ahb_addr_in_dccm_region_nc, ahb_addr_in_iccm_region_nc, ahb_addr_in_pic_region_nc;
    // signals needed for the read data coming back from the core and to block any further commands as AHB is a blocking bus
-   logic 		    buf_rdata_en;
+   logic                    buf_rdata_en;
 
    logic                    ahb_bus_addr_clk_en, buf_rdata_clk_en;
    logic                    ahb_clk, ahb_addr_clk, buf_rdata_clk;
@@ -140,20 +140,20 @@ module ahb_to_axi4 #(parameter TAG  = 1) (
           end
          WR: begin // Write command recieved last cycle  
                   buf_nxtstate      = (ahb_hresp | (ahb_htrans[1:0] == 2'b0) | ~ahb_hsel) ? IDLE : (ahb_hwrite ? WR : RD);  
-         	  buf_state_en      = (~cmdbuf_full | ahb_hresp) ;
+                  buf_state_en      = (~cmdbuf_full | ahb_hresp) ;
                   cmdbuf_wr_en      = ~cmdbuf_full & ~(ahb_hresp | ((ahb_htrans[1:0] == 2'b01) & ahb_hsel));   // Dont send command to the buffer in case of an error or when the master is not ready with the data now.
-	 end
-	 RD: begin // Read command recieved last cycle.
-	         buf_nxtstate      = ahb_hresp ? IDLE :PEND;                                       // If error go to idle, else wait for read data
-	    	 buf_state_en      = (~cmdbuf_full | ahb_hresp);                                   // only when command can go, or if its an error
-	         cmdbuf_wr_en      = ~ahb_hresp & ~cmdbuf_full;                                    // send command only when no error
-	 end
+         end
+         RD: begin // Read command recieved last cycle.
+                 buf_nxtstate      = ahb_hresp ? IDLE :PEND;                                       // If error go to idle, else wait for read data
+                 buf_state_en      = (~cmdbuf_full | ahb_hresp);                                   // only when command can go, or if its an error
+                 cmdbuf_wr_en      = ~ahb_hresp & ~cmdbuf_full;                                    // send command only when no error
+         end
          PEND: begin // Read Command has been sent. Waiting on Data. 
-	         buf_nxtstate      = IDLE;                                                          // go back for next command and present data next cycle
-	    	 buf_state_en      = axi_rvalid & ~cmdbuf_write;                                    // read data is back
+                 buf_nxtstate      = IDLE;                                                          // go back for next command and present data next cycle
+                 buf_state_en      = axi_rvalid & ~cmdbuf_write;                                    // read data is back
                  buf_rdata_en      = buf_state_en;                                                  // buffer the read data coming back from core
                  buf_read_error_in = buf_state_en & |axi_rresp[1:0];                                // buffer error flag if return has Error ( ECC ) 
-	 end 
+         end 
      endcase
    end // always_comb begin
    

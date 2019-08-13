@@ -14,7 +14,7 @@
 // limitations under the License.
 
 module dec_gpr_ctl #(parameter GPR_BANKS      = 1,
-		               GPR_BANKS_LOG2 = 1)  (
+                               GPR_BANKS_LOG2 = 1)  (
     input logic active_clk,
 
     input logic [4:0] raddr0,  // logical read addresses
@@ -91,17 +91,17 @@ module dec_gpr_ctl #(parameter GPR_BANKS      = 1,
             rd2[31:0] |= ({32{rden2 & (raddr2[4:0]== 5'(j)) & (gpr_bank_id[GPR_BANKS_LOG2-1:0] == 1'(i))}} & gpr_out[i][j][31:0]);
             rd3[31:0] |= ({32{rden3 & (raddr3[4:0]== 5'(j)) & (gpr_bank_id[GPR_BANKS_LOG2-1:0] == 1'(i))}} & gpr_out[i][j][31:0]); 
         end
-     end	 
+     end         
 
      // GPR Write logic
      for (int j=1; j<32; j++ )  begin
          w0v[j]     = wen0  & (waddr0[4:0]== 5'(j) );
          w1v[j]     = wen1  & (waddr1[4:0]== 5'(j) );
          w2v[j]     = wen2  & (waddr2[4:0]== 5'(j) );
-         gpr_in[j]  =    ({32{w0v[j]}} & wd0[31:0]) |	 
-	 		 ({32{w1v[j]}} & wd1[31:0]) |	 
-			 ({32{w2v[j]}} & wd2[31:0]);    
-     end	 
+         gpr_in[j]  =    ({32{w0v[j]}} & wd0[31:0]) |    
+                         ({32{w1v[j]}} & wd1[31:0]) |    
+                         ({32{w2v[j]}} & wd2[31:0]);    
+     end         
    end // always_comb begin
 
 `ifdef ASSERT_ON

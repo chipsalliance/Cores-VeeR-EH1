@@ -111,8 +111,8 @@ module ifu
    input  logic                      dma_mem_write,
    input  logic [63:0]               dma_mem_wdata,
                                      
-   output logic                      iccm_dma_ecc_error,		 
-   output logic                      iccm_dma_rvalid,		 
+   output logic                      iccm_dma_ecc_error,                 
+   output logic                      iccm_dma_rvalid,            
    output logic [63:0]               iccm_dma_rdata,
    output logic                      iccm_ready,
 
@@ -176,18 +176,18 @@ module ifu
    output logic       ifu_pmu_bus_trxn, // iside bus transactions
 
 
-   output logic	 ifu_i0_valid,        // Instruction 0 valid. From Aligner to Decode 
-   output logic	 ifu_i1_valid,        // Instruction 1 valid. From Aligner to Decode 
-   output logic	 ifu_i0_icaf,         // Instruction 0 access fault. From Aligner to Decode
-   output logic	 ifu_i1_icaf,         // Instruction 1 access fault. From Aligner to Decode 
+   output logic  ifu_i0_valid,        // Instruction 0 valid. From Aligner to Decode 
+   output logic  ifu_i1_valid,        // Instruction 1 valid. From Aligner to Decode 
+   output logic  ifu_i0_icaf,         // Instruction 0 access fault. From Aligner to Decode
+   output logic  ifu_i1_icaf,         // Instruction 1 access fault. From Aligner to Decode 
    output logic  ifu_i0_icaf_f1,      // Instruction 0 has access fault on second fetch group
    output logic  ifu_i1_icaf_f1,      // Instruction 1 has access fault on second fetch group
-   output logic	 ifu_i0_perr,         // Instruction 0 parity error. From Aligner to Decode
-   output logic	 ifu_i1_perr,         // Instruction 1 parity error. From Aligner to Decode 
-   output logic	 ifu_i0_sbecc,        // Instruction 0 has single bit ecc error
-   output logic	 ifu_i1_sbecc,        // Instruction 1 has single bit ecc error
-   output logic	 ifu_i0_dbecc,        // Instruction 0 has double bit ecc error
-   output logic	 ifu_i1_dbecc,        // Instruction 1 has double bit ecc error
+   output logic  ifu_i0_perr,         // Instruction 0 parity error. From Aligner to Decode
+   output logic  ifu_i1_perr,         // Instruction 1 parity error. From Aligner to Decode 
+   output logic  ifu_i0_sbecc,        // Instruction 0 has single bit ecc error
+   output logic  ifu_i1_sbecc,        // Instruction 1 has single bit ecc error
+   output logic  ifu_i0_dbecc,        // Instruction 0 has double bit ecc error
+   output logic  ifu_i1_dbecc,        // Instruction 1 has double bit ecc error
    output logic  iccm_dma_sb_error,   // Single Bit ECC error from a DMA access
    output logic[31:0] ifu_i0_instr,   // Instruction 0 . From Aligner to Decode
    output logic[31:0] ifu_i1_instr,   // Instruction 1 . From Aligner to Decode 
@@ -237,17 +237,17 @@ module ifu
    localparam TAGWIDTH = 2 ;
    localparam IDWIDTH  = 2 ;
 
-   logic 		   ifu_fb_consume1, ifu_fb_consume2;
-   logic [31:1] 	   ifc_fetch_addr_f2;
+   logic                   ifu_fb_consume1, ifu_fb_consume2;
+   logic [31:1]            ifc_fetch_addr_f2;
    logic                   ifc_fetch_uncacheable_f1;
 
-   logic [7:0] 	 ifu_fetch_val;  // valids on a 2B boundary, left justified [7] implies valid fetch
+   logic [7:0]   ifu_fetch_val;  // valids on a 2B boundary, left justified [7] implies valid fetch
    logic [31:1]  ifu_fetch_pc;   // starting pc of fetch
 
    logic [31:1] ifc_fetch_addr_f1;
    
-   logic 	ic_crit_wd_rdy;
-   logic 	ic_write_stall;
+   logic        ic_crit_wd_rdy;
+   logic        ic_write_stall;
    logic        ic_dma_active;
    logic        ifc_dma_access_ok;
    logic        ifc_iccm_access_f1;
@@ -260,23 +260,23 @@ module ifu
    
    // fetch control
    ifu_ifc_ctl ifc (.*
-		    );
+                    );
 
 
 `ifdef RV_BTB_48
    logic [7:0][1:0] ifu_bp_way_f2; // way indication; right justified
 `else
-   logic [7:0] 	ifu_bp_way_f2; // way indication; right justified
+   logic [7:0]  ifu_bp_way_f2; // way indication; right justified
 `endif
    logic  ifu_bp_kill_next_f2; // kill next fetch; taken target found
    logic [31:1] ifu_bp_btb_target_f2; //  predicted target PC
-   logic [7:1] 	ifu_bp_inst_mask_f2; // tell ic which valids to kill because of a taken branch; right justified
-   logic [7:0] 	ifu_bp_hist1_f2; // history counters for all 4 potential branches; right justified
-   logic [7:0] 	ifu_bp_hist0_f2; // history counters for all 4 potential branches; right justified
+   logic [7:1]  ifu_bp_inst_mask_f2; // tell ic which valids to kill because of a taken branch; right justified
+   logic [7:0]  ifu_bp_hist1_f2; // history counters for all 4 potential branches; right justified
+   logic [7:0]  ifu_bp_hist0_f2; // history counters for all 4 potential branches; right justified
    logic [11:0] ifu_bp_poffset_f2; // predicted target
-   logic [7:0] 	ifu_bp_ret_f2; // predicted ret ; right justified
-   logic [7:0] 	ifu_bp_pc4_f2; // pc4 indication; right justified
-   logic [7:0] 	ifu_bp_valid_f2; // branch valid, right justified
+   logic [7:0]  ifu_bp_ret_f2; // predicted ret ; right justified
+   logic [7:0]  ifu_bp_pc4_f2; // pc4 indication; right justified
+   logic [7:0]  ifu_bp_valid_f2; // branch valid, right justified
    logic [`RV_BHT_GHR_RANGE] ifu_bp_fghr_f2;
    
    // branch predictor
@@ -320,7 +320,7 @@ module ifu
    //
    //
 `ifdef DUMP_BTB_ON
-   logic 	      exu_mp_valid; // conditional branch mispredict
+   logic              exu_mp_valid; // conditional branch mispredict
    logic exu_mp_way; // conditional branch mispredict
    logic exu_mp_ataken; // direction is actual taken
    logic exu_mp_boffset; // branch offsett
@@ -331,7 +331,7 @@ module ifu
    logic [1:0] exu_mp_hist; // new history
    logic [11:0] exu_mp_tgt; // target offset
    logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] exu_mp_addr; // BTB/BHT address
-   logic [1:0] 				exu_mp_bank; // write bank; based on branch PC[3:2]
+   logic [1:0]                          exu_mp_bank; // write bank; based on branch PC[3:2]
    logic [`RV_BTB_BTAG_SIZE-1:0] exu_mp_btag; // branch tag
    logic [`RV_BHT_GHR_RANGE] exu_mp_fghr; // original fetch ghr (for correcting dir)
 
@@ -363,36 +363,36 @@ logic [2:0] tmp_bnk;
 assign tmp_bnk[2:0] = encode8_3(bp.btb_sel_f2[7:0]);
    always @(negedge clk) begin
       if(`DEC.tlu.mcyclel[31:0] == 32'h0000_0010) begin
-	 $display("BTB_CONFIG: %d",`RV_BTB_ARRAY_DEPTH*4);
-	 `ifndef BP_NOGSHARE
-	 $display("BHT_CONFIG: %d gshare: 1",`RV_BHT_ARRAY_DEPTH*4);
-	 `else
-	 $display("BHT_CONFIG: %d gshare: 0",`RV_BHT_ARRAY_DEPTH*4);
-	 `endif
-	 $display("RS_CONFIG: %d", `RV_RET_STACK_SIZE);
+         $display("BTB_CONFIG: %d",`RV_BTB_ARRAY_DEPTH*4);
+         `ifndef BP_NOGSHARE
+         $display("BHT_CONFIG: %d gshare: 1",`RV_BHT_ARRAY_DEPTH*4);
+         `else
+         $display("BHT_CONFIG: %d gshare: 0",`RV_BHT_ARRAY_DEPTH*4);
+         `endif
+         $display("RS_CONFIG: %d", `RV_RET_STACK_SIZE);
       end
        if(exu_flush_final & ~(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error | dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error) & (exu_mp_pkt.misp | exu_mp_pkt.ataken)) 
-	 $display("%7d BTB_MP  : index: %0h bank: %0h call: %b ret: %b ataken: %b hist: %h valid: %b tag: %h targ: %h eghr: %b pred: %b ghr_index: %h brpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha, exu_mp_addr[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO], exu_mp_bank[1:0], exu_mp_call, exu_mp_ret, exu_mp_ataken, exu_mp_hist[1:0], exu_mp_valid, exu_mp_pkt.btag[`RV_BTB_BTAG_SIZE-1:0], {exu_flush_path_final[31:1], 1'b0}, exu_mp_eghr[`RV_BHT_GHR_RANGE], exu_mp_valid, bp.bht_wr_addr0, mppc[31:0], exu_mp_pkt.way);
+         $display("%7d BTB_MP  : index: %0h bank: %0h call: %b ret: %b ataken: %b hist: %h valid: %b tag: %h targ: %h eghr: %b pred: %b ghr_index: %h brpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha, exu_mp_addr[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO], exu_mp_bank[1:0], exu_mp_call, exu_mp_ret, exu_mp_ataken, exu_mp_hist[1:0], exu_mp_valid, exu_mp_pkt.btag[`RV_BTB_BTAG_SIZE-1:0], {exu_flush_path_final[31:1], 1'b0}, exu_mp_eghr[`RV_BHT_GHR_RANGE], exu_mp_valid, bp.bht_wr_addr0, mppc[31:0], exu_mp_pkt.way);
      for(int i = 0; i < 8; i++) begin
       if(ifu_bp_valid_f2[i] & ifc_fetch_req_f2) 
-	$display("%7d BTB_HIT : index: %0h bank: %0h call: %b ret: %b taken: %b strength: %b tag: %h targ: %h ghr: %4b ghr_index: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,btb_rd_addr_f2[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],encode8_3(bp.btb_sel_f2[7:0]), bp.btb_rd_call_f2, bp.btb_rd_ret_f2, ifu_bp_hist1_f2[tmp_bnk], ifu_bp_hist0_f2[tmp_bnk], bp.fetch_rd_tag_f2[`RV_BTB_BTAG_SIZE-1:0], {ifu_bp_btb_target_f2[31:1], 1'b0}, bp.fghr[`RV_BHT_GHR_RANGE], bp.bht_rd_addr_f1, ifu_bp_way_f2[tmp_bnk]);
+        $display("%7d BTB_HIT : index: %0h bank: %0h call: %b ret: %b taken: %b strength: %b tag: %h targ: %h ghr: %4b ghr_index: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,btb_rd_addr_f2[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],encode8_3(bp.btb_sel_f2[7:0]), bp.btb_rd_call_f2, bp.btb_rd_ret_f2, ifu_bp_hist1_f2[tmp_bnk], ifu_bp_hist0_f2[tmp_bnk], bp.fetch_rd_tag_f2[`RV_BTB_BTAG_SIZE-1:0], {ifu_bp_btb_target_f2[31:1], 1'b0}, bp.fghr[`RV_BHT_GHR_RANGE], bp.bht_rd_addr_f1, ifu_bp_way_f2[tmp_bnk]);
      end
 `ifdef RV_BTB_48
       for(int y = 0; y < 4; y++) begin
-	 for(int z = 0; z < 4; z++) begin
-	    if(bp.lru_bank_sel[y][z])
-	      $display("%7d BTB_LRU: index: %0h bank: %0h newlru %h", `DEC.tlu.mcyclel[31:0]+32'ha, z,y,bp.lru_bank_wr_data[y][z]);	
-	 end
+         for(int z = 0; z < 4; z++) begin
+            if(bp.lru_bank_sel[y][z])
+              $display("%7d BTB_LRU: index: %0h bank: %0h newlru %h", `DEC.tlu.mcyclel[31:0]+32'ha, z,y,bp.lru_bank_wr_data[y][z]);     
+         end
       end
 `endif      
       if(dec_tlu_br0_wb_pkt.valid & ~(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error))
-	$display("%7d BTB_UPD0: ghr_index: %0h bank: %0h hist: %h  way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,bp.br0_hashed_wb[`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO],{dec_tlu_br0_wb_pkt.bank[1:0],dec_tlu_br0_wb_pkt.middle}, dec_tlu_br0_wb_pkt.hist, dec_tlu_br0_wb_pkt.way);	
+        $display("%7d BTB_UPD0: ghr_index: %0h bank: %0h hist: %h  way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,bp.br0_hashed_wb[`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO],{dec_tlu_br0_wb_pkt.bank[1:0],dec_tlu_br0_wb_pkt.middle}, dec_tlu_br0_wb_pkt.hist, dec_tlu_br0_wb_pkt.way); 
       if(dec_tlu_br1_wb_pkt.valid & ~(dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error))
-	$display("%7d BTB_UPD1: ghr_index: %0h bank: %0h hist: %h  way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,bp.br1_hashed_wb[`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO],{dec_tlu_br1_wb_pkt.bank[1:0],dec_tlu_br1_wb_pkt.middle}, dec_tlu_br1_wb_pkt.hist, dec_tlu_br1_wb_pkt.way);	
+        $display("%7d BTB_UPD1: ghr_index: %0h bank: %0h hist: %h  way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,bp.br1_hashed_wb[`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO],{dec_tlu_br1_wb_pkt.bank[1:0],dec_tlu_br1_wb_pkt.middle}, dec_tlu_br1_wb_pkt.hist, dec_tlu_br1_wb_pkt.way); 
       if(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error)
-	$display("%7d BTB_ERR0: index: %0h bank: %0h start: %b rfpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,dec_tlu_br0_wb_pkt.index[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],dec_tlu_br0_wb_pkt.bank[1:0], dec_tlu_br0_wb_pkt.br_start_error, {exu_flush_path_final[31:1], 1'b0}, dec_tlu_br0_wb_pkt.way);	
+        $display("%7d BTB_ERR0: index: %0h bank: %0h start: %b rfpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,dec_tlu_br0_wb_pkt.index[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],dec_tlu_br0_wb_pkt.bank[1:0], dec_tlu_br0_wb_pkt.br_start_error, {exu_flush_path_final[31:1], 1'b0}, dec_tlu_br0_wb_pkt.way);  
       if(dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error)
-	$display("%7d BTB_ERR1: index: %0h bank: %0h start: %b rfpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,dec_tlu_br1_wb_pkt.index[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],dec_tlu_br1_wb_pkt.bank[1:0], dec_tlu_br1_wb_pkt.br_start_error, {exu_flush_path_final[31:1], 1'b0}, dec_tlu_br1_wb_pkt.way);
+        $display("%7d BTB_ERR1: index: %0h bank: %0h start: %b rfpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,dec_tlu_br1_wb_pkt.index[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],dec_tlu_br1_wb_pkt.bank[1:0], dec_tlu_br1_wb_pkt.br_start_error, {exu_flush_path_final[31:1], 1'b0}, dec_tlu_br1_wb_pkt.way);
    end // always @ (negedge clk)
       function [2:0] encode8_3;
       input [7:0] in;
@@ -401,6 +401,6 @@ assign tmp_bnk[2:0] = encode8_3(bp.btb_sel_f2[7:0]);
       encode8_3[1] = in[7] | in[6] | in[3] | in[2];
       encode8_3[0] = in[7] | in[5] | in[3] | in[1];
 
-   endfunction		
+   endfunction          
 `endif
 endmodule // ifu

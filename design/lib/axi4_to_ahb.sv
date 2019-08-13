@@ -62,7 +62,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    output logic [TAG-1:0]  axi_rid,
    output logic [63:0]     axi_rdata,
    output logic [1:0]      axi_rresp,
-   output logic            axi_rlast,					  
+   output logic            axi_rlast,                                     
 
    // AHB-Lite signals               
    output logic [31:0]     ahb_haddr,       // ahb bus address
@@ -146,7 +146,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    logic                       slave_valid_pre;
    logic                       ahb_hready_q;
    logic                       ahb_hresp_q;
-   logic [1:0] 	               ahb_htrans_q;
+   logic [1:0]                 ahb_htrans_q;
    logic                       ahb_hwrite_q;
    logic [63:0]                ahb_hrdata_q;
 
@@ -288,30 +288,30 @@ module axi4_to_ahb #(parameter TAG  = 1) (
                   ahb_htrans[1:0] = {2{bypass_en}} & 2'b10;
           end
          CMD_RD: begin
-	          buf_nxtstate    = (master_valid & (master_opc[2:0] == 3'b000))? STREAM_RD : DATA_RD;  
+                  buf_nxtstate    = (master_valid & (master_opc[2:0] == 3'b000))? STREAM_RD : DATA_RD;  
                   buf_state_en    = ahb_hready_q & (ahb_htrans_q[1:0] != 2'b0) & ~ahb_hwrite_q;
                   cmd_done        = buf_state_en & ~master_valid;                                
-	          slvbuf_wr_en    = buf_state_en;
-                  master_ready  = buf_state_en & (buf_nxtstate == STREAM_RD);	 
+                  slvbuf_wr_en    = buf_state_en;
+                  master_ready  = buf_state_en & (buf_nxtstate == STREAM_RD);    
                   buf_wr_en       = master_ready;
                   bypass_en       = master_ready & master_valid;
                   buf_cmd_byte_ptr[2:0] = bypass_en ? master_addr[2:0] : buf_addr[2:0];
-	          ahb_htrans[1:0] = 2'b10 & {2{~buf_state_en | bypass_en}};
+                  ahb_htrans[1:0] = 2'b10 & {2{~buf_state_en | bypass_en}};
          end
          STREAM_RD: begin
                   master_ready  =  (ahb_hready_q & ~ahb_hresp_q) & ~(master_valid & master_opc[2:1] == 2'b01);
-      	          buf_wr_en       = (master_valid & master_ready & (master_opc[2:0] == 3'b000)); // update the fifo if we are streaming the read commands
+                  buf_wr_en       = (master_valid & master_ready & (master_opc[2:0] == 3'b000)); // update the fifo if we are streaming the read commands
                   buf_nxtstate    = ahb_hresp_q ? STREAM_ERR_RD : (buf_wr_en ? STREAM_RD : DATA_RD);            // assuming that the master accpets the slave response right away. 
                   buf_state_en    = (ahb_hready_q | ahb_hresp_q);
                   buf_data_wr_en  = buf_state_en;
                   slvbuf_error_in = ahb_hresp_q;
                   slvbuf_error_en = buf_state_en;
-	          slave_valid_pre  = buf_state_en & ~ahb_hresp_q;             // send a response right away if we are not going through an error response.
-	          cmd_done        = buf_state_en & ~master_valid;                     // last one of the stream should not send a htrans
-	          bypass_en       = master_ready & master_valid & (buf_nxtstate == STREAM_RD) & buf_state_en;
+                  slave_valid_pre  = buf_state_en & ~ahb_hresp_q;             // send a response right away if we are not going through an error response.
+                  cmd_done        = buf_state_en & ~master_valid;                     // last one of the stream should not send a htrans
+                  bypass_en       = master_ready & master_valid & (buf_nxtstate == STREAM_RD) & buf_state_en;
                   buf_cmd_byte_ptr[2:0] = bypass_en ? master_addr[2:0] : buf_addr[2:0];
                   ahb_htrans[1:0] = 2'b10 & {2{~((buf_nxtstate != STREAM_RD) & buf_state_en)}};
-	          slvbuf_wr_en    = buf_wr_en;                                         // shifting the contents from the buf to slv_buf for streaming cases	    
+                  slvbuf_wr_en    = buf_wr_en;                                         // shifting the contents from the buf to slv_buf for streaming cases         
          end // case: STREAM_RD
          STREAM_ERR_RD: begin
                   buf_nxtstate = DATA_RD;
@@ -319,7 +319,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
                   slave_valid_pre = buf_state_en;
                   slvbuf_wr_en   = buf_state_en;     // Overwrite slvbuf with buffer
                   buf_cmd_byte_ptr[2:0] = buf_addr[2:0];
-	          ahb_htrans[1:0] = 2'b10 & {2{~buf_state_en}};
+                  ahb_htrans[1:0] = 2'b10 & {2{~buf_state_en}};
          end
          DATA_RD: begin
                   buf_nxtstate   = DONE;
@@ -327,14 +327,14 @@ module axi4_to_ahb #(parameter TAG  = 1) (
                   buf_data_wr_en = buf_state_en;
                   slvbuf_error_in= ahb_hresp_q;
                   slvbuf_error_en= buf_state_en;
-        	  slvbuf_wr_en   = buf_state_en;
+                  slvbuf_wr_en   = buf_state_en;
          end
          CMD_WR: begin
                   buf_nxtstate = DATA_WR;
                   trxn_done    = ahb_hready_q & ahb_hwrite_q & (ahb_htrans_q[1:0] != 2'b0);
                   buf_state_en = trxn_done;
                   buf_cmd_byte_ptr_en = buf_state_en;
-	          slvbuf_wr_en    = buf_state_en;
+                  slvbuf_wr_en    = buf_state_en;
                   buf_cmd_byte_ptr    = trxn_done ? get_nxtbyte_ptr(buf_cmd_byte_ptrQ[2:0],buf_byteen[7:0],1'b1) : buf_cmd_byte_ptrQ;
                   cmd_done            = trxn_done & (buf_aligned | (buf_cmd_byte_ptrQ == 3'b111) | 
                                                      (buf_byteen[get_nxtbyte_ptr(buf_cmd_byte_ptrQ[2:0],buf_byteen[7:0],1'b1)] == 1'b0));
@@ -362,12 +362,12 @@ module axi4_to_ahb #(parameter TAG  = 1) (
                   buf_cmd_byte_ptr_en = trxn_done | bypass_en;
                   buf_cmd_byte_ptr = bypass_en ? get_nxtbyte_ptr(3'b0,buf_byteen_in[7:0],1'b0) : 
                                                  trxn_done ? get_nxtbyte_ptr(buf_cmd_byte_ptrQ[2:0],buf_byteen[7:0],1'b1) : buf_cmd_byte_ptrQ;
- 	    end
+            end
          DONE: begin
                   buf_nxtstate = IDLE;
                   buf_state_en = slave_ready;
                   slvbuf_error_en = 1'b1;
-	          slave_valid_pre = 1'b1;
+                  slave_valid_pre = 1'b1;
          end
       endcase
    end

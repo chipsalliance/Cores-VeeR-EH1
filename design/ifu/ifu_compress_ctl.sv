@@ -34,7 +34,7 @@ module ifu_compress_ctl
    assign i[15:0] = din[15:0];
    
 
-   logic [4:0] 	 rs2d,rdd,rdpd,rs2pd;
+   logic [4:0]   rs2d,rdd,rdpd,rs2pd;
    
 logic rdrd;
 logic rdrs1;
@@ -86,25 +86,25 @@ logic uswspimm7_2;
    assign l1[6:0] = o[6:0];
 
    assign l1[11:7] = o[11:7] | 
-		     ({5{rdrd}} & rdd[4:0]) |
-		     ({5{rdprd}} & rdpd[4:0]) |
-		     ({5{rs2prd}} & rs2pd[4:0]) |
-   		     ({5{rdeq1}} & 5'd1) |
-   		     ({5{rdeq2}} & 5'd2);
+                     ({5{rdrd}} & rdd[4:0]) |
+                     ({5{rdprd}} & rdpd[4:0]) |
+                     ({5{rs2prd}} & rs2pd[4:0]) |
+                     ({5{rdeq1}} & 5'd1) |
+                     ({5{rdeq2}} & 5'd2);
    
 
-   // rs1		     
+   // rs1                    
    assign l1[14:12] = o[14:12];
    assign l1[19:15] = o[19:15] | 
-		      ({5{rdrs1}} & rdd[4:0]) |
-		      ({5{rdprs1}} & rdpd[4:0]) |
-		      ({5{rs1eq2}} & 5'd2);
+                      ({5{rdrs1}} & rdd[4:0]) |
+                      ({5{rdprs1}} & rdpd[4:0]) |
+                      ({5{rs1eq2}} & 5'd2);
       
    
    // rs2
    assign l1[24:20] = o[24:20] | 
-		      ({5{rs2rs2}} & rs2d[4:0]) |
-		      ({5{rs2prs2}} & rs2pd[4:0]);
+                      ({5{rs2rs2}} & rs2d[4:0]) |
+                      ({5{rs2prs2}} & rs2pd[4:0]);
 
    assign l1[31:25] = o[31:25];
    
@@ -143,20 +143,20 @@ logic uswspimm7_2;
    
    
    assign l2[31:20] = ( l1[31:20] ) | 
-		      ( {12{simm5_0}}   &  {{7{simm5d[5]}},simm5d[4:0]} ) |
-		      ( {12{uimm9_2}}   &  {2'b0,uimm9d[9:2],2'b0} ) |
-		      ( {12{simm9_4}}   &   {{3{simm9d[9]}},simm9d[8:4],4'b0} ) |
-   		      ( {12{ulwimm6_2}} &   {5'b0,ulwimm6d[6:2],2'b0} ) |
-   		      ( {12{ulwspimm7_2}}  & {4'b0,ulwspimm7d[7:2],2'b0} ) |
-   		      ( {12{uimm5_0}}      &    {6'b0,uimm5d[5:0]} ) |
-   		      ( {12{sjaloffset11_1}} &  {sjald[20],sjald[10:1],sjald[11]} ) |
-		      ( {12{sluimm17_12}}    &  sluimmd[31:20] );
-		      
+                      ( {12{simm5_0}}   &  {{7{simm5d[5]}},simm5d[4:0]} ) |
+                      ( {12{uimm9_2}}   &  {2'b0,uimm9d[9:2],2'b0} ) |
+                      ( {12{simm9_4}}   &   {{3{simm9d[9]}},simm9d[8:4],4'b0} ) |
+                      ( {12{ulwimm6_2}} &   {5'b0,ulwimm6d[6:2],2'b0} ) |
+                      ( {12{ulwspimm7_2}}  & {4'b0,ulwspimm7d[7:2],2'b0} ) |
+                      ( {12{uimm5_0}}      &    {6'b0,uimm5d[5:0]} ) |
+                      ( {12{sjaloffset11_1}} &  {sjald[20],sjald[10:1],sjald[11]} ) |
+                      ( {12{sluimm17_12}}    &  sluimmd[31:20] );
+                      
    
    
    assign l2[19:12] = ( l1[19:12] ) |
-		      ( {8{sjaloffset11_1}} & sjald[19:12] ) |
-		      ( {8{sluimm17_12}} & sluimmd[19:12] );
+                      ( {8{sjaloffset11_1}} & sjald[19:12] ) |
+                      ( {8{sluimm17_12}} & sluimmd[19:12] );
    
 
    assign l2[11:0] = l1[11:0];
@@ -164,9 +164,9 @@ logic uswspimm7_2;
    
    // merge in branch offset and store immediates
 
-   logic [8:1] 	 sbr8d;
-   logic [6:2] 	 uswimm6d;
-   logic [7:2] 	 uswspimm7d;
+   logic [8:1]   sbr8d;
+   logic [6:2]   uswimm6d;
+   logic [7:2]   uswspimm7d;
    
    
    assign sbr8d[8:1] =   { i[12], i[6], i[5], i[2], i[11], i[10], i[4], i[3] };
@@ -176,17 +176,17 @@ logic uswspimm7_2;
    assign uswspimm7d[7:2] = { i[8:7], i[12:9] };
    
    assign l3[31:25] = ( l2[31:25] ) | 
-		      ( {7{sbroffset8_1}} & { {4{sbr8d[8]}},sbr8d[7:5] } ) |
-		      ( {7{uswimm6_2}}    & { 5'b0, uswimm6d[6:5] } ) |
-		      ( {7{uswspimm7_2}} & { 4'b0, uswspimm7d[7:5] } );
+                      ( {7{sbroffset8_1}} & { {4{sbr8d[8]}},sbr8d[7:5] } ) |
+                      ( {7{uswimm6_2}}    & { 5'b0, uswimm6d[6:5] } ) |
+                      ( {7{uswspimm7_2}} & { 4'b0, uswspimm7d[7:5] } );
    
 
    assign l3[24:12] = l2[24:12];
    
    assign l3[11:7] = ( l2[11:7] ) |
-		     ( {5{sbroffset8_1}} & { sbr8d[4:1], sbr8d[8] } ) |
-		     ( {5{uswimm6_2}} & { uswimm6d[4:2], 2'b0 } ) |
-		     ( {5{uswspimm7_2}} & { uswspimm7d[4:2], 2'b0 } );
+                     ( {5{sbroffset8_1}} & { sbr8d[4:1], sbr8d[8] } ) |
+                     ( {5{uswimm6_2}} & { uswimm6d[4:2], 2'b0 } ) |
+                     ( {5{uswspimm7_2}} & { uswspimm7d[4:2], 2'b0 } );
 
    assign l3[6:0] = l2[6:0];
    

@@ -23,9 +23,9 @@ module ifu_iccm_mem
    import swerv_types::*;
 
 (
-   input logic 	       clk,
-   input logic 	       rst_l,
-   input logic 	       clk_override,
+   input logic         clk,
+   input logic         rst_l,
+   input logic         clk_override,
 
    input logic          iccm_wren,
    input logic          iccm_rden,
@@ -33,8 +33,8 @@ module ifu_iccm_mem
 
    input logic [2:0]    iccm_wr_size,
    input logic [77:0]   iccm_wr_data,
-		      
-		      
+                      
+                      
    output logic [155:0] iccm_rd_data,
    input  logic         scan_mode
 
@@ -43,22 +43,22 @@ module ifu_iccm_mem
 `include "global.h"   
 
 
-   logic [ICCM_NUM_BANKS/4-1:0] 	      wren_bank;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      rden_bank;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      iccm_hi0_clken;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      iccm_hi1_clken;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      iccm_lo0_clken;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      iccm_lo1_clken;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      iccm_hi0_clk  ;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      iccm_hi1_clk  ;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      iccm_lo0_clk  ;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      iccm_lo1_clk  ;
+   logic [ICCM_NUM_BANKS/4-1:0]               wren_bank;
+   logic [ICCM_NUM_BANKS/4-1:0]               rden_bank;
+   logic [ICCM_NUM_BANKS/4-1:0]               iccm_hi0_clken;
+   logic [ICCM_NUM_BANKS/4-1:0]               iccm_hi1_clken;
+   logic [ICCM_NUM_BANKS/4-1:0]               iccm_lo0_clken;
+   logic [ICCM_NUM_BANKS/4-1:0]               iccm_lo1_clken;
+   logic [ICCM_NUM_BANKS/4-1:0]               iccm_hi0_clk  ;
+   logic [ICCM_NUM_BANKS/4-1:0]               iccm_hi1_clk  ;
+   logic [ICCM_NUM_BANKS/4-1:0]               iccm_lo0_clk  ;
+   logic [ICCM_NUM_BANKS/4-1:0]               iccm_lo1_clk  ;
 
 
-   logic [ICCM_NUM_BANKS/4-1:0] 	      wren_bank_hi0;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      wren_bank_lo0;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      wren_bank_hi1;
-   logic [ICCM_NUM_BANKS/4-1:0] 	      wren_bank_lo1;
+   logic [ICCM_NUM_BANKS/4-1:0]               wren_bank_hi0;
+   logic [ICCM_NUM_BANKS/4-1:0]               wren_bank_lo0;
+   logic [ICCM_NUM_BANKS/4-1:0]               wren_bank_hi1;
+   logic [ICCM_NUM_BANKS/4-1:0]               wren_bank_lo1;
    logic [ICCM_NUM_BANKS/4-1:0] [ICCM_INDEX_BITS-1:0] addr_bank;
    
 

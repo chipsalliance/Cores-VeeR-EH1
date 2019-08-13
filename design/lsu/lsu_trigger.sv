@@ -25,9 +25,9 @@
 module lsu_trigger 
    import swerv_types::*;
 (
-   input logic 	       clk,                          // clock
-   input logic 	       lsu_free_c2_clk,              // clock
-   input logic 	       rst_l,                        // reset
+   input logic         clk,                          // clock
+   input logic         lsu_free_c2_clk,              // clock
+   input logic         rst_l,                        // reset
 
    input trigger_pkt_t [3:0] trigger_pkt_any,        // trigger packet from dec
    input lsu_pkt_t     lsu_pkt_dc3,                  // lsu packet

@@ -47,7 +47,7 @@ module lsu_ecc
    input logic [`RV_DCCM_DATA_WIDTH-1:0] stbuf_fwddata_lo_dc3,  // data forward from the store buffer
    input logic [`RV_DCCM_BYTE_WIDTH-1:0] stbuf_fwdbyteen_hi_dc3,// which bytes from the store buffer are on
    input logic [`RV_DCCM_BYTE_WIDTH-1:0] stbuf_fwdbyteen_lo_dc3,// which bytes from the store buffer are on
-		
+                
    input logic [`RV_DCCM_DATA_WIDTH-1:0] dccm_data_hi_dc3,     // raw data from mem
    input logic [`RV_DCCM_DATA_WIDTH-1:0] dccm_data_lo_dc3,     // raw data from mem
    input logic [`RV_DCCM_ECC_WIDTH-1:0]  dccm_data_ecc_hi_dc3, // ecc read out from mem
@@ -64,7 +64,7 @@ module lsu_ecc
    output logic        lsu_single_ecc_error_dc3,                  // or of the 2
    output logic        lsu_double_ecc_error_dc3,                  // double error detected
    
-   input logic         scan_mode						 
+   input logic         scan_mode                                                 
  );
 
 `include "global.h"
@@ -84,14 +84,14 @@ module lsu_ecc
    logic        ldst_dual_dc3;
    logic        is_ldst_dc3;
    logic        is_ldst_hi_dc3, is_ldst_lo_dc3;
-   logic [7:0] 	ldst_byteen_dc3;
-   logic [7:0] 	store_byteen_dc3;
+   logic [7:0]  ldst_byteen_dc3;
+   logic [7:0]  store_byteen_dc3;
    logic [7:0]  store_byteen_ext_dc3;
-   logic [DCCM_BYTE_WIDTH-1:0] 	store_byteen_hi_dc3, store_byteen_lo_dc3;
+   logic [DCCM_BYTE_WIDTH-1:0]  store_byteen_hi_dc3, store_byteen_lo_dc3;
     
    logic [163:0] store_data_ext_dc3;
    logic [DCCM_DATA_WIDTH-1:0]  store_data_hi_dc3, store_data_lo_dc3; 
-   logic [6:0] 			ecc_out_hi_nc, ecc_out_lo_nc;
+   logic [6:0]                  ecc_out_hi_nc, ecc_out_lo_nc;
    
    
    assign ldst_dual_dc3 = (lsu_addr_dc3[2] != end_addr_dc3[2]);
@@ -128,28 +128,28 @@ module lsu_ecc
       rvecc_decode lsu_ecc_decode_hi (
          // Inputs
          .en(is_ldst_hi_dc3),
-	 .sed_ded (1'b0),    // 1 : means only detection
+         .sed_ded (1'b0),    // 1 : means only detection
          .din(dccm_data_hi_dc3[DCCM_DATA_WIDTH-1:0]),
          .ecc_in(dccm_data_ecc_hi_dc3[DCCM_ECC_WIDTH-1:0]),
          // Outputs
          .dout(sec_data_hi_dc3[DCCM_DATA_WIDTH-1:0]),
-	 .ecc_out (ecc_out_hi_nc[6:0]),			      
-         .single_ecc_error(single_ecc_error_hi_dc3),				     
-         .double_ecc_error(double_ecc_error_hi_dc3),				     
+         .ecc_out (ecc_out_hi_nc[6:0]),                       
+         .single_ecc_error(single_ecc_error_hi_dc3),                                 
+         .double_ecc_error(double_ecc_error_hi_dc3),                                 
          .*
       );
    
       rvecc_decode lsu_ecc_decode_lo (
-         // Inputs		     
+         // Inputs                   
          .en(is_ldst_lo_dc3),
-	 .sed_ded (1'b0),    // 1 : means only detection
+         .sed_ded (1'b0),    // 1 : means only detection
          .din(dccm_data_lo_dc3[DCCM_DATA_WIDTH-1:0] ),
          .ecc_in(dccm_data_ecc_lo_dc3[DCCM_ECC_WIDTH-1:0]),
          // Outputs
          .dout(sec_data_lo_dc3[DCCM_DATA_WIDTH-1:0]), 
          .ecc_out (ecc_out_lo_nc[6:0]),
-         .single_ecc_error(single_ecc_error_lo_dc3),				     
-         .double_ecc_error(double_ecc_error_lo_dc3),				     
+         .single_ecc_error(single_ecc_error_lo_dc3),                                 
+         .double_ecc_error(double_ecc_error_lo_dc3),                                 
          .*
       );
    

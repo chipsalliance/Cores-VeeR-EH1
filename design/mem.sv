@@ -18,13 +18,13 @@
 module mem 
    import swerv_types::*;
 (
-   input logic 	       clk,
-   input logic 	       rst_l,
+   input logic         clk,
+   input logic         rst_l,
    input logic         lsu_freeze_dc3,
    input logic         dccm_clk_override,
    input logic         icm_clk_override,
    input logic         dec_tlu_core_ecc_disable, 
-					    
+                                            
    //DCCM ports
    input logic         dccm_wren,
    input logic         dccm_rden,
@@ -45,7 +45,7 @@ module mem
    input logic         iccm_rden,
    input logic [2:0]   iccm_wr_size,
    input logic [77:0]  iccm_wr_data,
-		      
+                      
    output logic [155:0] iccm_rd_data,
 `endif
    // Icache and Itag Ports

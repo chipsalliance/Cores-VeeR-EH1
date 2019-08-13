@@ -70,7 +70,7 @@ module lsu
    output logic [31:0]                     lsu_imprecise_error_addr_any,  // bus store imprecise error address
 
    // Non-blocking loads
-   input  logic 		                dec_nonblock_load_freeze_dc2,   // 
+   input  logic                                 dec_nonblock_load_freeze_dc2,   // 
    output logic                                 lsu_nonblock_load_valid_dc3,    // there is an external load -> put in the cam
    output logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0]  lsu_nonblock_load_tag_dc3,      // the tag of the external non block load
    output logic                                 lsu_nonblock_load_inv_dc5,      // invalidate signal for the cam entry for non block loads

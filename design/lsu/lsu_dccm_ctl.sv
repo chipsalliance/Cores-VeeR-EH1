@@ -37,7 +37,7 @@ module lsu_dccm_ctl
    input logic                             rst_l,
    input logic                             clk,
    input logic                             lsu_freeze_dc3,            // freze
-		      
+                      
    input                                   lsu_pkt_t lsu_pkt_dc3,     // lsu packets
    input                                   lsu_pkt_t lsu_pkt_dc1,
    input logic                             addr_in_dccm_dc1,          // address maps to dccm
@@ -75,7 +75,7 @@ module lsu_dccm_ctl
    output logic                            dccm_dma_rvalid,           // dccm serviving the dma load
    output logic                            dccm_dma_ecc_error,        // DMA load had ecc error
    output logic [63:0]                     dccm_dma_rdata,            // dccm data to dma request
-						     
+                                                     
    // DCCM ports
    output logic                            dccm_wren,                // dccm interface -- write
    output logic                            dccm_rden,                // dccm interface -- write
@@ -83,7 +83,7 @@ module lsu_dccm_ctl
    output logic [`RV_DCCM_BITS-1:0]        dccm_rd_addr_lo,          // dccm interface -- read address for lo bank
    output logic [`RV_DCCM_BITS-1:0]        dccm_rd_addr_hi,          // dccm interface -- read address for hi bank
    output logic [`RV_DCCM_FDATA_WIDTH-1:0] dccm_wr_data,             // dccm write data
-		      
+                      
    input logic [`RV_DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_lo,          // dccm read data back from the dccm
    input logic [`RV_DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_hi,          // dccm read data back from the dccm
 
@@ -95,7 +95,7 @@ module lsu_dccm_ctl
    output logic [31:0]                     picm_wr_data,       // write data
    input logic [31:0]                      picm_rd_data,       // read data
    
-   input logic                             scan_mode	       // scan mode			     
+   input logic                             scan_mode           // scan mode                          
 );
 
 `include "global.h"

@@ -25,15 +25,15 @@
 module dec_trigger 
    import swerv_types::*;
 (
-   input logic 	       clk,
-   input logic 	       rst_l,
+   input logic         clk,
+   input logic         rst_l,
 
    input trigger_pkt_t [3:0] trigger_pkt_any,           // Packet from tlu. 'select':0-pc,1-Opcode  'Execute' needs to be set for dec triggers to fire. 'match'-1 do mask, 0: full match
    input logic [31:1]  dec_i0_pc_d,                     // i0 pc
    input logic [31:1]  dec_i1_pc_d,                     // i1 pc                      
    
    output logic [3:0] dec_i0_trigger_match_d,
-   output logic [3:0] dec_i1_trigger_match_d		    
+   output logic [3:0] dec_i1_trigger_match_d                
 );
 
    logic [3:0][31:0]  dec_i0_match_data;

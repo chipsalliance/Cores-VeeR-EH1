@@ -19,8 +19,8 @@
 module rvdff #( parameter WIDTH=1 )
    ( 
      input logic [WIDTH-1:0] din,
-     input logic    	   clk,
-     input logic	           rst_l,
+     input logic           clk,
+     input logic                   rst_l,
 
      output logic [WIDTH-1:0] dout
      );
@@ -33,9 +33,9 @@ module rvdff #( parameter WIDTH=1 )
 
    always_ff @(posedge clk or negedge rst_l) begin
       if (rst_l == 0)
-	dout[WIDTH-1:0] <= 0;
+        dout[WIDTH-1:0] <= 0;
       else
-	dout[WIDTH-1:0] <= din[WIDTH-1:0];
+        dout[WIDTH-1:0] <= din[WIDTH-1:0];
    end
    
    
@@ -46,8 +46,8 @@ module rvdffs #( parameter WIDTH=1 )
    ( 
      input logic [WIDTH-1:0] din,
      input logic             en,
-     input logic    	   clk,
-     input logic	           rst_l,
+     input logic           clk,
+     input logic                   rst_l,
      output logic [WIDTH-1:0] dout
      );
    
@@ -61,12 +61,12 @@ module rvdffsc #( parameter WIDTH=1 )
      input logic [WIDTH-1:0] din,
      input logic             en,
      input logic             clear,
-     input logic    	   clk,
-     input logic	           rst_l,
+     input logic           clk,
+     input logic                   rst_l,
      output logic [WIDTH-1:0] dout
      );
 
-   logic [WIDTH-1:0] 	      din_new;
+   logic [WIDTH-1:0]          din_new;
    assign din_new = {WIDTH{~clear}} & (en ? din[WIDTH-1:0] : dout[WIDTH-1:0]);
    rvdff #(WIDTH) dffsc (.din(din_new[WIDTH-1:0]), .*);
 
@@ -105,7 +105,7 @@ module rvclkhdr
    output logic l1clk
    );
 
-   logic 	TE;
+   logic        TE;
    assign       TE = scan_mode;
    
    `TEC_RV_ICG rvclkhdr ( .*, .E(en), .CP(clk), .Q(l1clk));
@@ -120,7 +120,7 @@ module rvoclkhdr
    output logic l1clk
    );
 
-   logic 	TE;
+   logic        TE;
    assign       TE = scan_mode;
 
 `ifdef RV_FPGA_OPTIMIZE
@@ -134,14 +134,14 @@ endmodule
 module rvdffe #( parameter WIDTH=1 )
    ( 
      input  logic [WIDTH-1:0] din,
-     input  logic 	    en,
-     input  logic 	    clk, 
-     input  logic 	    rst_l,
+     input  logic           en,
+     input  logic           clk, 
+     input  logic           rst_l,
      input  logic             scan_mode,
      output logic [WIDTH-1:0] dout
      );
 
-   logic 		      l1clk;
+   logic                      l1clk;
 
 `ifdef RV_FPGA_OPTIMIZE
 
@@ -178,7 +178,7 @@ module rvsyncss #(parameter WIDTH = 251)
      output logic [WIDTH-1:0]     dout  
      );
    
-   logic [WIDTH-1:0] 		  din_ff1;
+   logic [WIDTH-1:0]              din_ff1;
 
    rvdff #(WIDTH) sync_ff1  (.*, .din (din[WIDTH-1:0]),     .dout(din_ff1[WIDTH-1:0]));
    rvdff #(WIDTH) sync_ff2  (.*, .din (din_ff1[WIDTH-1:0]), .dout(dout[WIDTH-1:0]));
@@ -193,11 +193,11 @@ module rvlsadder
     output logic [31:0] dout
     );
 
-   logic 		cout;
-   logic 		sign;
+   logic                cout;
+   logic                sign;
    
-   logic [31:12] 	rs1_inc;
-   logic [31:12] 	rs1_dec;
+   logic [31:12]        rs1_inc;
+   logic [31:12]        rs1_dec;
 
    assign {cout,dout[11:0]} = {1'b0,rs1[11:0]} + {1'b0,offset[11:0]};
 
@@ -208,8 +208,8 @@ module rvlsadder
    assign sign = offset[11];
 
    assign dout[31:12] = ({20{  sign ^~  cout}} &     rs1[31:12]) |
-			({20{ ~sign &   cout}}  & rs1_inc[31:12]) |
-			({20{  sign &  ~cout}}  & rs1_dec[31:12]);
+                        ({20{ ~sign &   cout}}  & rs1_inc[31:12]) |
+                        ({20{  sign &  ~cout}}  & rs1_dec[31:12]);
       
 endmodule // rvlsadder
 
@@ -223,8 +223,8 @@ module rvbradder
     output [31:1] dout
     );
 
-   logic 	  cout;
-   logic 	  sign;
+   logic          cout;
+   logic          sign;
    
    logic [31:13]  pc_inc;
    logic [31:13]  pc_dec;
@@ -239,8 +239,8 @@ module rvbradder
 
 
    assign dout[31:13] = ({19{  sign ^~  cout}} &     pc[31:13]) |
-			({19{ ~sign &   cout}}  & pc_inc[31:13]) |
-			({19{  sign &  ~cout}}  & pc_dec[31:13]);
+                        ({19{ ~sign &   cout}}  & pc_inc[31:13]) |
+                        ({19{  sign &  ~cout}}  & pc_dec[31:13]);
    
    
 endmodule // rvbradder
@@ -254,9 +254,9 @@ module rvtwoscomp #( parameter WIDTH=32 )
      output logic [WIDTH-1:0] dout
      );
    
-   logic [WIDTH-1:1] 	      dout_temp;   // holding for all other bits except for the lsb. LSB is always din
+   logic [WIDTH-1:1]          dout_temp;   // holding for all other bits except for the lsb. LSB is always din
    
-   genvar 		      i;
+   genvar                     i;
    
    for ( i = 1; i < WIDTH; i++ )  begin : flip_after_first_one
       assign dout_temp[i] = (|din[i-1:0]) ? ~din[i] : din[i];
@@ -273,15 +273,15 @@ module rvfindfirst1 #( parameter WIDTH=32, SHIFT=$clog2(WIDTH) )
 
      output logic [SHIFT-1:0] dout
      );
-   logic 		      done;
+   logic                      done;
    
    always_comb begin
       dout[SHIFT-1:0] = {SHIFT{1'b0}};
       done    = 1'b0;
       
       for ( int i = WIDTH-1; i > 0; i-- )  begin : find_first_one
-	 done |= din[i];
-	 dout[SHIFT-1:0] += done ? 1'b0 : 1'b1;
+         done |= din[i];
+         dout[SHIFT-1:0] += done ? 1'b0 : 1'b1;
       end : find_first_one
    end
 endmodule // rvfindfirst1
@@ -292,14 +292,14 @@ module rvfindfirst1hot #( parameter WIDTH=32 )
 
      output logic [WIDTH-1:0] dout
      );
-   logic 		      done;
+   logic                      done;
    
    always_comb begin
       dout[WIDTH-1:0] = {WIDTH{1'b0}};
       done    = 1'b0;
       for ( int i = 0; i < WIDTH; i++ )  begin : find_first_one
-	 dout[i] = ~done & din[i];
-	 done   |= din[i];    
+         dout[i] = ~done & din[i];
+         done   |= din[i];    
       end : find_first_one
    end
 endmodule // rvfindfirst1hot
@@ -314,13 +314,13 @@ module rvmaskandmatch #( parameter WIDTH=32 )
      output logic             match 
      );
    
-   logic [WIDTH-1:0] 	      matchvec;   
-   logic 		      masken_or_fullmask;
+   logic [WIDTH-1:0]          matchvec;   
+   logic                      masken_or_fullmask;
    
    assign masken_or_fullmask = masken &  ~(&mask[WIDTH-1:0]);
    
    assign matchvec[0]        = masken_or_fullmask | (mask[0] == data[0]);
-   genvar 		      i;
+   genvar                     i;
    
    for ( i = 1; i < WIDTH; i++ )  begin : match_after_first_zero
       assign matchvec[i] = (&mask[i-1:0] & masken_or_fullmask) ? 1'b1 : (mask[i] == data[i]);
@@ -331,45 +331,45 @@ module rvmaskandmatch #( parameter WIDTH=32 )
 endmodule // rvmaskandmatch
 
 module rvbtb_tag_hash (
-		       input logic [31:1] pc,
-		       output logic [`RV_BTB_BTAG_SIZE-1:0] hash
-		       );
+                       input logic [31:1] pc,
+                       output logic [`RV_BTB_BTAG_SIZE-1:0] hash
+                       );
 `ifndef RV_BTB_BTAG_FOLD
     assign hash = {(pc[`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+`RV_BTB_BTAG_SIZE+`RV_BTB_BTAG_SIZE:`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+`RV_BTB_BTAG_SIZE+1] ^ 
-		   pc[`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+`RV_BTB_BTAG_SIZE:`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+1] ^ 
-		   pc[`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE:`RV_BTB_ADDR_HI+1])};
+                   pc[`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+`RV_BTB_BTAG_SIZE:`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+1] ^ 
+                   pc[`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE:`RV_BTB_ADDR_HI+1])};
 `else
     assign hash = {(
-		   pc[`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+`RV_BTB_BTAG_SIZE:`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+1] ^ 
-		   pc[`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE:`RV_BTB_ADDR_HI+1])};
+                   pc[`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+`RV_BTB_BTAG_SIZE:`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE+1] ^ 
+                   pc[`RV_BTB_ADDR_HI+`RV_BTB_BTAG_SIZE:`RV_BTB_ADDR_HI+1])};
 `endif
    
 //  assign hash = {pc[`RV_BTB_ADDR_HI+1],(pc[`RV_BTB_ADDR_HI+13:`RV_BTB_ADDR_HI+10] ^ 
-//					 pc[`RV_BTB_ADDR_HI+9:`RV_BTB_ADDR_HI+6] ^ 
-//					 pc[`RV_BTB_ADDR_HI+5:`RV_BTB_ADDR_HI+2])};
+//                                       pc[`RV_BTB_ADDR_HI+9:`RV_BTB_ADDR_HI+6] ^ 
+//                                       pc[`RV_BTB_ADDR_HI+5:`RV_BTB_ADDR_HI+2])};
 
 endmodule
 
 module rvbtb_addr_hash (
-			input logic [31:1] pc,
-			output logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] hash
-			);
+                        input logic [31:1] pc,
+                        output logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] hash
+                        );
 
    assign hash[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] = pc[`RV_BTB_INDEX1_HI:`RV_BTB_INDEX1_LO] ^ 
 
-`ifndef RV_BTB_FOLD2_INDEX_HASH						  
-						  pc[`RV_BTB_INDEX2_HI:`RV_BTB_INDEX2_LO] ^ 
+`ifndef RV_BTB_FOLD2_INDEX_HASH                                           
+                                                  pc[`RV_BTB_INDEX2_HI:`RV_BTB_INDEX2_LO] ^ 
 `endif
-						    
-						  pc[`RV_BTB_INDEX3_HI:`RV_BTB_INDEX3_LO];
+                                                    
+                                                  pc[`RV_BTB_INDEX3_HI:`RV_BTB_INDEX3_LO];
 
 endmodule
 
 module rvbtb_ghr_hash (
-		       input logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] hashin,
-		       input logic [`RV_BHT_GHR_RANGE] ghr,
-		       output logic [`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO] hash
-		       );
+                       input logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] hashin,
+                       input logic [`RV_BHT_GHR_RANGE] ghr,
+                       output logic [`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO] hash
+                       );
 
    // The hash function is too complex to write in verilog for all cases.
    // The config script generates the logic string based on the bp config.
@@ -405,28 +405,28 @@ endmodule  // rvrangechecker
 
 // 16 bit even parity generator
 module rveven_paritygen #(WIDTH = 16)  ( 
-					 input  logic [WIDTH-1:0]  data_in,         // Data
-					 output logic              parity_out       // generated even parity
-					 );
+                                         input  logic [WIDTH-1:0]  data_in,         // Data
+                                         output logic              parity_out       // generated even parity
+                                         );
    
    assign  parity_out =  ^(data_in[WIDTH-1:0]) ;
    
 endmodule  // rveven_paritygen
 
 module rveven_paritycheck #(WIDTH = 16)  ( 
-					   input  logic [WIDTH-1:0]  data_in,         // Data
-					   input  logic              parity_in,
-					   output logic              parity_err       // Parity error
-					   );
+                                           input  logic [WIDTH-1:0]  data_in,         // Data
+                                           input  logic              parity_in,
+                                           output logic              parity_err       // Parity error
+                                           );
    
    assign  parity_err =  ^(data_in[WIDTH-1:0]) ^ parity_in ;
    
 endmodule  // rveven_paritycheck
 
 module rvecc_encode  (
-		      input [31:0] din,
-		      output [6:0] ecc_out
-		      );  
+                      input [31:0] din,
+                      output [6:0] ecc_out
+                      );  
 logic [5:0] ecc_out_temp;
 
    assign ecc_out_temp[0] = din[0]^din[1]^din[3]^din[4]^din[6]^din[8]^din[10]^din[11]^din[13]^din[15]^din[17]^din[19]^din[21]^din[23]^din[25]^din[26]^din[28]^din[30];
@@ -441,20 +441,20 @@ logic [5:0] ecc_out_temp;
 endmodule // rvecc_encode
 
 module rvecc_decode  (
-		      input         en,
-		      input [31:0]  din,
-		      input [6:0]   ecc_in,
+                      input         en,
+                      input [31:0]  din,
+                      input [6:0]   ecc_in,
                       input         sed_ded,    // only do detection and no correction. Used for the I$
-		      output [31:0] dout,
+                      output [31:0] dout,
                       output [6:0]  ecc_out,
-		      output        single_ecc_error,
-		      output        double_ecc_error
+                      output        single_ecc_error,
+                      output        double_ecc_error
 
-		      );
+                      );
 
-   logic [6:0] 			    ecc_check;
-   logic [38:0] 		    error_mask;
-   logic [38:0] 		    din_plus_parity, dout_plus_parity;
+   logic [6:0]                      ecc_check;
+   logic [38:0]                     error_mask;
+   logic [38:0]                     din_plus_parity, dout_plus_parity;
    
    // Generate the ecc bits
    assign ecc_check[0] = ecc_in[0]^din[0]^din[1]^din[3]^din[4]^din[6]^din[8]^din[10]^din[11]^din[13]^din[15]^din[17]^din[19]^din[21]^din[23]^din[25]^din[26]^din[28]^din[30];

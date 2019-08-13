@@ -105,7 +105,7 @@ module lsu_bus_intf
    output logic [31:0]                  lsu_imprecise_error_addr_any,     // address of the imprecise error
 
    // Non-blocking loads
-   input  logic 	                       dec_nonblock_load_freeze_dc2,
+   input  logic                                dec_nonblock_load_freeze_dc2,
    output logic                                lsu_nonblock_load_valid_dc3,     // there is an external load -> put in the cam
    output logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_tag_dc3,       // the tag of the external non block load
    output logic                                lsu_nonblock_load_inv_dc5,       // invalidate signal for the cam entry for non block loads
@@ -113,7 +113,7 @@ module lsu_bus_intf
    output logic                                lsu_nonblock_load_data_valid,    // the non block is valid - sending information back to the cam                                               
    output logic                                lsu_nonblock_load_data_error,    // non block load has an error                 
    output logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_data_tag,      // the tag of the non block load sending the data/error                                             
-   output logic [31:0]                         lsu_nonblock_load_data,          // Data of the non block load	
+   output logic [31:0]                         lsu_nonblock_load_data,          // Data of the non block load   
 
    // PMU events
    output logic                         lsu_pmu_bus_trxn,
@@ -173,7 +173,7 @@ module lsu_bus_intf
 
 `include "global.h"
 
-   logic              ld_freeze_dc3;		     
+   logic              ld_freeze_dc3;                 
 
    logic              lsu_bus_clk_en_q;
    logic              ldst_dual_dc1, ldst_dual_dc2, ldst_dual_dc3, ldst_dual_dc4, ldst_dual_dc5;
@@ -181,8 +181,8 @@ module lsu_bus_intf
    
    logic [3:0]        ldst_byteen_dc2, ldst_byteen_dc3, ldst_byteen_dc4, ldst_byteen_dc5;
    logic [7:0]        ldst_byteen_ext_dc2, ldst_byteen_ext_dc3, ldst_byteen_ext_dc4, ldst_byteen_ext_dc5;
-   logic [3:0] 	      ldst_byteen_hi_dc2, ldst_byteen_hi_dc3, ldst_byteen_hi_dc4, ldst_byteen_hi_dc5;
-   logic [3:0] 	      ldst_byteen_lo_dc2, ldst_byteen_lo_dc3, ldst_byteen_lo_dc4, ldst_byteen_lo_dc5;
+   logic [3:0]        ldst_byteen_hi_dc2, ldst_byteen_hi_dc3, ldst_byteen_hi_dc4, ldst_byteen_hi_dc5;
+   logic [3:0]        ldst_byteen_lo_dc2, ldst_byteen_lo_dc3, ldst_byteen_lo_dc4, ldst_byteen_lo_dc5;
    logic              is_sideeffects_dc4, is_sideeffects_dc5;
 
    
@@ -198,12 +198,12 @@ module lsu_bus_intf
    logic              ld_addr_dc4hit_lo_lo, ld_addr_dc4hit_hi_lo, ld_addr_dc4hit_lo_hi, ld_addr_dc4hit_hi_hi;
    logic              ld_addr_dc5hit_lo_lo, ld_addr_dc5hit_hi_lo, ld_addr_dc5hit_lo_hi, ld_addr_dc5hit_hi_hi;
 
-   logic [3:0] 	      ld_byte_dc3hit_lo_lo, ld_byte_dc3hit_hi_lo, ld_byte_dc3hit_lo_hi, ld_byte_dc3hit_hi_hi;
-   logic [3:0] 	      ld_byte_dc4hit_lo_lo, ld_byte_dc4hit_hi_lo, ld_byte_dc4hit_lo_hi, ld_byte_dc4hit_hi_hi;
-   logic [3:0] 	      ld_byte_dc5hit_lo_lo, ld_byte_dc5hit_hi_lo, ld_byte_dc5hit_lo_hi, ld_byte_dc5hit_hi_hi;
+   logic [3:0]        ld_byte_dc3hit_lo_lo, ld_byte_dc3hit_hi_lo, ld_byte_dc3hit_lo_hi, ld_byte_dc3hit_hi_hi;
+   logic [3:0]        ld_byte_dc4hit_lo_lo, ld_byte_dc4hit_hi_lo, ld_byte_dc4hit_lo_hi, ld_byte_dc4hit_hi_hi;
+   logic [3:0]        ld_byte_dc5hit_lo_lo, ld_byte_dc5hit_hi_lo, ld_byte_dc5hit_lo_hi, ld_byte_dc5hit_hi_hi;
 
-   logic [3:0] 	      ld_byte_hit_lo, ld_byte_dc3hit_lo, ld_byte_dc4hit_lo, ld_byte_dc5hit_lo;
-   logic [3:0] 	      ld_byte_hit_hi, ld_byte_dc3hit_hi, ld_byte_dc4hit_hi, ld_byte_dc5hit_hi;
+   logic [3:0]        ld_byte_hit_lo, ld_byte_dc3hit_lo, ld_byte_dc4hit_lo, ld_byte_dc5hit_lo;
+   logic [3:0]        ld_byte_hit_hi, ld_byte_dc3hit_hi, ld_byte_dc4hit_hi, ld_byte_dc5hit_hi;
 
    logic [31:0]       ld_fwddata_dc3pipe_lo, ld_fwddata_dc4pipe_lo, ld_fwddata_dc5pipe_lo;
    logic [31:0]       ld_fwddata_dc3pipe_hi, ld_fwddata_dc4pipe_hi, ld_fwddata_dc5pipe_hi;
@@ -381,7 +381,7 @@ module lsu_bus_intf
 
    assign {ld_fwddata_dc2_nc[63:32], ld_fwddata_dc2[31:0]} = {ld_fwddata_hi[31:0], ld_fwddata_lo[31:0]} >> (8*lsu_addr_dc2[1:0]);
    assign bus_read_data_dc3[31:0]                           = ld_full_hit_dc3 ? ld_fwddata_dc3[31:0] : ld_bus_data_dc3[31:0];
-	    
+            
    // Fifo flops
    rvdff #(.WIDTH(1)) lsu_full_hit_dc3ff (.din(ld_full_hit_dc2), .dout(ld_full_hit_dc3), .clk(lsu_freeze_c2_dc3_clk), .*);
    rvdff #(.WIDTH(32)) lsu_fwddata_dc3ff (.din(ld_fwddata_dc2[31:0]), .dout(ld_fwddata_dc3[31:0]), .clk(lsu_c1_dc3_clk), .*);

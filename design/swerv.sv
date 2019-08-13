@@ -23,11 +23,11 @@
 module swerv 
    import swerv_types::*;
 (
-   input logic		        clk,
-   input logic		        rst_l,
+   input logic                  clk,
+   input logic                  rst_l,
    input logic [31:1]           rst_vec,
    input logic                  nmi_int,
-   input logic [31:1]           nmi_vec,			    
+   input logic [31:1]           nmi_vec,                            
    input logic [31:1]           jtag_id,
    output logic                 core_rst_l,   // This is "rst_l | dbg_rst_l"  
 
@@ -39,7 +39,7 @@ module swerv
    output logic [2:0]  trace_rv_i_interrupt_ip,
    output logic [31:0] trace_rv_i_tval_ip,
 
-   			    
+                            
    output logic                 lsu_freeze_dc3,
    output logic                 dccm_clk_override,
    output logic                 icm_clk_override,
@@ -65,15 +65,15 @@ module swerv
    output logic [1:0] dec_tlu_perfcnt1,
    output logic [1:0] dec_tlu_perfcnt2,
    output logic [1:0] dec_tlu_perfcnt3,
-			    
-   // DCCM ports	        
+                            
+   // DCCM ports                
    output logic                          dccm_wren,
    output logic                          dccm_rden,
    output logic [`RV_DCCM_BITS-1:0]          dccm_wr_addr,
    output logic [`RV_DCCM_BITS-1:0]          dccm_rd_addr_lo,
    output logic [`RV_DCCM_BITS-1:0]          dccm_rd_addr_hi,
    output logic [`RV_DCCM_FDATA_WIDTH-1:0]   dccm_wr_data,
-		      	        
+                                
    input logic [`RV_DCCM_FDATA_WIDTH-1:0]    dccm_rd_data_lo,
    input logic [`RV_DCCM_FDATA_WIDTH-1:0]    dccm_rd_data_hi,
 
@@ -315,7 +315,7 @@ module swerv
    output logic [1:0]            htrans,
    output logic                  hwrite,
 
-   input  logic [63:0] 		 hrdata,
+   input  logic [63:0]           hrdata,
    input  logic                  hready,
    input  logic                  hresp,
 
@@ -328,12 +328,12 @@ module swerv
    output logic [1:0]           lsu_htrans,
    output logic                 lsu_hwrite,
    output logic [63:0]          lsu_hwdata,
-		                
+                                
    input  logic [63:0]          lsu_hrdata,
    input  logic                 lsu_hready,
    input  logic                 lsu_hresp,
 
-   //System Bus Debug Master			    
+   //System Bus Debug Master                        
    output logic [31:0]          sb_haddr,
    output logic [2:0]           sb_hburst,
    output logic                 sb_hmastlock,
@@ -342,7 +342,7 @@ module swerv
    output logic [1:0]           sb_htrans,
    output logic                 sb_hwrite,
    output logic [63:0]          sb_hwdata,
-		                
+                                
    input  logic [63:0]          sb_hrdata,
    input  logic                 sb_hready,
    input  logic                 sb_hresp,
@@ -370,14 +370,14 @@ module swerv
    input   logic                 dbg_bus_clk_en,
    input   logic                 dma_bus_clk_en,
 
-   // JTAG ports	       
-   input logic 	           jtag_tck, // JTAG clk
-   input logic 	           jtag_tms, // JTAG TMS  
-   input logic 	           jtag_tdi, // JTAG tdi
-   input logic 	           jtag_trst_n, // JTAG Reset
+   // JTAG ports               
+   input logic             jtag_tck, // JTAG clk
+   input logic             jtag_tms, // JTAG TMS  
+   input logic             jtag_tdi, // JTAG tdi
+   input logic             jtag_trst_n, // JTAG Reset
    output logic            jtag_tdo, // JTAG TDO
    
-			    
+                            
    input logic [`RV_PIC_TOTAL_INT:1]           extintsrc_req,
    input logic                   timer_int,
    input logic                   scan_mode
@@ -584,8 +584,8 @@ module swerv
    // 
    //----------------------------------------------------------------------
 
-   logic [1:0] 			 ifu_pmu_instr_aligned;
-   logic  			 ifu_pmu_align_stall;
+   logic [1:0]                   ifu_pmu_instr_aligned;
+   logic                         ifu_pmu_align_stall;
    logic                         dma_slv_algn_err;
 // Icache debug
 `ifdef RV_ICACHE_ECC
@@ -618,9 +618,9 @@ module swerv
    // Trigger signals
    trigger_pkt_t [3:0]     trigger_pkt_any;
    logic [3:0]             lsu_trigger_match_dc3;                                         
-   logic     	dec_ib3_valid_d, dec_ib2_valid_d;
-   logic 	dec_ib1_valid_eff_d;
-   logic 	dec_ib0_valid_eff_d;   
+   logic        dec_ib3_valid_d, dec_ib2_valid_d;
+   logic        dec_ib1_valid_eff_d;
+   logic        dec_ib0_valid_eff_d;   
    
 
    logic [31:0] dec_i0_immed_d;
@@ -629,28 +629,28 @@ module swerv
    logic [12:1] dec_i0_br_immed_d;
    logic [12:1] dec_i1_br_immed_d;   
    
-   logic 	 dec_i0_select_pc_d;
-   logic 	 dec_i1_select_pc_d;   
+   logic         dec_i0_select_pc_d;
+   logic         dec_i1_select_pc_d;   
 
    logic [31:1] dec_i0_pc_d, dec_i1_pc_d;
-   logic 	dec_i0_rs1_bypass_en_d;
-   logic 	dec_i0_rs2_bypass_en_d;
-   logic 	dec_i1_rs1_bypass_en_d;
-   logic 	dec_i1_rs2_bypass_en_d;
+   logic        dec_i0_rs1_bypass_en_d;
+   logic        dec_i0_rs2_bypass_en_d;
+   logic        dec_i1_rs1_bypass_en_d;
+   logic        dec_i1_rs2_bypass_en_d;
    
 
-   logic 	 dec_i0_alu_decode_d;
-   logic 	 dec_i1_alu_decode_d;
+   logic         dec_i0_alu_decode_d;
+   logic         dec_i1_alu_decode_d;
 
    rets_pkt_t exu_rets_e1_pkt;
    rets_pkt_t exu_rets_e4_pkt;
    
    logic         dec_tlu_cancel_e4;
-   logic 	 ifu_miss_state_idle;
-   logic 	 dec_tlu_flush_noredir_wb;
+   logic         ifu_miss_state_idle;
+   logic         dec_tlu_flush_noredir_wb;
    logic         dec_tlu_flush_leak_one_wb;
    logic         dec_tlu_flush_err_wb;
-   logic 	 ifu_i0_valid, ifu_i1_valid;
+   logic         ifu_i0_valid, ifu_i1_valid;
    logic [31:0]  ifu_i0_instr, ifu_i1_instr;
    logic [31:1]  ifu_i0_pc, ifu_i1_pc;
    
@@ -696,14 +696,14 @@ module swerv
    logic        flush_final_e3;
    logic        i0_flush_final_e3;
    
-   logic 	dec_csr_ren_d;
+   logic        dec_csr_ren_d;
    
    logic [31:0] exu_csr_rs1_e1;
    
-   logic 	dec_tlu_flush_lower_wb;
+   logic        dec_tlu_flush_lower_wb;
    logic        dec_tlu_i0_kill_writeb_wb;    // I0 is flushed, don't writeback any results to arch state 
    logic        dec_tlu_i1_kill_writeb_wb;    // I1 is flushed, don't writeback any results to arch state 
-   logic 	dec_tlu_fence_i_wb;           // flush is a fence_i rfnpc, flush icache
+   logic        dec_tlu_fence_i_wb;           // flush is a fence_i rfnpc, flush icache
 
    logic dec_tlu_i0_valid_e4;
    logic dec_tlu_i1_valid_e4;
@@ -763,8 +763,8 @@ module swerv
    logic [31:0] i1_rs1_bypass_data_e2;
    logic [31:0] i1_rs2_bypass_data_e2;
 
-   logic 	exu_i0_flush_lower_e4;     // to tlu for lower branch flushes
-   logic 	exu_i1_flush_lower_e4;
+   logic        exu_i0_flush_lower_e4;     // to tlu for lower branch flushes
+   logic        exu_i1_flush_lower_e4;
    logic [31:1] exu_i0_flush_path_e4;
    logic [31:1] exu_i1_flush_path_e4;
 
@@ -773,7 +773,7 @@ module swerv
    
 
    predict_pkt_t  exu_mp_pkt;
-   logic [`RV_BHT_GHR_RANGE]  exu_mp_eghr;	
+   logic [`RV_BHT_GHR_RANGE]  exu_mp_eghr;      
    
    logic [`RV_BHT_GHR_RANGE]  exu_i0_br_fghr_e4;
    logic [1:0]  exu_i0_br_hist_e4;
@@ -781,9 +781,9 @@ module swerv
    logic        exu_i0_br_error_e4;
    logic        exu_i0_br_start_error_e4;
    logic        exu_i0_br_valid_e4;
-   logic 	exu_i0_br_mp_e4;
+   logic        exu_i0_br_mp_e4;
    logic        exu_i0_br_ret_e4;
-   logic 	exu_i0_br_call_e4;
+   logic        exu_i0_br_call_e4;
    logic        exu_i0_br_middle_e4;
    logic [`RV_BHT_GHR_RANGE]  exu_i1_br_fghr_e4;
 
@@ -792,9 +792,9 @@ module swerv
    logic        exu_i1_br_error_e4;
    logic        exu_i1_br_start_error_e4;
    logic        exu_i1_br_valid_e4;
-   logic 	exu_i1_br_mp_e4;
+   logic        exu_i1_br_mp_e4;
    logic        exu_i1_br_ret_e4;
-   logic 	exu_i1_br_call_e4;
+   logic        exu_i1_br_call_e4;
    logic        exu_i1_br_middle_e4;
 
 `ifdef RV_BTB_48   
@@ -804,7 +804,7 @@ module swerv
    logic        exu_i0_br_way_e4;
    logic        exu_i1_br_way_e4;
 `endif
-   logic 	dec_i0_lsu_decode_d;
+   logic        dec_i0_lsu_decode_d;
    
    logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] exu_i0_br_index_e4;
    logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] exu_i1_br_index_e4;   
@@ -819,7 +819,7 @@ module swerv
    logic        dccm_dma_rvalid;
    logic        dccm_dma_ecc_error;
    logic [63:0] dccm_dma_rdata;
-   logic        iccm_dma_rvalid;		 
+   logic        iccm_dma_rvalid;                 
    logic        iccm_dma_ecc_error;
    logic [63:0] iccm_dma_rdata;
 
@@ -833,16 +833,16 @@ module swerv
 
    logic [31:0] i0_result_e2;   
    
-   logic 	ifu_i0_icaf;
-   logic 	ifu_i1_icaf;
-   logic 	ifu_i0_icaf_f1;
-   logic 	ifu_i1_icaf_f1;
-   logic 	ifu_i0_perr;
-   logic 	ifu_i1_perr;
-   logic 	ifu_i0_sbecc;
-   logic 	ifu_i1_sbecc;
-   logic 	ifu_i0_dbecc;
-   logic 	ifu_i1_dbecc;
+   logic        ifu_i0_icaf;
+   logic        ifu_i1_icaf;
+   logic        ifu_i0_icaf_f1;
+   logic        ifu_i1_icaf_f1;
+   logic        ifu_i0_perr;
+   logic        ifu_i1_perr;
+   logic        ifu_i0_sbecc;
+   logic        ifu_i1_sbecc;
+   logic        ifu_i0_dbecc;
+   logic        ifu_i1_dbecc;
    logic        iccm_dma_sb_error;
    
    br_pkt_t i0_brp;
@@ -890,7 +890,7 @@ module swerv
    logic                   dbg_cmd_valid;             // commad is being driven by the dbg module. One pulse. Only dirven when core_halted has been seen
    logic                   dbg_cmd_write;             // 1: write command; 0: read_command
    logic [1:0]             dbg_cmd_type;              // 0:gpr 1:csr 2: memory
-   logic [1:0] 		   dbg_cmd_size;              // size of the abstract mem access debug command
+   logic [1:0]             dbg_cmd_size;              // size of the abstract mem access debug command
    logic                   dbg_halt_req;              // Sticky signal indicating that the debug module wants to start the entering of debug mode ( start the halting sequence )   
    logic                   dbg_resume_req;            // Sticky signal indicating that the debug module wants to resume from debug mode
    logic                   dbg_core_rst_l;            // Core reset from DM
@@ -909,28 +909,28 @@ module swerv
    logic [31:0]            dec_dbg_rddata;            // The core drives this data ( intercepts the pipe and sends it here )
    logic                   dec_dbg_cmd_done;          // This will be treated like a valid signal 
    logic                   dec_dbg_cmd_fail;          // Abstract command failed
-   logic 		   dec_tlu_mpc_halted_only;   // Only halted due to MPC
+   logic                   dec_tlu_mpc_halted_only;   // Only halted due to MPC
    logic                   dec_tlu_dbg_halted;        // The core has finished the queiscing sequence. Sticks this signal high  
    logic                   dec_tlu_pmu_fw_halted;     // The core has finished the queiscing sequence. Sticks this signal high  
    logic                   dec_tlu_resume_ack;
    logic                   dec_tlu_debug_mode;        // Core is in debug mode
-   logic 		   dec_debug_wdata_rs1_d;
-   logic 		   dec_tlu_stall_dma;         // stall dma accesses, tlu is attempting to enter halt/debug mode
+   logic                   dec_debug_wdata_rs1_d;
+   logic                   dec_tlu_stall_dma;         // stall dma accesses, tlu is attempting to enter halt/debug mode
 
-   logic [4:2] 		   dec_i0_data_en;
-   logic [4:1] 		   dec_i0_ctl_en;
-   logic [4:2] 		   dec_i1_data_en;
-   logic [4:1] 		   dec_i1_ctl_en;
+   logic [4:2]             dec_i0_data_en;
+   logic [4:1]             dec_i0_ctl_en;
+   logic [4:2]             dec_i1_data_en;
+   logic [4:1]             dec_i1_ctl_en;
 
-   logic 		   dec_nonblock_load_freeze_dc2;
+   logic                   dec_nonblock_load_freeze_dc2;
 
    // PMU Signals
-   logic 		   exu_pmu_i0_br_misp;
-   logic 		   exu_pmu_i0_br_ataken;
-   logic 		   exu_pmu_i0_pc4;   
-   logic 		   exu_pmu_i1_br_misp;
-   logic 		   exu_pmu_i1_br_ataken;
-   logic 		   exu_pmu_i1_pc4;   
+   logic                   exu_pmu_i0_br_misp;
+   logic                   exu_pmu_i0_br_ataken;
+   logic                   exu_pmu_i0_pc4;   
+   logic                   exu_pmu_i1_br_misp;
+   logic                   exu_pmu_i1_br_ataken;
+   logic                   exu_pmu_i1_pc4;   
    
    logic                   lsu_pmu_misaligned_dc3;         
    logic                   lsu_pmu_bus_trxn;
@@ -938,21 +938,21 @@ module swerv
    logic                   lsu_pmu_bus_error;
    logic                   lsu_pmu_bus_busy;
 
-   logic 		   ifu_pmu_fetch_stall;
+   logic                   ifu_pmu_fetch_stall;
    logic                   ifu_pmu_ic_miss;
    logic                   ifu_pmu_ic_hit;
    logic                   ifu_pmu_bus_error;
    logic                   ifu_pmu_bus_busy;
    logic                   ifu_pmu_bus_trxn;
 
-   logic 		   active_state;
-   logic 		   free_clk, active_clk;
+   logic                   active_state;
+   logic                   free_clk, active_clk;
    logic                   dec_pause_state_cg;
 
-   logic 		   lsu_nonblock_load_data_error;
+   logic                   lsu_nonblock_load_data_error;
 
-   logic [15:0] 	   ifu_i0_cinst;
-   logic [15:0] 	   ifu_i1_cinst;
+   logic [15:0]            ifu_i0_cinst;
+   logic [15:0]            ifu_i1_cinst;
    
    trace_pkt_t  trace_rv_trace_pkt;
 
@@ -976,15 +976,15 @@ module swerv
    logic                   dmi_reg_en;                // read or write
    logic [6:0]             dmi_reg_addr;              // address of DM register
    logic                   dmi_reg_wr_en;             // write instruction
-   logic [31:0] 	   dmi_reg_wdata;             // write data
+   logic [31:0]            dmi_reg_wdata;             // write data
    // outputs from the dbg back to jtag
-   logic [31:0] 	   dmi_reg_rdata;
+   logic [31:0]            dmi_reg_rdata;
    logic                   dmi_hard_reset;
    
    logic                   jtag_tdoEn;
-	 
-  // Instantiat the JTAG/DMI		 
-   dmi_wrapper 	dmi_wrapper (
+         
+  // Instantiat the JTAG/DMI             
+   dmi_wrapper  dmi_wrapper (
            .scan_mode(scan_mode),           // scan mode
 
            // JTAG signals
@@ -1021,10 +1021,10 @@ module swerv
 
    
    dec dec (
-	    .dbg_cmd_wrdata(dbg_cmd_wrdata[1:0]),
-	    .rst_l(core_rst_l),
-	    .*
-	    );
+            .dbg_cmd_wrdata(dbg_cmd_wrdata[1:0]),
+            .rst_l(core_rst_l),
+            .*
+            );
 
    exu exu (
       .clk_override(dec_tlu_exu_clk_override),
@@ -1039,21 +1039,21 @@ module swerv
    );
 
    logic [7:0]  pic_claimid;
-   logic [3:0] 	pic_pl, dec_tlu_meicurpl, dec_tlu_meipt;
+   logic [3:0]  pic_pl, dec_tlu_meicurpl, dec_tlu_meipt;
    
    logic        mexintpend;
    logic        mhwakeup;
 
-   logic 	dec_tlu_claim_ack_wb;
+   logic        dec_tlu_claim_ack_wb;
 
    pic_ctrl  pic_ctrl_inst (
                   .clk_override(dec_tlu_pic_clk_override),
                   .picm_mken (picm_mken),
                   .extintsrc_req({extintsrc_req[`RV_PIC_TOTAL_INT:1],1'b0}),
-		  .pl(pic_pl[3:0]),
-		  .claimid(pic_claimid[7:0]),
-		  .meicurpl(dec_tlu_meicurpl[3:0]),
-		  .meipt(dec_tlu_meipt[3:0]),
+                  .pl(pic_pl[3:0]),
+                  .claimid(pic_claimid[7:0]),
+                  .meicurpl(dec_tlu_meicurpl[3:0]),
+                  .meipt(dec_tlu_meipt[3:0]),
                   .rst_l(core_rst_l),
                      .*);
 
@@ -1244,7 +1244,7 @@ module swerv
       .axi_awprot(dma_axi_awprot[2:0]),
       .axi_awlen(dma_axi_awlen[7:0]),                                           
       .axi_awburst(dma_axi_awburst[1:0]),
-						     
+                                                     
       .axi_wvalid(dma_axi_wvalid),                                       
       .axi_wready(dma_axi_wready),
       .axi_wdata(dma_axi_wdata[63:0]),
@@ -1255,7 +1255,7 @@ module swerv
       .axi_bready(dma_axi_bready),
       .axi_bresp(dma_axi_bresp[1:0]),
       .axi_bid(dma_axi_bid[DMA_BUS_TAG-1:0]), 
-						     
+                                                     
       // AXI Read Channels
       .axi_arvalid(dma_axi_arvalid),
       .axi_arready(dma_axi_arready),
@@ -1265,12 +1265,12 @@ module swerv
       .axi_arprot(dma_axi_arprot[2:0]),
       .axi_arlen(dma_axi_arlen[7:0]),                                           
       .axi_arburst(dma_axi_arburst[1:0]),
-				     
+                                     
       .axi_rvalid(dma_axi_rvalid),
       .axi_rready(dma_axi_rready),
       .axi_rid(dma_axi_rid[DMA_BUS_TAG-1:0]),
       .axi_rdata(dma_axi_rdata[63:0]),
-      .axi_rresp(dma_axi_rresp[1:0]),							
+      .axi_rresp(dma_axi_rresp[1:0]),                                                   
 
        // AHB signals
       .ahb_haddr(dma_haddr[31:0]),

@@ -118,7 +118,7 @@ module lsu_bus_buffer
    output logic [31:0]                  lsu_imprecise_error_addr_any,     // address of the imprecise error
 
    // Non-blocking loads
-   input  logic 	                       dec_nonblock_load_freeze_dc2,
+   input  logic                                dec_nonblock_load_freeze_dc2,
    output logic                                lsu_nonblock_load_valid_dc3,     // there is an external load -> put in the cam
    output logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_tag_dc3,       // the tag of the external non block load
    output logic                                lsu_nonblock_load_inv_dc5,       // invalidate signal for the cam entry for non block loads
@@ -126,7 +126,7 @@ module lsu_bus_buffer
    output logic                                lsu_nonblock_load_data_valid,    // the non block is valid - sending information back to the cam                                               
    output logic                                lsu_nonblock_load_data_error,    // non block load has an error                 
    output logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_data_tag,      // the tag of the non block load sending the data/error                                             
-   output logic [31:0]                         lsu_nonblock_load_data,          // Data of the non block load	
+   output logic [31:0]                         lsu_nonblock_load_data,          // Data of the non block load   
 
    // PMU events
    output logic                         lsu_pmu_bus_trxn,
@@ -246,7 +246,7 @@ module lsu_bus_buffer
    
    // Bus buffer signals
    state_t [DEPTH-1:0]                  buf_state;
-   logic   [DEPTH-1:0][2:0] 		buf_state_out;
+   logic   [DEPTH-1:0][2:0]             buf_state_out;
    logic   [DEPTH-1:0][1:0]             buf_sz;
    logic   [DEPTH-1:0][31:0]            buf_addr;
    logic   [DEPTH-1:0][3:0]             buf_byteen;
@@ -666,12 +666,12 @@ module lsu_bus_buffer
                      buf_error_en[i]           = buf_state_bus_en[i] & lsu_bus_clk_en & ((bus_rsp_read_error  & (bus_rsp_read_tag  == LSU_BUS_TAG'(i))) |
                                                                                          (bus_rsp_write_error & (bus_rsp_write_tag == LSU_BUS_TAG'(i))));
                      buf_data_in[i][31:0]      = (buf_state_en[i] & ~buf_error_en[i]) ? (buf_addr[i][2] ? bus_rsp_rdata[63:32] : bus_rsp_rdata[31:0]) : bus_rsp_rdata[31:0];
-  	    end
+            end
             DONE: begin
                      buf_nxtstate[i]           = IDLE;
                      buf_rst[i]                = lsu_bus_clk_en_q & (buf_write[i] | ~buf_dual[i] | (buf_state[buf_dualtag[i]] == DONE));
                      buf_state_en[i]           = buf_rst[i];
-   	    end 
+            end 
             default : begin
                      buf_nxtstate[i]          = IDLE;
                      buf_state_en[i]          = '0;

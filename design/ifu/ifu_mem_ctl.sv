@@ -34,7 +34,7 @@ module ifu_mem_ctl
                                      
    input logic [31:1]                fetch_addr_f1,                 // Fetch Address byte aligned always.      F1 stage.
    input logic                       ifc_fetch_uncacheable_f1,      // The fetch request is uncacheable space. F1 stage
-   input logic	                     ifc_fetch_req_f1,              // Fetch request. Comes with the address.  F1 stage
+   input logic                       ifc_fetch_req_f1,              // Fetch request. Comes with the address.  F1 stage
    input logic                       ifc_fetch_req_f1_raw,          // Fetch request without some qualifications. Used for clock-gating. F1 stage
    input logic                       ifc_iccm_access_f1,            // This request is to the ICCM. Do not generate misses to the bus. 
    input logic                       ifc_region_acc_fault_f1,       // Access fault. in ICCM region but offset is outside defined ICCM. 
@@ -116,7 +116,7 @@ module ifu_mem_ctl
    input  logic [63:0]               dma_mem_wdata,     //  write data
                                      
    output logic                      iccm_dma_ecc_error,//   Data read from iccm has an ecc error 
-   output logic                      iccm_dma_rvalid,   //   Data read from iccm is valid		 
+   output logic                      iccm_dma_rvalid,   //   Data read from iccm is valid                
    output logic [63:0]               iccm_dma_rdata,    //   dma data read from iccm
    output logic                      iccm_ready,        //   iccm ready to accept new command.
 
@@ -490,8 +490,8 @@ module ifu_mem_ctl
 
    rvdffe #(31) ifu_fetch_addr_f2_ff (.*, 
                     .en (fetch_f1_f2_c1_clken),
-		    .din ({fetch_addr_f1[31:1]}), 
-		    .dout({ifu_fetch_addr_int_f2[31:1]}));
+                    .din ({fetch_addr_f1[31:1]}), 
+                    .dout({ifu_fetch_addr_int_f2[31:1]}));
 
    assign vaddr_f2[3:1] = ifu_fetch_addr_int_f2[3:1] ;
 
@@ -684,13 +684,13 @@ assign ic_fetch_val_f2[0] = fetch_req_f2_qual ;
    assign bp_mask[7:0] = {ifu_bp_inst_mask_f2[7:1], 1'b1};
    
    assign ic_bp_mem_mask[7:0] = ({8{fetch_mask[0]}} &  bp_mask[7:0]) |            // unrotate the bpmask
-				({8{fetch_mask[1]}} & {bp_mask[6:0],1'b0}) |
-				({8{fetch_mask[2]}} & {bp_mask[5:0],2'b0}) |
-				({8{fetch_mask[3]}} & {bp_mask[4:0],3'b0}) |
-				({8{fetch_mask[4]}} & {bp_mask[3:0],4'b0}) |
-				({8{fetch_mask[5]}} & {bp_mask[2:0],5'b0}) |
-				({8{fetch_mask[6]}} & {bp_mask[1:0],6'b0}) |
-				({8{fetch_mask[7]}} & {bp_mask[0]  ,7'b0});
+                                ({8{fetch_mask[1]}} & {bp_mask[6:0],1'b0}) |
+                                ({8{fetch_mask[2]}} & {bp_mask[5:0],2'b0}) |
+                                ({8{fetch_mask[3]}} & {bp_mask[4:0],3'b0}) |
+                                ({8{fetch_mask[4]}} & {bp_mask[3:0],4'b0}) |
+                                ({8{fetch_mask[5]}} & {bp_mask[2:0],5'b0}) |
+                                ({8{fetch_mask[6]}} & {bp_mask[1:0],6'b0}) |
+                                ({8{fetch_mask[7]}} & {bp_mask[0]  ,7'b0});
 
    assign ic_fetch_val_mem_f2[7:0] = {8{fetch_req_f2_qual}} & ic_bp_mem_mask[7:0] & ic_fetch_mem_val[7:0];
    
@@ -734,40 +734,40 @@ assign ic_fetch_val_f2[0] = fetch_req_f2_qual ;
  // First Half flops
   rvdffe #(64) byp_data_first_half (.*, 
             .en(byp_data_first_c1_clken),
-       	    .din (ifu_wr_data_new[63:0]), 
-       	    .dout(ifu_byp_data_first_half[63:0]));
+            .din (ifu_wr_data_new[63:0]), 
+            .dout(ifu_byp_data_first_half[63:0]));
 
   assign ifu_byp_data_error_first_half_in = write_byp_first_data ? ifu_wr_data_error : (ifu_byp_data_error_first_half  & ~ic_act_miss_f2) ;
 
   rvdff #(1) byp_data_first_half_err (.*, 
             .clk(free_clk),
-       	    .din (ifu_byp_data_error_first_half_in), 
-       	    .dout(ifu_byp_data_error_first_half));
+            .din (ifu_byp_data_error_first_half_in), 
+            .dout(ifu_byp_data_error_first_half));
 
   assign ifu_byp_data_first_half_valid_in = write_byp_first_data ? 1'b1  : (ifu_byp_data_first_half_valid  & ~ic_act_miss_f2) ;
   rvdff #(1) byp_data_first_half_val (.*, 
             .clk(free_clk),
-       	    .din (ifu_byp_data_first_half_valid_in), 
-       	    .dout(ifu_byp_data_first_half_valid));
+            .din (ifu_byp_data_first_half_valid_in), 
+            .dout(ifu_byp_data_first_half_valid));
 
 
  // Second Half flops
   rvdffe #(64) byp_data_second_half (.*, 
             .en(byp_data_second_c1_clken),
-       	    .din (ifu_wr_data_new[63:0]), 
-       	    .dout(ifu_byp_data_second_half[63:0]));
+            .din (ifu_wr_data_new[63:0]), 
+            .dout(ifu_byp_data_second_half[63:0]));
 
   assign ifu_byp_data_error_second_half_in = write_byp_second_data ? ifu_wr_data_error : (ifu_byp_data_error_second_half  & ~ic_act_miss_f2) ;
   rvdff #(1) byp_data_second_half_err (.*, 
                    .clk(free_clk),
-       	           .din (ifu_byp_data_error_second_half_in), 
-       	           .dout(ifu_byp_data_error_second_half));
+                   .din (ifu_byp_data_error_second_half_in), 
+                   .dout(ifu_byp_data_error_second_half));
 
   assign ifu_byp_data_second_half_valid_in = write_byp_second_data ? 1'b1  : (ifu_byp_data_second_half_valid  & ~ic_act_miss_f2) ;
   rvdff #(1) byp_data_second_half_val (.*, 
                    .clk(free_clk),
-		    .din (ifu_byp_data_second_half_valid_in), 
-		    .dout(ifu_byp_data_second_half_valid));
+                    .din (ifu_byp_data_second_half_valid_in), 
+                    .dout(ifu_byp_data_second_half_valid));
 
   assign ic_byp_data_only[127:0] = { ifu_byp_data_second_half[63:0] , ifu_byp_data_first_half[63:0] } ;
   assign ifu_byp_data_err        = ifu_byp_data_error_second_half | ifu_byp_data_error_first_half ;
@@ -840,10 +840,10 @@ logic                                         ifu_icache_sb_error_val_ff   ;
                   perr_nxtstate       =  (~dec_tlu_flush_err_wb &  exu_flush_final ) ? ERR_IDLE : ECC_CORR ;
                   perr_state_en       =   exu_flush_final   ;
          end
-	 DMA_SB_ERR : begin : dma_sb_ecc
+         DMA_SB_ERR : begin : dma_sb_ecc
                  perr_nxtstate       = ECC_CORR;
-	         perr_state_en       = 1'b1;
-	 end
+                 perr_state_en       = 1'b1;
+         end
          ECC_CORR: begin : ecc_corr
                   perr_nxtstate       =  ERR_IDLE  ;
                   perr_state_en       =   1'b1   ;
@@ -882,7 +882,7 @@ for (i=0; i < 4 ; i++) begin : ICCM_ECC_CHECK
 assign iccm_ecc_word_enable[i] = ((|ic_fetch_val_mem_f2[(2*i+1):(2*i)] & ~exu_flush_final & sel_iccm_data) | iccm_dma_rvalid_in) & ~dec_tlu_core_ecc_disable;
 rvecc_decode  ecc_decode (
                            .en(iccm_ecc_word_enable[i]),
-			   .sed_ded ( 1'b0 ),    // 1 : means only detection
+                           .sed_ded ( 1'b0 ),    // 1 : means only detection
                            .din(iccm_rd_data[(39*i+31):(39*i)]),
                            .ecc_in(iccm_rd_data[(39*i+38):(39*i+32)]),
                            .dout(iccm_corrected_data[i][31:0]),
@@ -1088,7 +1088,7 @@ assign axi_ifu_bus_clk_en =  ifu_bus_clk_en ;
 
 
    rvdff #(3)  axi_cmd_beat_ff (.*, .clk(axiclk_reset), .din ({axi_new_cmd_beat_count[2:0]}), 
-		    .dout({axi_cmd_beat_count[2:0]}));
+                    .dout({axi_cmd_beat_count[2:0]}));
 
    assign    req_addr_count[2:0]    = axi_new_rd_addr_count[2:0] ;
 
@@ -1354,13 +1354,13 @@ assign ifu_ic_rw_int_addr_w_debug[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW] = ((ic_debug
 
    rvdff #(5) ifu_pmu_sigs_ff (.*, 
                     .clk (active_clk),
-		    .din ({ifu_pmu_ic_miss_in,
+                    .din ({ifu_pmu_ic_miss_in,
                            ifu_pmu_ic_hit_in,
                            ifu_pmu_bus_error_in,
                            ifu_pmu_bus_busy_in,
                            ifu_pmu_bus_trxn_in 
                           }), 
-		    .dout({ifu_pmu_ic_miss,
+                    .dout({ifu_pmu_ic_miss,
                            ifu_pmu_ic_hit,
                            ifu_pmu_bus_error,
                            ifu_pmu_bus_busy,
@@ -1411,14 +1411,14 @@ assign ic_debug_ic_array_sel_word3_in = (ic_debug_addr[3:2] == 2'b11) & ic_debug
 assign ic_debug_ict_array_sel_in      =  ic_debug_rd_en & ic_debug_tag_array ;
 
 rvdffe #(09) ifu_debug_sel_ff (.*, .en (debug_c1_clken),
-		    .din ({ic_debug_ic_array_sel_word0_in,
+                    .din ({ic_debug_ic_array_sel_word0_in,
                            ic_debug_ic_array_sel_word1_in,
                            ic_debug_ic_array_sel_word2_in,
                            ic_debug_ic_array_sel_word3_in,
                            ic_debug_ict_array_sel_in,
                            ic_debug_way[3:0] 
                           }), 
-		    .dout({ic_debug_ic_array_sel_word0,
+                    .dout({ic_debug_ic_array_sel_word0,
                            ic_debug_ic_array_sel_word1,
                            ic_debug_ic_array_sel_word2,
                            ic_debug_ic_array_sel_word3,
@@ -1428,10 +1428,10 @@ rvdffe #(09) ifu_debug_sel_ff (.*, .en (debug_c1_clken),
 
 
 rvdff #(1) ifu_debug_rd_en_ff (.*,.clk(free_clk),  
-		    .din ({
+                    .din ({
                            ic_debug_rd_en 
                           }), 
-		    .dout({
+                    .dout({
                            ic_debug_rd_en_ff
                            }));
 
@@ -1445,10 +1445,10 @@ assign ifu_ic_debug_rd_data_in[41:0] = ( {42{ic_debug_ict_array_sel_ff   }} &  {
                                        ( {42{ic_debug_ic_array_sel_word3 }} &  {ic_rd_data [167:126]}) ;
 
 rvdffe #(42) ifu_debug_data_ff (.*, .en (debug_data_clken),
-		    .din ({
+                    .din ({
                            ifu_ic_debug_rd_data_in[41:0]
                           }), 
-		    .dout({
+                    .dout({
                            ifu_ic_debug_rd_data
                            }));
 
@@ -1461,10 +1461,10 @@ assign ifu_ic_debug_rd_data_in[33:0] = ( {34{ic_debug_ict_array_sel_ff   }} &  {
                                        ( {34{ic_debug_ic_array_sel_word3 }} &  {ic_rd_data [135:102]}) ;
 
 rvdffe #(34) ifu_debug_data_ff (.*, .en (debug_data_clken),
-		    .din ({
+                    .din ({
                            ifu_ic_debug_rd_data_in[33:0]
                           }), 
-		    .dout({
+                    .dout({
                            ifu_ic_debug_rd_data
                            }));
 
@@ -1473,10 +1473,10 @@ assign debug_data_clken  =  ic_debug_rd_en_ff;
 rvclkhdr debug_data_c1_cgc ( .en(debug_data_clken),   .l1clk(debug_data_clk), .* );
 
 rvdff #(1) ifu_debug_valid_ff (.*, .clk(free_clk),  
-		    .din ({
+                    .din ({
                            ic_debug_rd_en_ff 
                           }), 
-		    .dout({
+                    .dout({
                            ifu_ic_debug_rd_data_valid 
                            }));
 

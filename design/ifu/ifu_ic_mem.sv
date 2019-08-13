@@ -212,12 +212,12 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
    logic ic_debug_rd_en_ff;
 
    rvdff #(2) adr_ff (.*, 
-		    .din ({ic_rw_addr_q[5:4]}), 
-		    .dout({ic_rw_addr_ff[5:4]}));
+                    .din ({ic_rw_addr_q[5:4]}), 
+                    .dout({ic_rw_addr_ff[5:4]}));
 
    rvdff #(5) debug_rd_wy_ff (.*, 
-		    .din ({ic_debug_rd_way_en[3:0], ic_debug_rd_en}), 
-		    .dout({ic_debug_rd_way_en_ff[3:0], ic_debug_rd_en_ff}));
+                    .din ({ic_debug_rd_way_en[3:0], ic_debug_rd_en}), 
+                    .dout({ic_debug_rd_way_en_ff[3:0], ic_debug_rd_en_ff}));
 
 localparam NUM_WAYS=4 ;
 localparam NUM_SUBBANKS=4 ;   
@@ -225,29 +225,29 @@ localparam NUM_SUBBANKS=4 ;
 
      for (genvar i=0; i<NUM_WAYS; i++) begin: WAYS
 
-	rvoclkhdr bank_way_c1_cgc  ( .en(ic_bank_way_clken[i]), .l1clk(ic_bank_way_clk[i]), .* );
+        rvoclkhdr bank_way_c1_cgc  ( .en(ic_bank_way_clken[i]), .l1clk(ic_bank_way_clk[i]), .* );
 
-	for (genvar k=0; k<NUM_SUBBANKS; k++) begin: SUBBANKS   // 16B subbank
+        for (genvar k=0; k<NUM_SUBBANKS; k++) begin: SUBBANKS   // 16B subbank
 
         `ifdef RV_ICACHE_ECC
          `RV_ICACHE_DATA_CELL  ic_bank_sb_way_data (                                 
                                      .CLK(ic_bank_way_clk[i]),
-	                             .WE (ic_b_sb_wren[k][i]),
+                                     .WE (ic_b_sb_wren[k][i]),
                                      .D  (ic_sb_wr_data[k][41:0]),
-                  		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:4]),
-           			     .Q  (wb_dout[i][(k+1)*42-1:k*42])
+                                     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:4]),
+                                     .Q  (wb_dout[i][(k+1)*42-1:k*42])
                                     );
         `else
          `RV_ICACHE_DATA_CELL  ic_bank_sb_way_data (                                 
                                      .CLK(ic_bank_way_clk[i]),
-	                             .WE (ic_b_sb_wren[k][i]),
+                                     .WE (ic_b_sb_wren[k][i]),
                                      .D  (ic_sb_wr_data[k][33:0]),
-                  		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:4]),
-           			     .Q  (wb_dout[i][(k+1)*34-1:k*34])
+                                     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:4]),
+                                     .Q  (wb_dout[i][(k+1)*34-1:k*34])
                                     );
         `endif
         end // block: SUBBANKS
-	
+        
       end  
  
 
@@ -374,8 +374,8 @@ module IC_TAG #(parameter ICACHE_TAG_HIGH = 16 ,
    assign  ic_tag_clken[3:0]  = {4{ic_rd_en | clk_override}} | ic_wr_en[3:0] | ic_debug_wr_way_en[3:0] | ic_debug_rd_way_en[3:0];
 
    rvdff #(32-ICACHE_TAG_HIGH) adr_ff (.*, 
-		    .din ({ic_rw_addr[31:ICACHE_TAG_HIGH]}), 
-		    .dout({ic_rw_addr_ff[31:ICACHE_TAG_HIGH]}));
+                    .din ({ic_rw_addr[31:ICACHE_TAG_HIGH]}), 
+                    .dout({ic_rw_addr_ff[31:ICACHE_TAG_HIGH]}));
 
    
    localparam TOP_BITS = 21+ICACHE_TAG_HIGH-33 ;
@@ -436,8 +436,8 @@ end
 
 
    rvdff #(4) tag_rd_wy_ff (.*, 
-		    .din ({ic_debug_rd_way_en[3:0]}), 
-		    .dout({ic_debug_rd_way_en_ff[3:0]}));
+                    .din ({ic_debug_rd_way_en[3:0]}), 
+                    .dout({ic_debug_rd_way_en_ff[3:0]}));
 
 
 
@@ -448,11 +448,11 @@ end
       `ifdef RV_ICACHE_ECC
          ram_64x25  ic_way_tag (
                                      .CLK(ic_tag_clk[i]),
-             		             .WE (ic_tag_wren_q[i]),
+                                     .WE (ic_tag_wren_q[i]),
                                      .D  (ic_tag_wr_data[24:0]),
-                  		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
-            			     .Q  (ic_tag_data_raw[i][24:0])
-			            );
+                                     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
+                                     .Q  (ic_tag_data_raw[i][24:0])
+                                    );
           
 
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
@@ -472,11 +472,11 @@ end
       `else
          ram_64x21  ic_way_tag (
                                      .CLK(ic_tag_clk[i]),
-             		             .WE (ic_tag_wren_q[i]),
+                                     .WE (ic_tag_wren_q[i]),
                                      .D  (ic_tag_wr_data[20:0]),
-                   		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
-            			     .Q  (ic_tag_data_raw[i][20:0])
-			            );
+                                     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
+                                     .Q  (ic_tag_data_raw[i][20:0])
+                                    );
 
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
          assign w_tout[i][32]                 = ic_tag_data_raw[i][20] ;
@@ -494,8 +494,8 @@ end
                                      .CLK(ic_tag_clk[i]),
                                      .WE (ic_tag_wren_q[i]),
                                      .D  (ic_tag_wr_data[24:0]),
-                  		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
-            			     .Q  (ic_tag_data_raw[i][24:0])
+                                     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
+                                     .Q  (ic_tag_data_raw[i][24:0])
                                     );
 
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
@@ -518,8 +518,8 @@ end
                                      .CLK(ic_tag_clk[i]),
                                      .WE (ic_tag_wren_q[i]),
                                      .D  (ic_tag_wr_data[20:0]),
-                  		     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
-            			     .Q  ({ic_tag_data_raw[i][20:0]})
+                                     .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
+                                     .Q  ({ic_tag_data_raw[i][20:0]})
                                     );
 
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
@@ -539,8 +539,8 @@ end // block: WAYS
                                        ({25{ic_debug_rd_way_en_ff[1]}} &  ic_tag_data_raw[1] ) |
                                        ({25{ic_debug_rd_way_en_ff[2]}} &  ic_tag_data_raw[2] ) |
                                        ({25{ic_debug_rd_way_en_ff[3]}} &  ic_tag_data_raw[3] ) ;
-             								  
-`else									  
+                                                                          
+`else                                                                     
    assign ictag_debug_rd_data[20:0] =  ({21{ic_debug_rd_way_en_ff[0]}} &  ic_tag_data_raw[0] ) |
                                        ({21{ic_debug_rd_way_en_ff[1]}} &  ic_tag_data_raw[1] ) |
                                        ({21{ic_debug_rd_way_en_ff[2]}} &  ic_tag_data_raw[2] ) |

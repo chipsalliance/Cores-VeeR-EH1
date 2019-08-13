@@ -67,7 +67,7 @@ module dma_ctrl (
    output logic [1:0]                   dma_axi_rresp,
    output logic                         dma_axi_rlast,
 
-   output logic                        dma_slv_algn_err,		 
+   output logic                        dma_slv_algn_err,                 
    // Debug signals
    input logic [31:0]  dbg_cmd_addr,
    input logic [31:0]  dbg_cmd_wrdata,
@@ -105,7 +105,7 @@ module dma_ctrl (
    input logic         dec_tlu_stall_dma, // stall dma accesses, tlu is attempting to enter halt/debug mode
    input logic [2:0]   dec_tlu_dma_qos_prty,    // DMA QoS priority coming from MFDC [18:15]
                  
-   input logic         scan_mode		 
+   input logic         scan_mode                 
 );
 
 `include "global.h"
@@ -133,17 +133,17 @@ module dma_ctrl (
    logic [DEPTH-1:0][63:0]  fifo_data;
    logic [DEPTH-1:0][DMA_BUS_TAG-1:0]  fifo_tag;
    
-   logic [DEPTH-1:0] 	    fifo_cmd_en;
-   logic [DEPTH-1:0] 	    fifo_valid_en;
-   logic [DEPTH-1:0] 	    fifo_data_en;
-   logic [DEPTH-1:0] 	    fifo_data_bus_en;
-   logic [DEPTH-1:0] 	    fifo_pend_en;
-   logic [DEPTH-1:0] 	    fifo_done_en;
-   logic [DEPTH-1:0] 	    fifo_done_bus_en;
-   logic [DEPTH-1:0] 	    fifo_error_en;
-   logic [DEPTH-1:0] 	    fifo_error_bus_en;
-   //logic [DEPTH-1:0] 	    fifo_rsp_done_en;
-   logic [DEPTH-1:0] 	    fifo_reset;
+   logic [DEPTH-1:0]        fifo_cmd_en;
+   logic [DEPTH-1:0]        fifo_valid_en;
+   logic [DEPTH-1:0]        fifo_data_en;
+   logic [DEPTH-1:0]        fifo_data_bus_en;
+   logic [DEPTH-1:0]        fifo_pend_en;
+   logic [DEPTH-1:0]        fifo_done_en;
+   logic [DEPTH-1:0]        fifo_done_bus_en;
+   logic [DEPTH-1:0]        fifo_error_en;
+   logic [DEPTH-1:0]        fifo_error_bus_en;
+   //logic [DEPTH-1:0]      fifo_rsp_done_en;
+   logic [DEPTH-1:0]        fifo_reset;
    logic [DEPTH-1:0][1:0]   fifo_error_in;
    logic [DEPTH-1:0][63:0]  fifo_data_in;
 
@@ -164,7 +164,7 @@ module dma_ctrl (
 
    logic                    fifo_full, fifo_full_spec, fifo_empty;
    logic                    dma_address_error, dma_alignment_error;
-   logic [3:0] 		    num_fifo_vld;   
+   logic [3:0]              num_fifo_vld;   
    logic                    dma_mem_req;
    logic                    dma_addr_in_dccm;
    logic                    dma_addr_in_iccm;
@@ -174,7 +174,7 @@ module dma_ctrl (
    logic                    dma_addr_in_iccm_region_nc;
    
    logic [2:0]              dma_nack_count_csr;
-   logic [2:0] 		    dma_nack_count, dma_nack_count_d;
+   logic [2:0]              dma_nack_count, dma_nack_count_d;
 
    logic                    dma_buffer_c1_clken;
    logic                    dma_free_clken;
@@ -247,7 +247,7 @@ module dma_ctrl (
                                 (i == WrPtr[DEPTH_PTR-1:0]);
       assign fifo_data_en[i] = (((axi_mstr_valid & (axi_mstr_write | dma_address_error | dma_alignment_error) & dma_bus_clk_en) | 
                                  (dbg_cmd_valid & dbg_cmd_type[1] & dbg_cmd_write))  & (i == WrPtr[DEPTH_PTR-1:0])) |
-			       ((dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0]))| (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])));
+                               ((dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0]))| (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])));
       assign fifo_data_bus_en[i] = (fifo_data_en[i] | fifo_data_valid[i]) & dma_bus_clk_en;
       assign fifo_pend_en[i] = (dma_dccm_req | dma_iccm_req) & ~dma_mem_write & (i == RdPtr[DEPTH_PTR-1:0]);
       assign fifo_error_en[i] = fifo_cmd_en[i] | (((dccm_dma_rvalid & dccm_dma_ecc_error & (i == RdPtr_Q3[DEPTH_PTR-1:0])) | (iccm_dma_rvalid & iccm_dma_ecc_error & (i == RdPtr_Q2[DEPTH_PTR-1:0]))));

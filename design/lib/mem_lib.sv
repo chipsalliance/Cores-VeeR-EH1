@@ -27,12 +27,12 @@ module ram_32768x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [32767:0];
+   reg [38:0]   ram_core [32767:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -51,12 +51,12 @@ module ram_16384x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [16383:0];
+   reg [38:0]   ram_core [16383:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -74,12 +74,12 @@ module ram_8192x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [8191:0];
+   reg [38:0]   ram_core [8191:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -97,12 +97,12 @@ module ram_4096x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [4095:0];
+   reg [38:0]   ram_core [4095:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -120,12 +120,12 @@ module ram_3072x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [3071:0];
+   reg [38:0]   ram_core [3071:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -145,12 +145,12 @@ module ram_2048x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [2047:0];
+   reg [38:0]   ram_core [2047:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -168,12 +168,12 @@ module ram_1536x39     // need this for the 48KB DCCM option
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [1535:0];
+   reg [38:0]   ram_core [1535:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -192,12 +192,12 @@ module ram_1024x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [1023:0];
+   reg [38:0]   ram_core [1023:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -215,12 +215,12 @@ module ram_768x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [767:0];
+   reg [38:0]   ram_core [767:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -239,12 +239,12 @@ module ram_512x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [511:0];
+   reg [38:0]   ram_core [511:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -263,12 +263,12 @@ module ram_256x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [255:0];
+   reg [38:0]   ram_core [255:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -287,12 +287,12 @@ module ram_128x39
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [38:0] 	ram_core [127:0];
+   reg [38:0]   ram_core [127:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -314,12 +314,12 @@ module ram_1024x20
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [19:0] 	ram_core [1023:0];
+   reg [19:0]   ram_core [1023:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
    
@@ -336,12 +336,12 @@ module ram_512x20
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [19:0] 	ram_core [511:0];
+   reg [19:0]   ram_core [511:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -359,12 +359,12 @@ module ram_256x20
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [19:0] 	ram_core [255:0];
+   reg [19:0]   ram_core [255:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -381,12 +381,12 @@ module ram_128x20
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [19:0] 	ram_core [127:0];
+   reg [19:0]   ram_core [127:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -404,12 +404,12 @@ module ram_64x20
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [19:0] 	ram_core [63:0];
+   reg [19:0]   ram_core [63:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -431,12 +431,12 @@ module ram_4096x34
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [33:0] 	ram_core [4095:0];
+   reg [33:0]   ram_core [4095:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -456,12 +456,12 @@ module ram_2048x34
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [33:0] 	ram_core [2047:0];
+   reg [33:0]   ram_core [2047:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -481,12 +481,12 @@ module ram_1024x34
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [33:0] 	ram_core [1023:0];
+   reg [33:0]   ram_core [1023:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -506,12 +506,12 @@ module ram_512x34
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [33:0] 	ram_core [511:0];
+   reg [33:0]   ram_core [511:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -531,12 +531,12 @@ module ram_256x34
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [33:0] 	ram_core [255:0];
+   reg [33:0]   ram_core [255:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -556,12 +556,12 @@ module ram_128x34
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [33:0] 	ram_core [127:0];
+   reg [33:0]   ram_core [127:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -580,12 +580,12 @@ module ram_64x34
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [33:0] 	ram_core [63:0];
+   reg [33:0]   ram_core [63:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -607,12 +607,12 @@ module ram_4096x42
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [41:0] 	ram_core [4095:0];
+   reg [41:0]   ram_core [4095:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -632,12 +632,12 @@ module ram_2048x42
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [41:0] 	ram_core [2047:0];
+   reg [41:0]   ram_core [2047:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -656,12 +656,12 @@ module ram_1024x42
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [41:0] 	ram_core [1023:0];
+   reg [41:0]   ram_core [1023:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -680,12 +680,12 @@ module ram_512x42
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [41:0] 	ram_core [511:0];
+   reg [41:0]   ram_core [511:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -706,12 +706,12 @@ module ram_256x42
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [41:0] 	ram_core [255:0];
+   reg [41:0]   ram_core [255:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -731,12 +731,12 @@ module ram_128x42
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [41:0] 	ram_core [127:0];
+   reg [41:0]   ram_core [127:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -756,12 +756,12 @@ module ram_64x42
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [41:0] 	ram_core [63:0];
+   reg [41:0]   ram_core [63:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -784,12 +784,12 @@ module ram_1024x21
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [20:0] 	ram_core [1023:0];
+   reg [20:0]   ram_core [1023:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -807,12 +807,12 @@ module ram_512x21
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [20:0] 	ram_core [511:0];
+   reg [20:0]   ram_core [511:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -832,12 +832,12 @@ module ram_256x21
    
    // behavior to be replaced by actual SRAM in VLE 
 
-   reg [20:0] 	ram_core [255:0];
+   reg [20:0]   ram_core [255:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -857,12 +857,12 @@ module ram_128x21
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [20:0] 	ram_core [127:0];
+   reg [20:0]   ram_core [127:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -882,12 +882,12 @@ module ram_64x21
 
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [20:0] 	ram_core [63:0];
+   reg [20:0]   ram_core [63:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -906,12 +906,12 @@ module ram_1024x25
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [24:0] 	ram_core [1023:0];
+   reg [24:0]   ram_core [1023:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -932,12 +932,12 @@ module ram_512x25
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [24:0] 	ram_core [511:0];
+   reg [24:0]   ram_core [511:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -958,12 +958,12 @@ module ram_256x25
    
    // behavior to be replaced by actual SRAM in VLE 
 
-   reg [24:0] 	ram_core [255:0];
+   reg [24:0]   ram_core [255:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -984,12 +984,12 @@ module ram_128x25
    
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [24:0] 	ram_core [127:0];
+   reg [24:0]   ram_core [127:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 
@@ -1010,12 +1010,12 @@ module ram_64x25
 
    // behavior to be replaced by actual SRAM in VLE
 
-   reg [24:0] 	ram_core [63:0];
+   reg [24:0]   ram_core [63:0];
 
    always_ff @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
-	 ram_core[ADR] <= D; Q <= 'x; end else
-	   Q <= ram_core[ADR];
+         ram_core[ADR] <= D; Q <= 'x; end else
+           Q <= ram_core[ADR];
    end
 
 

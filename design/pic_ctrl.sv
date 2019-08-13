@@ -24,10 +24,10 @@ module pic_ctrl
                   (
 
                      input  logic                   clk,                  // Core clock
-		     input  logic                   free_clk,             // free clock
-		     input  logic                   active_clk,           // active clock
+                     input  logic                   free_clk,             // free clock
+                     input  logic                   active_clk,           // active clock
                      input  logic                   rst_l,                // Reset for all flops
-		     input  logic                   clk_override,         // Clock over-ride for gating
+                     input  logic                   clk_override,         // Clock over-ride for gating
                      input  logic [`RV_PIC_TOTAL_INT_PLUS1-1:0]   extintsrc_req,        // Interrupt requests
                      input  logic [31:0]            picm_addr,            // Address of the register
                      input  logic [31:0]            picm_wr_data,         // Data to be written to the register
@@ -42,7 +42,7 @@ module pic_ctrl
                      output logic [3:0]             pl,                   // Priority level of the requested interrupt
                      output logic [31:0]            picm_rd_data,         // Read data of the register
                      output logic                   mhwakeup,             // Wake-up interrupt request
-		     input  logic                   scan_mode             // scan mode
+                     input  logic                   scan_mode             // scan mode
                                      
 );
 `include "global.h"
@@ -125,14 +125,14 @@ logic [TOTAL_INT-1:0]                        extintsrc_req_sync;
 logic [TOTAL_INT-1:0]                        extintsrc_req_gw;
 
 // clkens
-   logic 				     pic_addr_c1_clken;
+   logic                                     pic_addr_c1_clken;
    logic                                     pic_data_c1_clken;
    logic                                     pic_pri_c1_clken;
    logic                                     pic_int_c1_clken;
    logic                                     gw_config_c1_clken;
    
 // clocks
-   logic 				     pic_addr_c1_clk;
+   logic                                     pic_addr_c1_clk;
    logic                                     pic_data_c1_clk;
    logic                                     pic_pri_c1_clk;
    logic                                     pic_int_c1_clk;
@@ -174,7 +174,7 @@ rvsyncss  #(TOTAL_INT-1) sync_inst
 (
  .clk (free_clk),
  .dout(extintsrc_req_sync[TOTAL_INT-1:1]),
- .din (extintsrc_req[TOTAL_INT-1:1]),	     
+ .din (extintsrc_req[TOTAL_INT-1:1]),        
  .*) ;
    
 assign extintsrc_req_sync[0] = extintsrc_req[0];

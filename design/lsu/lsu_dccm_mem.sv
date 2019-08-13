@@ -29,8 +29,8 @@
 module lsu_dccm_mem 
    import swerv_types::*;
 (
-   input logic 	       clk,                                              // clock 
-   input logic 	       rst_l,                                             
+   input logic         clk,                                              // clock 
+   input logic         rst_l,                                             
    input logic         lsu_freeze_dc3,                                   // freeze
    input logic         clk_override,                                     // clock override
                                                       
@@ -40,7 +40,7 @@ module lsu_dccm_mem
    input logic [`RV_DCCM_BITS-1:0]  dccm_rd_addr_lo,                     // read address
    input logic [`RV_DCCM_BITS-1:0]  dccm_rd_addr_hi,                     // read address for the upper bank in case of a misaligned access
    input logic [`RV_DCCM_FDATA_WIDTH-1:0]  dccm_wr_data,                 // write data
-		       
+                       
    output logic [`RV_DCCM_FDATA_WIDTH-1:0] dccm_rd_data_lo,              // read data from the lo bank
    output logic [`RV_DCCM_FDATA_WIDTH-1:0] dccm_rd_data_hi,              // read data from the hi bank
 
@@ -52,16 +52,16 @@ module lsu_dccm_mem
    localparam DCCM_WIDTH_BITS = $clog2(DCCM_BYTE_WIDTH);
    localparam DCCM_INDEX_BITS = (DCCM_BITS - DCCM_BANK_BITS - DCCM_WIDTH_BITS);
    
-   logic [DCCM_NUM_BANKS-1:0] 	      wren_bank;
-   logic [DCCM_NUM_BANKS-1:0] 	      rden_bank;
+   logic [DCCM_NUM_BANKS-1:0]         wren_bank;
+   logic [DCCM_NUM_BANKS-1:0]         rden_bank;
    logic [DCCM_NUM_BANKS-1:0] [DCCM_BITS-1:(DCCM_BANK_BITS+2)]   addr_bank;
    logic [DCCM_BITS-1:(DCCM_BANK_BITS+DCCM_WIDTH_BITS)] rd_addr_even, rd_addr_odd;
    logic                              rd_unaligned;
    logic [DCCM_NUM_BANKS-1:0] [DCCM_FDATA_WIDTH-1:0]   dccm_bank_dout;
    logic [DCCM_FDATA_WIDTH-1:0]       wrdata;
 
-   logic [DCCM_NUM_BANKS-1:0] 	      wren_bank_q;
-   logic [DCCM_NUM_BANKS-1:0] 	      rden_bank_q;
+   logic [DCCM_NUM_BANKS-1:0]         wren_bank_q;
+   logic [DCCM_NUM_BANKS-1:0]         rden_bank_q;
    logic [DCCM_NUM_BANKS-1:0][DCCM_BITS-1:(DCCM_BANK_BITS+2)]    addr_bank_q;
    logic [DCCM_FDATA_WIDTH-1:0]       dccm_wr_data_q;
 

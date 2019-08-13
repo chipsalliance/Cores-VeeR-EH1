@@ -310,11 +310,11 @@ end
            .jtag_trst_n         ( 1'b0  ),       // JTAG Reset
            .jtag_tdo            ( jtag_tdo ),          // JTAG TDO
 
-	        .mpc_debug_halt_ack ( mpc_debug_halt_ack),
-	        .mpc_debug_halt_req ( 1'b0),
-	        .mpc_debug_run_ack ( mpc_debug_run_ack),
-	        .mpc_debug_run_req ( 1'b1),
-	        .mpc_reset_run_req ( 1'b1),             // Start running after reset
+                .mpc_debug_halt_ack ( mpc_debug_halt_ack),
+                .mpc_debug_halt_req ( 1'b0),
+                .mpc_debug_run_ack ( mpc_debug_run_ack),
+                .mpc_debug_run_req ( 1'b1),
+                .mpc_reset_run_req ( 1'b1),             // Start running after reset
             .debug_brkpt_status (debug_brkpt_status),
 
            .i_cpu_halt_req      ( 1'b0  ),    // Async halt req to CPU

@@ -27,12 +27,12 @@ module dec_decode_ctl
    output logic [31:1] dec_i1_pc_wb1,  
 
    
-   input logic                                lsu_nonblock_load_valid_dc3,     // valid nonblock load at dc3			
-   input logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_tag_dc3,       // -> corresponding tag				
-   input logic 	                              lsu_nonblock_load_inv_dc5,       // invalidate request for nonblock load dc5	
-   input logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_inv_tag_dc5,   // -> corresponding tag				
-   input logic 	                              lsu_nonblock_load_data_valid,    // valid nonblock load data back			
-   input logic 	                              lsu_nonblock_load_data_error,    // nonblock load bus error			
+   input logic                                lsu_nonblock_load_valid_dc3,     // valid nonblock load at dc3                    
+   input logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_tag_dc3,       // -> corresponding tag                          
+   input logic                                lsu_nonblock_load_inv_dc5,       // invalidate request for nonblock load dc5      
+   input logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_inv_tag_dc5,   // -> corresponding tag                          
+   input logic                                lsu_nonblock_load_data_valid,    // valid nonblock load data back                 
+   input logic                                lsu_nonblock_load_data_error,    // nonblock load bus error                       
    input logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_data_tag,      // -> corresponding tag                           
 
    input logic [3:0] dec_i0_trigger_match_d,          // i0 decode trigger matches
@@ -54,13 +54,13 @@ module dec_decode_ctl
    
    input logic [1:0] dbg_cmd_wrdata,                  // disambiguate fence, fence_i
 
-   input logic dec_i0_icaf_d,                         // icache access fault	     
-   input logic dec_i1_icaf_d,   		                                     
+   input logic dec_i0_icaf_d,                         // icache access fault         
+   input logic dec_i1_icaf_d,                                                        
    input logic dec_i0_icaf_f1_d,                      // i0 instruction access fault at decode for f1 fetch group
-   input logic dec_i0_perr_d,                         // icache parity error	     
-   input logic dec_i1_perr_d,			                                     
+   input logic dec_i0_perr_d,                         // icache parity error         
+   input logic dec_i1_perr_d,                                                        
    input logic dec_i0_sbecc_d,                        // icache/iccm single-bit error
-   input logic dec_i1_sbecc_d,			                                     
+   input logic dec_i1_sbecc_d,                                                       
    input logic dec_i0_dbecc_d,                        // icache/iccm double-bit error
    input logic dec_i1_dbecc_d,
 
@@ -87,7 +87,7 @@ module dec_decode_ctl
 
    input logic dec_tlu_flush_lower_wb,          // trap lower flush
    input logic dec_tlu_flush_pause_wb,          // don't clear pause state on initial lower flush
-   input logic dec_tlu_presync_d,		// CSR read needs to be presync'd
+   input logic dec_tlu_presync_d,               // CSR read needs to be presync'd
    input logic dec_tlu_postsync_d,              // CSR ops that need to be postsync'd 
    
    input logic [31:0] exu_mul_result_e3,        // multiply result
@@ -112,8 +112,8 @@ module dec_decode_ctl
    input logic [31:0] dec_i0_instr_d,      // inst at decode
    input logic [31:0] dec_i1_instr_d,
 
-   input logic 	dec_ib0_valid_d,          // inst valid at decode
-   input logic 	dec_ib1_valid_d,
+   input logic  dec_ib0_valid_d,          // inst valid at decode
+   input logic  dec_ib1_valid_d,
   
    input logic [31:0] exu_i0_result_e1,    // from primary alu's
    input logic [31:0] exu_i1_result_e1,   
@@ -121,16 +121,16 @@ module dec_decode_ctl
    input logic [31:0] exu_i0_result_e4,    // from secondary alu's
    input logic [31:0] exu_i1_result_e4,   
   
-   input logic 	clk,                       // for rvdffe's
+   input logic  clk,                       // for rvdffe's
    input logic  active_clk,                // clk except for halt / pause
    input logic  free_clk,                  // free running clock
    
    input logic  clk_override,              // test stuff
-   input logic 	rst_l,
+   input logic  rst_l,
 
 
-   output logic 	dec_i0_rs1_en_d,   // rs1 enable at decode
-   output logic 	dec_i0_rs2_en_d,   
+   output logic         dec_i0_rs1_en_d,   // rs1 enable at decode
+   output logic         dec_i0_rs2_en_d,   
 
    output logic [4:0] dec_i0_rs1_d,        // rs1 logical source
    output logic [4:0] dec_i0_rs2_d,
@@ -139,8 +139,8 @@ module dec_decode_ctl
   
    output logic [31:0] dec_i0_immed_d,     // 32b immediate data decode
   
-   output logic 	 dec_i1_rs1_en_d,
-   output logic 	 dec_i1_rs2_en_d,
+   output logic          dec_i1_rs1_en_d,
+   output logic          dec_i1_rs2_en_d,
 
    output logic [4:0]  dec_i1_rs1_d,
    output logic [4:0]  dec_i1_rs2_d,
@@ -155,14 +155,14 @@ module dec_decode_ctl
    output alu_pkt_t i0_ap,                   // alu packets
    output alu_pkt_t i1_ap,
 
-   output logic 	 dec_i0_decode_d,    // i0 decode
-   output logic 	 dec_i1_decode_d,
+   output logic          dec_i0_decode_d,    // i0 decode
+   output logic          dec_i1_decode_d,
 
    output logic          dec_ib0_valid_eff_d,   // effective valid taking decode into account 
    output logic          dec_ib1_valid_eff_d,
   
-   output logic 	 dec_i0_alu_decode_d,   // decode to primary alu's
-   output logic 	 dec_i1_alu_decode_d,
+   output logic          dec_i0_alu_decode_d,   // decode to primary alu's
+   output logic          dec_i1_alu_decode_d,
 
   
    output logic [31:0] i0_rs1_bypass_data_d,    // i0 rs1 bypass data
@@ -172,15 +172,15 @@ module dec_decode_ctl
   
   
    output logic [4:0]  dec_i0_waddr_wb,         // i0 logical source to write to gpr's
-   output logic 	 dec_i0_wen_wb,         // i0 write enable
+   output logic          dec_i0_wen_wb,         // i0 write enable
    output logic [31:0] dec_i0_wdata_wb,         // i0 write data
   
    output logic [4:0]  dec_i1_waddr_wb,
-   output logic 	 dec_i1_wen_wb,
+   output logic          dec_i1_wen_wb,
    output logic [31:0] dec_i1_wdata_wb,
   
-   output logic 	 dec_i0_select_pc_d,    // i0 select pc for rs1 - branches
-   output logic 	 dec_i1_select_pc_d,   
+   output logic          dec_i0_select_pc_d,    // i0 select pc for rs1 - branches
+   output logic          dec_i1_select_pc_d,   
   
    output logic dec_i0_rs1_bypass_en_d,         // i0 rs1 bypass enable
    output logic dec_i0_rs2_bypass_en_d,         // i0 rs2 bypass enable
@@ -214,10 +214,10 @@ module dec_decode_ctl
    output logic [31:0] dec_csr_wrdata_wb,   // csr write data at wb 
    output logic        dec_csr_stall_int_ff, // csr is mie/mstatus
    
-   output 	       dec_tlu_i0_valid_e4,  // i0 valid inst at e4
-   output 	       dec_tlu_i1_valid_e4,
- 	       
-   output 	       trap_pkt_t dec_tlu_packet_e4,   // trap packet
+   output              dec_tlu_i0_valid_e4,  // i0 valid inst at e4
+   output              dec_tlu_i1_valid_e4,
+               
+   output              trap_pkt_t dec_tlu_packet_e4,   // trap packet
    
    output logic        dec_fence_pending, // tell TLU to stall DMA
    output logic [31:1] dec_tlu_i0_pc_e4,  // i0 trap pc
@@ -288,7 +288,7 @@ module dec_decode_ctl
 
 
    logic [31:0]        i0, i1;
-   logic 	       i0_valid_d, i1_valid_d;
+   logic               i0_valid_d, i1_valid_d;
 
    logic [31:0]        i0_result_e1, i1_result_e1;
    logic [31:0]                      i1_result_e2;
@@ -301,131 +301,131 @@ module dec_decode_ctl
    logic [31:1]        i0_pc_e3, i1_pc_e3;
    logic [31:1]        i0_pc_e4, i1_pc_e4;
 
-   logic [9:0] 	       i0_rs1bypass, i0_rs2bypass;
-   logic [9:0] 	       i1_rs1bypass, i1_rs2bypass;   
+   logic [9:0]         i0_rs1bypass, i0_rs2bypass;
+   logic [9:0]         i1_rs1bypass, i1_rs2bypass;   
 
-   logic 	       i0_jalimm20, i1_jalimm20;
-   logic 	       i0_uiimm20, i1_uiimm20;
+   logic               i0_jalimm20, i1_jalimm20;
+   logic               i0_uiimm20, i1_uiimm20;
 
-   //logic 	       flush_final_e3;
+   //logic             flush_final_e3;
 
-   logic 	       lsu_decode_d;
+   logic               lsu_decode_d;
    logic [31:0]        i0_immed_d;
-   logic 	       i0_presync;	
-   logic               i0_postsync;	       
+   logic               i0_presync;      
+   logic               i0_postsync;            
 
-   logic 	       postsync_stall;
-   logic 	       ps_stall;
+   logic               postsync_stall;
+   logic               ps_stall;
  
-   logic 	       prior_inflight, prior_inflight_e1e4, prior_inflight_wb;
+   logic               prior_inflight, prior_inflight_e1e4, prior_inflight_wb;
    
-   logic 	       csr_clr_d, csr_set_d, csr_write_d;
+   logic               csr_clr_d, csr_set_d, csr_write_d;
    
 
-   logic 	csr_clr_e1,csr_set_e1,csr_write_e1,csr_imm_e1;
+   logic        csr_clr_e1,csr_set_e1,csr_write_e1,csr_imm_e1;
    logic [31:0] csr_mask_e1;
    logic [31:0] write_csr_data_e1;
    logic [31:0] write_csr_data_in;
    logic [31:0] write_csr_data;
-   logic 	       csr_data_wen;
+   logic               csr_data_wen;
 
-   logic [4:0] 	       csrimm_e1;
+   logic [4:0]         csrimm_e1;
 
    logic [31:0]        csr_rddata_e1;
 
-   logic 	       flush_lower_wb;
+   logic               flush_lower_wb;
 
-   logic 	       i1_load_block_d;
-   logic 	       i1_mul_block_d;
-   logic 	       i1_load2_block_d;
-   logic 	       i1_mul2_block_d;
-   logic 	       mul_decode_d;
-   logic 	       div_decode_d;   
+   logic               i1_load_block_d;
+   logic               i1_mul_block_d;
+   logic               i1_load2_block_d;
+   logic               i1_mul2_block_d;
+   logic               mul_decode_d;
+   logic               div_decode_d;   
    logic [31:1]        div_pc;
-   logic 	       div_stall, div_stall_ff;
-   logic [3:0] 	       div_trigger;
+   logic               div_stall, div_stall_ff;
+   logic [3:0]         div_trigger;
    
-   logic 	       i0_legal;
-   logic 	       shift_illegal;
-   logic 	       illegal_inst_en;
+   logic               i0_legal;
+   logic               shift_illegal;
+   logic               illegal_inst_en;
    logic [31:0]        illegal_inst;
-   logic 	       illegal_lockout_in, illegal_lockout;
-   logic 	       i0_legal_decode_d;
+   logic               illegal_lockout_in, illegal_lockout;
+   logic               i0_legal_decode_d;
 
-   logic 	       i1_flush_final_e3;
+   logic               i1_flush_final_e3;
 
    logic [31:0]        i0_result_e3_final, i1_result_e3_final;
    logic [31:0]        i0_result_wb_raw,   i1_result_wb_raw;
-   logic [12:1]	last_br_immed_d;
-   logic 	i1_depend_i0_d;
-   logic 	i0_rs1_depend_i0_e1, i0_rs1_depend_i0_e2, i0_rs1_depend_i0_e3, i0_rs1_depend_i0_e4, i0_rs1_depend_i0_wb;
-   logic 	i0_rs1_depend_i1_e1, i0_rs1_depend_i1_e2, i0_rs1_depend_i1_e3, i0_rs1_depend_i1_e4, i0_rs1_depend_i1_wb;   
-   logic 	i0_rs2_depend_i0_e1, i0_rs2_depend_i0_e2, i0_rs2_depend_i0_e3, i0_rs2_depend_i0_e4, i0_rs2_depend_i0_wb;
-   logic 	i0_rs2_depend_i1_e1, i0_rs2_depend_i1_e2, i0_rs2_depend_i1_e3, i0_rs2_depend_i1_e4, i0_rs2_depend_i1_wb;   
-   logic 	i1_rs1_depend_i0_e1, i1_rs1_depend_i0_e2, i1_rs1_depend_i0_e3, i1_rs1_depend_i0_e4, i1_rs1_depend_i0_wb;
-   logic 	i1_rs1_depend_i1_e1, i1_rs1_depend_i1_e2, i1_rs1_depend_i1_e3, i1_rs1_depend_i1_e4, i1_rs1_depend_i1_wb;   
-   logic 	i1_rs2_depend_i0_e1, i1_rs2_depend_i0_e2, i1_rs2_depend_i0_e3, i1_rs2_depend_i0_e4, i1_rs2_depend_i0_wb;
-   logic 	i1_rs2_depend_i1_e1, i1_rs2_depend_i1_e2, i1_rs2_depend_i1_e3, i1_rs2_depend_i1_e4, i1_rs2_depend_i1_wb;   
-   logic 	i1_rs1_depend_i0_d, i1_rs2_depend_i0_d;
+   logic [12:1] last_br_immed_d;
+   logic        i1_depend_i0_d;
+   logic        i0_rs1_depend_i0_e1, i0_rs1_depend_i0_e2, i0_rs1_depend_i0_e3, i0_rs1_depend_i0_e4, i0_rs1_depend_i0_wb;
+   logic        i0_rs1_depend_i1_e1, i0_rs1_depend_i1_e2, i0_rs1_depend_i1_e3, i0_rs1_depend_i1_e4, i0_rs1_depend_i1_wb;   
+   logic        i0_rs2_depend_i0_e1, i0_rs2_depend_i0_e2, i0_rs2_depend_i0_e3, i0_rs2_depend_i0_e4, i0_rs2_depend_i0_wb;
+   logic        i0_rs2_depend_i1_e1, i0_rs2_depend_i1_e2, i0_rs2_depend_i1_e3, i0_rs2_depend_i1_e4, i0_rs2_depend_i1_wb;   
+   logic        i1_rs1_depend_i0_e1, i1_rs1_depend_i0_e2, i1_rs1_depend_i0_e3, i1_rs1_depend_i0_e4, i1_rs1_depend_i0_wb;
+   logic        i1_rs1_depend_i1_e1, i1_rs1_depend_i1_e2, i1_rs1_depend_i1_e3, i1_rs1_depend_i1_e4, i1_rs1_depend_i1_wb;   
+   logic        i1_rs2_depend_i0_e1, i1_rs2_depend_i0_e2, i1_rs2_depend_i0_e3, i1_rs2_depend_i0_e4, i1_rs2_depend_i0_wb;
+   logic        i1_rs2_depend_i1_e1, i1_rs2_depend_i1_e2, i1_rs2_depend_i1_e3, i1_rs2_depend_i1_e4, i1_rs2_depend_i1_wb;   
+   logic        i1_rs1_depend_i0_d, i1_rs2_depend_i0_d;
 
-   logic 	i0_secondary_d, i1_secondary_d;
-   logic 	i0_secondary_block_d, i1_secondary_block_d;
-   logic 	non_block_case_d;
-   logic 	i0_div_decode_d;
+   logic        i0_secondary_d, i1_secondary_d;
+   logic        i0_secondary_block_d, i1_secondary_block_d;
+   logic        non_block_case_d;
+   logic        i0_div_decode_d;
    logic [31:0] i0_result_e4_final, i1_result_e4_final;
-   logic 	i0_load_block_d;
-   logic 	i0_mul_block_d;
-   logic [3:0] 	i0_rs1_depth_d, i0_rs2_depth_d;
-   logic [3:0] 	i1_rs1_depth_d, i1_rs2_depth_d;   
+   logic        i0_load_block_d;
+   logic        i0_mul_block_d;
+   logic [3:0]  i0_rs1_depth_d, i0_rs2_depth_d;
+   logic [3:0]  i1_rs1_depth_d, i1_rs2_depth_d;   
 
-   logic 	i0_rs1_match_e1_e2, i0_rs1_match_e1_e3;
-   logic 	i0_rs2_match_e1_e2, i0_rs2_match_e1_e3;   
-   logic 	i1_rs1_match_e1_e2, i1_rs1_match_e1_e3;
-   logic 	i1_rs2_match_e1_e2, i1_rs2_match_e1_e3;   
+   logic        i0_rs1_match_e1_e2, i0_rs1_match_e1_e3;
+   logic        i0_rs2_match_e1_e2, i0_rs2_match_e1_e3;   
+   logic        i1_rs1_match_e1_e2, i1_rs1_match_e1_e3;
+   logic        i1_rs2_match_e1_e2, i1_rs2_match_e1_e3;   
 
    logic        i0_load_stall_d,  i1_load_stall_d;
    logic        i0_store_stall_d, i1_store_stall_d;   
 
-   logic 	i0_predict_nt, i0_predict_t;
-   logic 	i1_predict_nt, i1_predict_t;   
+   logic        i0_predict_nt, i0_predict_t;
+   logic        i1_predict_nt, i1_predict_t;   
    
-   logic 	i0_notbr_error, i0_br_toffset_error;
-   logic 	i1_notbr_error, i1_br_toffset_error;
+   logic        i0_notbr_error, i0_br_toffset_error;
+   logic        i1_notbr_error, i1_br_toffset_error;
    logic        i0_ret_error,   i1_ret_error;
    logic        i0_br_error, i1_br_error;   
    logic        i0_br_error_all, i1_br_error_all;   
    logic [11:0] i0_br_offset, i1_br_offset;
 
-   logic 	freeze;
+   logic        freeze;
 
    logic [20:1] i0_pcall_imm, i1_pcall_imm;    // predicted jal's
-   logic 	i0_pcall_12b_offset, i1_pcall_12b_offset;
-   logic 	i0_pcall_raw,   i1_pcall_raw;
-   logic 	i0_pcall_case,  i1_pcall_case;   
-   logic 	i0_pcall,  i1_pcall;
+   logic        i0_pcall_12b_offset, i1_pcall_12b_offset;
+   logic        i0_pcall_raw,   i1_pcall_raw;
+   logic        i0_pcall_case,  i1_pcall_case;   
+   logic        i0_pcall,  i1_pcall;
 
-   logic 	i0_pja_raw,   i1_pja_raw;
-   logic 	i0_pja_case,  i1_pja_case;   
-   logic 	i0_pja,  i1_pja;
+   logic        i0_pja_raw,   i1_pja_raw;
+   logic        i0_pja_case,  i1_pja_case;   
+   logic        i0_pja,  i1_pja;
 
-   logic 	i0_pret_case, i1_pret_case;
-   logic 	i0_pret_raw, i0_pret;
-   logic 	i1_pret_raw, i1_pret;   
+   logic        i0_pret_case, i1_pret_case;
+   logic        i0_pret_raw, i0_pret;
+   logic        i1_pret_raw, i1_pret;   
    
-   logic 	i0_jal, i1_jal;  // jal's that are not predicted 
+   logic        i0_jal, i1_jal;  // jal's that are not predicted 
    
 
-   logic 	i0_predict_br, i1_predict_br;
+   logic        i0_predict_br, i1_predict_br;
 
-   logic 	freeze_prior1, freeze_prior2;
+   logic        freeze_prior1, freeze_prior2;
 
    logic [31:0] i0_result_e4_freeze, i1_result_e4_freeze;
    logic [31:0] i0_result_wb_freeze, i1_result_wb_freeze;   
    logic [31:0] i1_result_wb_eff, i0_result_wb_eff;
-   logic [2:0] 	i1rs1_intra, i1rs2_intra;
-   logic 	i1_rs1_intra_bypass, i1_rs2_intra_bypass;
-   logic 	store_data_bypass_c1, store_data_bypass_c2;
-   logic [1:0] 	store_data_bypass_e4_c1, store_data_bypass_e4_c2, store_data_bypass_e4_c3;
+   logic [2:0]  i1rs1_intra, i1rs2_intra;
+   logic        i1_rs1_intra_bypass, i1_rs2_intra_bypass;
+   logic        store_data_bypass_c1, store_data_bypass_c2;
+   logic [1:0]  store_data_bypass_e4_c1, store_data_bypass_e4_c2, store_data_bypass_e4_c3;
    logic        store_data_bypass_i0_e2_c2;
    
    class_pkt_t i0_rs1_class_d, i0_rs2_class_d;
@@ -446,25 +446,25 @@ module dec_decode_ctl
    logic       i1_ap_pc2, i1_ap_pc4;   
 
    logic        div_wen_wb;
-   logic 	i0_rd_en_d;
-   logic 	i1_rd_en_d;
-   logic [4:0] 	i1_rd_d;
-   logic [4:0] 	i0_rd_d;
+   logic        i0_rd_en_d;
+   logic        i1_rd_en_d;
+   logic [4:0]  i1_rd_d;
+   logic [4:0]  i0_rd_d;
 
-   logic 	load_ldst_bypass_c1;
-   logic 	load_mul_rs1_bypass_e1;
-   logic 	load_mul_rs2_bypass_e1;      
+   logic        load_ldst_bypass_c1;
+   logic        load_mul_rs1_bypass_e1;
+   logic        load_mul_rs2_bypass_e1;      
    
-   logic 	leak1_i0_stall_in, leak1_i0_stall;
-   logic 	leak1_i1_stall_in, leak1_i1_stall;   
-   logic 	leak1_mode;
+   logic        leak1_i0_stall_in, leak1_i0_stall;
+   logic        leak1_i1_stall_in, leak1_i1_stall;   
+   logic        leak1_mode;
 
-   logic 	i0_csr_write_only_d;
+   logic        i0_csr_write_only_d;
 
-   logic 	prior_inflight_e1e3, prior_inflight_eff;
-   logic 	any_csr_d;
+   logic        prior_inflight_e1e3, prior_inflight_eff;
+   logic        any_csr_d;
 
-   logic 	prior_csr_write;
+   logic        prior_csr_write;
 
    logic [5:0] i0_pipe_en;
    logic       i0_e1_ctl_en, i0_e2_ctl_en, i0_e3_ctl_en, i0_e4_ctl_en, i0_wb_ctl_en;
@@ -494,20 +494,20 @@ module dec_decode_ctl
    
    logic [31:1] i1_pc_wb;
 
-   logic 	i0_brp_valid;
-   logic 	nonblock_load_cancel;
-   logic 	lsu_idle;
-   logic 	csr_read_e1;
-   logic 	i0_block_d;
-   logic 	i1_block_d;
-   logic 	ps_stall_in;
+   logic        i0_brp_valid;
+   logic        nonblock_load_cancel;
+   logic        lsu_idle;
+   logic        csr_read_e1;
+   logic        i0_block_d;
+   logic        i1_block_d;
+   logic        ps_stall_in;
    
-   logic 	freeze_after_unfreeze1;
-   logic 	freeze_after_unfreeze2;
-   logic 	unfreeze_cycle1;
-   logic 	unfreeze_cycle2;
+   logic        freeze_after_unfreeze1;
+   logic        freeze_after_unfreeze2;
+   logic        unfreeze_cycle1;
+   logic        unfreeze_cycle2;
    
-   logic 	tlu_wr_pause_wb1, tlu_wr_pause_wb2;
+   logic        tlu_wr_pause_wb1, tlu_wr_pause_wb2;
 
    assign freeze = lsu_freeze_dc3;
 
@@ -594,24 +594,24 @@ module dec_decode_ctl
    always_comb begin
       i0_dp = i0_dp_raw;
       if (i0_br_error_all | i0_instr_error) begin
-	 i0_dp = '0;
-	 i0_dp.alu = 1'b1;
-	 i0_dp.rs1 = 1'b1;
-	 i0_dp.rs2 = 1'b1;
-	 i0_dp.lor = 1'b1;
-	 i0_dp.legal = 1'b1;
-	 i0_dp.postsync = 1'b1;
+         i0_dp = '0;
+         i0_dp.alu = 1'b1;
+         i0_dp.rs1 = 1'b1;
+         i0_dp.rs2 = 1'b1;
+         i0_dp.lor = 1'b1;
+         i0_dp.legal = 1'b1;
+         i0_dp.postsync = 1'b1;
       end
 
       i1_dp = i1_dp_raw;
       if (i1_br_error_all) begin
-	 i1_dp = '0;
-	 i1_dp.alu = 1'b1;
-	 i1_dp.rs1 = 1'b1;
-	 i1_dp.rs2 = 1'b1;
-	 i1_dp.lor = 1'b1;
-	 i1_dp.legal = 1'b1;
-	 i1_dp.postsync = 1'b1;
+         i1_dp = '0;
+         i1_dp.alu = 1'b1;
+         i1_dp.rs1 = 1'b1;
+         i1_dp.rs2 = 1'b1;
+         i1_dp.lor = 1'b1;
+         i1_dp.legal = 1'b1;
+         i1_dp.postsync = 1'b1;
       end
       
    end
@@ -700,7 +700,7 @@ module dec_decode_ctl
    
 // non block load cam logic
  
-   logic 	             cam_write, cam_inv_reset, cam_data_reset;
+   logic                     cam_write, cam_inv_reset, cam_data_reset;
    logic [NBLOAD_TAG_MSB:0]  cam_write_tag, cam_inv_reset_tag, cam_data_reset_tag;
    logic [NBLOAD_SIZE_MSB:0] cam_wen; 
 
@@ -728,18 +728,18 @@ module dec_decode_ctl
       cam_wen[NBLOAD_SIZE_MSB:0] = '0;
       for (int i=0; i<NBLOAD_SIZE; i++) begin
          if (~found) begin
-	    if (~cam[i].valid) begin
+            if (~cam[i].valid) begin
                cam_wen[i] = cam_write;
                found = 1'b1;
             end
-	 end
+         end
       end
    end
    
    logic cam_reset_same_dest_wb;
    
    assign cam_reset_same_dest_wb = wbd.i0v & wbd.i1v & (wbd.i0rd[4:0] == wbd.i1rd[4:0]) & 
-				   wbd.i0load & nonblock_load_valid_wb & ~dec_tlu_i0_kill_writeb_wb & ~dec_tlu_i1_kill_writeb_wb;
+                                   wbd.i0load & nonblock_load_valid_wb & ~dec_tlu_i0_kill_writeb_wb & ~dec_tlu_i1_kill_writeb_wb;
    
    
    assign cam_write          = lsu_nonblock_load_valid_dc3;
@@ -775,25 +775,25 @@ module dec_decode_ctl
 
       
       always_comb begin
-	 cam_in[i] = '0;
-	 
-	 if (cam_wen[i]) begin
-	    cam_in[i].valid    = 1'b1;
-	    cam_in[i].wb       = 1'b0;
-	    cam_in[i].tag[NBLOAD_TAG_MSB:0] = cam_write_tag[NBLOAD_TAG_MSB:0];
-	    cam_in[i].rd[4:0]  = nonblock_load_rd[4:0];
-	 end
-	 else if ( (cam_inv_reset_val[i]) |
-		   (cam_data_reset_val[i]) |
+         cam_in[i] = '0;
+         
+         if (cam_wen[i]) begin
+            cam_in[i].valid    = 1'b1;
+            cam_in[i].wb       = 1'b0;
+            cam_in[i].tag[NBLOAD_TAG_MSB:0] = cam_write_tag[NBLOAD_TAG_MSB:0];
+            cam_in[i].rd[4:0]  = nonblock_load_rd[4:0];
+         end
+         else if ( (cam_inv_reset_val[i]) |
+                   (cam_data_reset_val[i]) |
                    (i0_wen_wb & (wbd.i0rd[4:0] == cam[i].rd[4:0]) & cam[i].wb) |
-		   (i1_wen_wb & (wbd.i1rd[4:0] == cam[i].rd[4:0]) & cam[i].wb) )
-	   cam_in[i].valid = 1'b0;
-	 else
-	   cam_in[i] = cam[i];
-	 
-	 
-	 if (nonblock_load_valid_wb & (lsu_nonblock_load_inv_tag_dc5[NBLOAD_TAG_MSB:0]==cam[i].tag[NBLOAD_TAG_MSB:0]) & cam[i].valid)
-	   cam_in[i].wb = 1'b1;
+                   (i1_wen_wb & (wbd.i1rd[4:0] == cam[i].rd[4:0]) & cam[i].wb) )
+           cam_in[i].valid = 1'b0;
+         else
+           cam_in[i] = cam[i];
+         
+         
+         if (nonblock_load_valid_wb & (lsu_nonblock_load_inv_tag_dc5[NBLOAD_TAG_MSB:0]==cam[i].tag[NBLOAD_TAG_MSB:0]) & cam[i].valid)
+           cam_in[i].wb = 1'b1;
       end
 
    rvdff #( $bits(load_cam_pkt_t) ) cam_ff (.*, .clk(free_clk), .din(cam_in[i]), .dout(cam[i]));
@@ -829,32 +829,32 @@ end : cam_array
       for (int i=0; i<NBLOAD_SIZE; i++) begin
          dec_nonblock_load_waddr[4:0] |= ({5{nonblock_load_write[i]}} & cam[i].rd[4:0]);
 
-	 i0_nonblock_load_stall |= dec_i0_rs1_en_d & cam[i].valid & (cam[i].rd[4:0] == i0r.rs1[4:0]);
-	 i0_nonblock_load_stall |= dec_i0_rs2_en_d & cam[i].valid & (cam[i].rd[4:0] == i0r.rs2[4:0]);	 
+         i0_nonblock_load_stall |= dec_i0_rs1_en_d & cam[i].valid & (cam[i].rd[4:0] == i0r.rs1[4:0]);
+         i0_nonblock_load_stall |= dec_i0_rs2_en_d & cam[i].valid & (cam[i].rd[4:0] == i0r.rs2[4:0]);    
 
-	 i1_nonblock_load_stall |= dec_i1_rs1_en_d & cam[i].valid & (cam[i].rd[4:0] == i1r.rs1[4:0]);
-	 i1_nonblock_load_stall |= dec_i1_rs2_en_d & cam[i].valid & (cam[i].rd[4:0] == i1r.rs2[4:0]);	 
-	 
+         i1_nonblock_load_stall |= dec_i1_rs1_en_d & cam[i].valid & (cam[i].rd[4:0] == i1r.rs1[4:0]);
+         i1_nonblock_load_stall |= dec_i1_rs2_en_d & cam[i].valid & (cam[i].rd[4:0] == i1r.rs2[4:0]);    
+         
       end
    end
    
    assign i0_nonblock_boundary_stall = ((nonblock_load_rd[4:0]==i0r.rs1[4:0]) & lsu_nonblock_load_valid_dc3 & dec_i0_rs1_en_d) |
-				       ((nonblock_load_rd[4:0]==i0r.rs2[4:0]) & lsu_nonblock_load_valid_dc3 & dec_i0_rs2_en_d);
+                                       ((nonblock_load_rd[4:0]==i0r.rs2[4:0]) & lsu_nonblock_load_valid_dc3 & dec_i0_rs2_en_d);
    
    assign i1_nonblock_boundary_stall = ((nonblock_load_rd[4:0]==i1r.rs1[4:0]) & lsu_nonblock_load_valid_dc3 & dec_i1_rs1_en_d) |
-				       ((nonblock_load_rd[4:0]==i1r.rs2[4:0]) & lsu_nonblock_load_valid_dc3 & dec_i1_rs2_en_d);
+                                       ((nonblock_load_rd[4:0]==i1r.rs2[4:0]) & lsu_nonblock_load_valid_dc3 & dec_i1_rs2_en_d);
 
    assign i0_depend_load_e1_d = ((i0_rs1_class_d.load & (i0_rs1_depth_d[3:0]==4'd1 | i0_rs1_depth_d[3:0]==4'd2)) |
-				 (i0_rs2_class_d.load & (i0_rs2_depth_d[3:0]==4'd1 | i0_rs2_depth_d[3:0]==4'd2))) & dec_i0_decode_d;
+                                 (i0_rs2_class_d.load & (i0_rs2_depth_d[3:0]==4'd1 | i0_rs2_depth_d[3:0]==4'd2))) & dec_i0_decode_d;
    
    assign i0_depend_load_e2_d = ((i0_rs1_class_d.load & (i0_rs1_depth_d[3:0]==4'd3 | i0_rs1_depth_d[3:0]==4'd4)) |
-				 (i0_rs2_class_d.load & (i0_rs2_depth_d[3:0]==4'd3 | i0_rs2_depth_d[3:0]==4'd4))) & dec_i0_decode_d;
+                                 (i0_rs2_class_d.load & (i0_rs2_depth_d[3:0]==4'd3 | i0_rs2_depth_d[3:0]==4'd4))) & dec_i0_decode_d;
    
    assign i1_depend_load_e1_d = ((i1_rs1_class_d.load & (i1_rs1_depth_d[3:0]==4'd1 | i1_rs1_depth_d[3:0]==4'd2)) |
-				 (i1_rs2_class_d.load & (i1_rs2_depth_d[3:0]==4'd1 | i1_rs2_depth_d[3:0]==4'd2))) & dec_i1_decode_d;
+                                 (i1_rs2_class_d.load & (i1_rs2_depth_d[3:0]==4'd1 | i1_rs2_depth_d[3:0]==4'd2))) & dec_i1_decode_d;
    
    assign i1_depend_load_e2_d = ((i1_rs1_class_d.load & (i1_rs1_depth_d[3:0]==4'd3 | i1_rs1_depth_d[3:0]==4'd4)) |
-				 (i1_rs2_class_d.load & (i1_rs2_depth_d[3:0]==4'd3 | i1_rs2_depth_d[3:0]==4'd4))) & dec_i1_decode_d;
+                                 (i1_rs2_class_d.load & (i1_rs2_depth_d[3:0]==4'd3 | i1_rs2_depth_d[3:0]==4'd4))) & dec_i1_decode_d;
 
 
    
@@ -866,18 +866,18 @@ end : cam_array
    
    
    rvdffs #(2) e1loadff (.*,
-			 .clk(active_clk),
-			 .en(i0_e1_ctl_en), 
-			 .din( {depend_load_e1_d,  depend_load_same_cycle_d}),  
-			 .dout({depend_load_e2_e1, depend_load_same_cycle_e1})
-			 );
+                         .clk(active_clk),
+                         .en(i0_e1_ctl_en), 
+                         .din( {depend_load_e1_d,  depend_load_same_cycle_d}),  
+                         .dout({depend_load_e2_e1, depend_load_same_cycle_e1})
+                         );
    
    rvdffs #(1) e2loadff (.*,
-			 .clk(active_clk),
-			 .en(i0_e2_ctl_en), 
-			 .din( depend_load_same_cycle_e1),  
-			 .dout(depend_load_same_cycle_e2)
-			 );
+                         .clk(active_clk),
+                         .en(i0_e2_ctl_en), 
+                         .din( depend_load_same_cycle_e1),  
+                         .dout(depend_load_same_cycle_e2)
+                         );
    
    assign dec_nonblock_load_freeze_dc2 = depend_load_e2_d | depend_load_e2_e1 | depend_load_same_cycle_e2;
    
@@ -917,29 +917,29 @@ end : cam_array
       i1_itype = NULL;      
    
       if (i0_legal_decode_d) begin
-	 if (i0_dp.mul)                  i0_itype = MUL;
-	 if (i0_dp.load)                 i0_itype = LOAD;
-	 if (i0_dp.store)                i0_itype = STORE;
-	 if (i0_dp.pm_alu)               i0_itype = ALU;
-	 if ( csr_read & ~csr_write)     i0_itype = CSRREAD;
-	 if (~csr_read &  csr_write)     i0_itype = CSRWRITE;
-	 if ( csr_read &  csr_write)     i0_itype = CSRRW;            
-	 if (i0_dp.ebreak)               i0_itype = EBREAK;
-	 if (i0_dp.ecall)                i0_itype = ECALL;
-	 if (i0_dp.fence)                i0_itype = FENCE;
-	 if (i0_dp.fence_i)              i0_itype = FENCEI;  // fencei will set this even with fence attribute
-	 if (i0_dp.mret)                 i0_itype = MRET;
-	 if (i0_dp.condbr)               i0_itype = CONDBR;
-	 if (i0_dp.jal)                  i0_itype = JAL;
+         if (i0_dp.mul)                  i0_itype = MUL;
+         if (i0_dp.load)                 i0_itype = LOAD;
+         if (i0_dp.store)                i0_itype = STORE;
+         if (i0_dp.pm_alu)               i0_itype = ALU;
+         if ( csr_read & ~csr_write)     i0_itype = CSRREAD;
+         if (~csr_read &  csr_write)     i0_itype = CSRWRITE;
+         if ( csr_read &  csr_write)     i0_itype = CSRRW;            
+         if (i0_dp.ebreak)               i0_itype = EBREAK;
+         if (i0_dp.ecall)                i0_itype = ECALL;
+         if (i0_dp.fence)                i0_itype = FENCE;
+         if (i0_dp.fence_i)              i0_itype = FENCEI;  // fencei will set this even with fence attribute
+         if (i0_dp.mret)                 i0_itype = MRET;
+         if (i0_dp.condbr)               i0_itype = CONDBR;
+         if (i0_dp.jal)                  i0_itype = JAL;
       end
       
       if (dec_i1_decode_d) begin
-	 if (i1_dp.mul)                  i1_itype = MUL;
-	 if (i1_dp.load)                 i1_itype = LOAD;
-	 if (i1_dp.store)                i1_itype = STORE;
-	 if (i1_dp.pm_alu)               i1_itype = ALU;
-	 if (i1_dp.condbr)               i1_itype = CONDBR;
-	 if (i1_dp.jal)                  i1_itype = JAL;
+         if (i1_dp.mul)                  i1_itype = MUL;
+         if (i1_dp.load)                 i1_itype = LOAD;
+         if (i1_dp.store)                i1_itype = STORE;
+         if (i1_dp.pm_alu)               i1_itype = ALU;
+         if (i1_dp.condbr)               i1_itype = CONDBR;
+         if (i1_dp.jal)                  i1_itype = JAL;
       end
 
       
@@ -953,7 +953,7 @@ end : cam_array
    
    dec_dec_ctl i0_dec (.inst(i0[31:0]),.out(i0_dp_raw));
    
-   dec_dec_ctl i1_dec (.inst(i1[31:0]),.out(i1_dp_raw));				
+   dec_dec_ctl i1_dec (.inst(i1[31:0]),.out(i1_dp_raw));                                
 
    rvdff #(1) lsu_idle_ff (.*, .clk(active_clk), .din(lsu_halt_idle_any), .dout(lsu_idle));
    
@@ -1023,13 +1023,13 @@ end : cam_array
    // lsu stuff
    // load/store mutually exclusive
    assign dec_lsu_offset_d[11:0] = 
-				   ({12{ i0_dp.lsu & i0_dp.load}} &               i0[31:20]) |
-				   ({12{~i0_dp.lsu & i1_dp.lsu & i1_dp.load}} &   i1[31:20]) |
-				   ({12{ i0_dp.lsu & i0_dp.store}} &             {i0[31:25],i0[11:7]}) |
-				   ({12{~i0_dp.lsu & i1_dp.lsu & i1_dp.store}} & {i1[31:25],i1[11:7]});
+                                   ({12{ i0_dp.lsu & i0_dp.load}} &               i0[31:20]) |
+                                   ({12{~i0_dp.lsu & i1_dp.lsu & i1_dp.load}} &   i1[31:20]) |
+                                   ({12{ i0_dp.lsu & i0_dp.store}} &             {i0[31:25],i0[11:7]}) |
+                                   ({12{~i0_dp.lsu & i1_dp.lsu & i1_dp.store}} & {i1[31:25],i1[11:7]});
    
    
-				   
+                                   
    assign dec_i0_lsu_d = i0_dp.lsu;
    assign dec_i1_lsu_d = i1_dp.lsu;   
 
@@ -1134,11 +1134,11 @@ end : cam_array
 
    
    rvdffs #(5) csrmiscff (.*, 
-			.en(~freeze),
-			.clk(active_clk),
-			.din({ dec_csr_ren_d,  csr_clr_d,  csr_set_d,  csr_write_d,  i0_dp.csr_imm}),
-		        .dout({csr_read_e1,    csr_clr_e1, csr_set_e1, csr_write_e1, csr_imm_e1})
-		       );
+                        .en(~freeze),
+                        .clk(active_clk),
+                        .din({ dec_csr_ren_d,  csr_clr_d,  csr_set_d,  csr_write_d,  i0_dp.csr_imm}),
+                        .dout({csr_read_e1,    csr_clr_e1, csr_set_e1, csr_write_e1, csr_imm_e1})
+                       );
    
    
 
@@ -1149,22 +1149,22 @@ end : cam_array
    
    
    assign csr_mask_e1[31:0] = ({32{ csr_imm_e1}} & {27'b0,csrimm_e1[4:0]}) |
-			      ({32{~csr_imm_e1}} &  exu_csr_rs1_e1[31:0]);
+                              ({32{~csr_imm_e1}} &  exu_csr_rs1_e1[31:0]);
 
 
    assign write_csr_data_e1[31:0] = ({32{csr_clr_e1}}   & (csr_rddata_e1[31:0] & ~csr_mask_e1[31:0])) |
-				    ({32{csr_set_e1}}   & (csr_rddata_e1[31:0] |  csr_mask_e1[31:0])) |
-				    ({32{csr_write_e1}} & (                       csr_mask_e1[31:0]));
+                                    ({32{csr_set_e1}}   & (csr_rddata_e1[31:0] |  csr_mask_e1[31:0])) |
+                                    ({32{csr_write_e1}} & (                       csr_mask_e1[31:0]));
 
 
 // pause instruction
 //   logic pause_state_ff;
    
    assign clear_pause = (dec_tlu_flush_lower_wb & ~dec_tlu_flush_pause_wb) | 
-			(pause_state & (write_csr_data[31:1] == 31'b0));        // if 0 or 1 then exit pause state - 1 cycle pause
+                        (pause_state & (write_csr_data[31:1] == 31'b0));        // if 0 or 1 then exit pause state - 1 cycle pause
    
    assign pause_state_in = (dec_tlu_wr_pause_wb | pause_state) & ~clear_pause;
-			    
+                            
    rvdff #(1) pause_state_f (.*, .clk(free_clk), .din(pause_state_in), .dout(pause_state));
 
    
@@ -1181,8 +1181,8 @@ end : cam_array
    assign csr_data_wen = ((csr_clr_e1 | csr_set_e1 | csr_write_e1) & csr_read_e1 & ~freeze) | dec_tlu_wr_pause_wb | pause_state;
    
    assign write_csr_data_in[31:0] = (pause_state)         ? (write_csr_data[31:0] - 32'b1) :
-				    (dec_tlu_wr_pause_wb) ? dec_csr_wrdata_wb[31:0] : write_csr_data_e1[31:0];
-				  
+                                    (dec_tlu_wr_pause_wb) ? dec_csr_wrdata_wb[31:0] : write_csr_data_e1[31:0];
+                                  
    // will hold until write-back at which time the CSR will be updated while GPR is possibly written with prior CSR
    rvdffe #(32) write_csr_ff (.*, .en(csr_data_wen), .din(write_csr_data_in[31:0]), .dout(write_csr_data[31:0]));
 
@@ -1195,19 +1195,19 @@ end : cam_array
    
 // read the csr value through rs2 immed port
    assign dec_i0_immed_d[31:0] = ({32{ i0_dp.csr_read}} & dec_csr_rddata_d[31:0]) |
-				 ({32{~i0_dp.csr_read}} & i0_immed_d[31:0]);
+                                 ({32{~i0_dp.csr_read}} & i0_immed_d[31:0]);
 
 // end csr stuff   
       
    assign     i0_immed_d[31:0] = ({32{i0_dp.imm12}} &   { {20{i0[31]}},i0[31:20] }) |  // jalr
-				 ({32{i0_dp.shimm5}} &    {27'b0, i0[24:20]}) |
-				 ({32{i0_jalimm20}} &   { {12{i0[31]}},i0[19:12],i0[20],i0[30:21],1'b0}) |
-				 ({32{i0_uiimm20}}  &     {i0[31:12],12'b0 }) |
-				 ({32{i0_csr_write_only_d & i0_dp.csr_imm}} & {27'b0,i0[19:15]});  // for csr's that only write csr, dont read csr
+                                 ({32{i0_dp.shimm5}} &    {27'b0, i0[24:20]}) |
+                                 ({32{i0_jalimm20}} &   { {12{i0[31]}},i0[19:12],i0[20],i0[30:21],1'b0}) |
+                                 ({32{i0_uiimm20}}  &     {i0[31:12],12'b0 }) |
+                                 ({32{i0_csr_write_only_d & i0_dp.csr_imm}} & {27'b0,i0[19:15]});  // for csr's that only write csr, dont read csr
    
 
 //   assign dec_i0_br_immed_d[12:1] = ({12{ i0_ap.predict_nt }} &           {i0[31],i0[7],i0[30:25],i0[11:8]}) |
-//				      ({12{ i0_ap.predict_t | i0_ap.jal}} & {10'b0,i0_ap_pc4,i0_ap_pc2});           
+//                                    ({12{ i0_ap.predict_t | i0_ap.jal}} & {10'b0,i0_ap_pc4,i0_ap_pc2});           
 
    // all conditional branches are currently predict_nt
    // change this to generate the sequential address for all other cases for NPC requirements at commit
@@ -1224,9 +1224,9 @@ end : cam_array
 
 
    assign dec_i1_immed_d[31:0] = ({32{i1_dp.imm12}} &   { {20{i1[31]}},i1[31:20] }) |
-				 ({32{i1_dp.shimm5}} &    {27'b0, i1[24:20]}) |
-				 ({32{i1_jalimm20}} &   { {12{i1[31]}},i1[19:12],i1[20],i1[30:21],1'b0}) |
-				 ({32{i1_uiimm20}}  &     {i1[31:12],12'b0 });
+                                 ({32{i1_dp.shimm5}} &    {27'b0, i1[24:20]}) |
+                                 ({32{i1_jalimm20}} &   { {12{i1[31]}},i1[19:12],i1[20],i1[30:21],1'b0}) |
+                                 ({32{i1_uiimm20}}  &     {i1[31:12],12'b0 });
    
 
    // jal is always +2 or +4
@@ -1236,8 +1236,8 @@ end : cam_array
    
    
    assign last_br_immed_d[12:1] = (dec_i1_decode_d) ? 
-				  ((i1_ap.predict_nt) ? {10'b0,i1_ap_pc4,i1_ap_pc2} : i1_br_offset[11:0] ) :
-         		  	  ((i0_ap.predict_nt) ? {10'b0,i0_ap_pc4,i0_ap_pc2} : i0_br_offset[11:0] );
+                                  ((i1_ap.predict_nt) ? {10'b0,i1_ap_pc4,i1_ap_pc2} : i1_br_offset[11:0] ) :
+                                  ((i0_ap.predict_nt) ? {10'b0,i0_ap_pc4,i0_ap_pc2} : i0_br_offset[11:0] );
    
    assign i0_valid_d = dec_ib0_valid_d;
    assign i1_valid_d = dec_ib1_valid_d;
@@ -1251,7 +1251,7 @@ end : cam_array
    assign i1_store_stall_d =  i1_dp.store & (lsu_store_stall_any | dma_dccm_stall_any);   
 
    assign i1_depend_i0_d = (dec_i1_rs1_en_d & i0_dp.rd & (i1r.rs1[4:0] == i0r.rd[4:0])) |
-			   (dec_i1_rs2_en_d & i0_dp.rd & (i1r.rs2[4:0] == i0r.rd[4:0]));
+                           (dec_i1_rs2_en_d & i0_dp.rd & (i1r.rs2[4:0] == i0r.rd[4:0]));
 
    
 
@@ -1263,7 +1263,7 @@ end : cam_array
    assign i0_presync = i0_dp.presync | dec_tlu_presync_d | debug_fence_i | debug_fence_raw | dec_tlu_pipelining_disable;  // both fence's presync
 // some CSR writes need to be postsync'd
    assign i0_postsync = i0_dp.postsync | dec_tlu_postsync_d | debug_fence_i | // only fence_i postsync
-			(i0_csr_write_only_d & (i0[31:20] == 12'h7c2));   // wr_pause must postsync 
+                        (i0_csr_write_only_d & (i0[31:20] == 12'h7c2));   // wr_pause must postsync 
    
    assign i1_mul2_block_d  = i1_dp.mul & i0_dp.mul;
 
@@ -1292,51 +1292,51 @@ end : cam_array
    assign dec_fence_pending = (i0_valid_d & i0_dp.fence) | debug_fence;
    
    assign i0_block_d = (i0_dp.csr_read & prior_csr_write) |
-		       pause_stall |
-		       leak1_i0_stall |
-		       dec_tlu_debug_stall |
-		       postsync_stall | 
-		       presync_stall  |
-		       ((i0_dp.fence | debug_fence) & ~lsu_idle) |
-		       i0_nonblock_load_stall |
-		       i0_load_block_d |
-		       i0_mul_block_d |
+                       pause_stall |
+                       leak1_i0_stall |
+                       dec_tlu_debug_stall |
+                       postsync_stall | 
+                       presync_stall  |
+                       ((i0_dp.fence | debug_fence) & ~lsu_idle) |
+                       i0_nonblock_load_stall |
+                       i0_load_block_d |
+                       i0_mul_block_d |
                        i0_store_stall_d |
-		       i0_load_stall_d |       
-		       i0_secondary_stall_d |  // for performance, dont make i0 secondary if i1 not alu and depends on i0		       
-		       i0_secondary_block_d;
+                       i0_load_stall_d |       
+                       i0_secondary_stall_d |  // for performance, dont make i0 secondary if i1 not alu and depends on i0                      
+                       i0_secondary_block_d;
 
    assign i1_block_d = leak1_i1_stall | 
-		      (i0_jal) |            // no i1 after a jal, will flush
-		    ( (i0_br_error_all | (|dec_i0_trigger_match_d[3:0]) | ((i0_dp.condbr | i0_dp.jal) & i0_secondary_d)) & i1_dp.load ) |  // if branch or branch error then don't allow i1 load
-		       i0_presync | i0_postsync |
-		       i1_dp.presync | i1_dp.postsync |
-		       i1_icaf_d |        // instruction access fault is i0 only
-		       dec_i1_perr_d |    // instruction parity error is i0 only
-		       dec_i1_sbecc_d |  
-		       i0_dp.csr_read |
-		       i0_dp.csr_write |
-		       i1_dp.csr_read |
-		       i1_dp.csr_write |  // optimized csr write with rd==0
-		       i1_nonblock_load_stall |
+                      (i0_jal) |            // no i1 after a jal, will flush
+                    ( (i0_br_error_all | (|dec_i0_trigger_match_d[3:0]) | ((i0_dp.condbr | i0_dp.jal) & i0_secondary_d)) & i1_dp.load ) |  // if branch or branch error then don't allow i1 load
+                       i0_presync | i0_postsync |
+                       i1_dp.presync | i1_dp.postsync |
+                       i1_icaf_d |        // instruction access fault is i0 only
+                       dec_i1_perr_d |    // instruction parity error is i0 only
+                       dec_i1_sbecc_d |  
+                       i0_dp.csr_read |
+                       i0_dp.csr_write |
+                       i1_dp.csr_read |
+                       i1_dp.csr_write |  // optimized csr write with rd==0
+                       i1_nonblock_load_stall |
                        i1_store_stall_d |
-		       i1_load_block_d |    // load data not ready
-		       i1_mul_block_d |     // mul data not ready
-		       (i1_depend_i0_d & ~non_block_case_d & ~store_data_bypass_i0_e2_c2) | 
-		       i1_load2_block_d |  // back-to-back load's at decode
-		       i1_mul2_block_d | 		       
-		       i1_load_stall_d |  // prior stores
-		       i1_secondary_block_d | // secondary alu data not ready and op is not alu
-		       dec_tlu_dual_issue_disable; // dual issue is disabled
+                       i1_load_block_d |    // load data not ready
+                       i1_mul_block_d |     // mul data not ready
+                       (i1_depend_i0_d & ~non_block_case_d & ~store_data_bypass_i0_e2_c2) | 
+                       i1_load2_block_d |  // back-to-back load's at decode
+                       i1_mul2_block_d |                       
+                       i1_load_stall_d |  // prior stores
+                       i1_secondary_block_d | // secondary alu data not ready and op is not alu
+                       dec_tlu_dual_issue_disable; // dual issue is disabled
 
    // all legals go here
 
    // block reads if there is a prior csr write in the pipeline
    assign prior_csr_write = e1d.csrwonly |
-			    e2d.csrwonly |
-			    e3d.csrwonly |
-			    e4d.csrwonly |
-			    wbd.csrwonly;
+                            e2d.csrwonly |
+                            e3d.csrwonly |
+                            e4d.csrwonly |
+                            wbd.csrwonly;
    
    
    assign any_csr_d = i0_dp.csr_read | i0_csr_write;
@@ -1389,8 +1389,8 @@ end : cam_array
    // illegals will postsync
    // jal's will flush, so postsync
    assign ps_stall_in =  (dec_i0_decode_d & (i0_jal | (i0_postsync) | ~i0_legal))  |
-			 (dec_i1_decode_d &  i1_jal ) |
-			 ((ps_stall & prior_inflight_e1e4) & ~div_wen_wb);
+                         (dec_i1_decode_d &  i1_jal ) |
+                         ((ps_stall & prior_inflight_e1e4) & ~div_wen_wb);
  
   
     rvdffs #(1) postsync_stallff (.*, .clk(free_clk), .en(~freeze), .din(ps_stall_in), .dout(ps_stall));
@@ -1400,30 +1400,30 @@ end : cam_array
 
 
    assign prior_inflight_e1e3 =       |{ e1d.i0valid,
-					 e2d.i0valid,
-					 e3d.i0valid,					 
-					 e1d.i1valid,
-					 e2d.i1valid,
-					 e3d.i1valid
-					 };
+                                         e2d.i0valid,
+                                         e3d.i0valid,                                    
+                                         e1d.i1valid,
+                                         e2d.i1valid,
+                                         e3d.i1valid
+                                         };
    
 
    
    assign prior_inflight_e1e4 =       |{ e1d.i0valid,
-					 e2d.i0valid,
-					 e3d.i0valid,
-					 e4d.i0valid,
-					 e1d.i1valid,
-					 e2d.i1valid,
-					 e3d.i1valid,
-					 e4d.i1valid
-					 };
+                                         e2d.i0valid,
+                                         e3d.i0valid,
+                                         e4d.i0valid,
+                                         e1d.i1valid,
+                                         e2d.i1valid,
+                                         e3d.i1valid,
+                                         e4d.i1valid
+                                         };
    
 
    assign prior_inflight_wb =            |{
-					   wbd.i0valid,
-					   wbd.i1valid
-					   };
+                                           wbd.i0valid,
+                                           wbd.i1valid
+                                           };
 
    assign prior_inflight = prior_inflight_e1e4 | prior_inflight_wb;
    
@@ -1433,13 +1433,13 @@ end : cam_array
    assign dec_i0_lsu_decode_d = i0_legal_decode_d & i0_dp.lsu;
    
    assign lsu_decode_d = (i0_legal_decode_d & i0_dp.lsu) |
-			 (dec_i1_decode_d & i1_dp.lsu);
+                         (dec_i1_decode_d & i1_dp.lsu);
 
    assign mul_decode_d = (i0_legal_decode_d & i0_dp.mul) |
-			 (dec_i1_decode_d & i1_dp.mul);
+                         (dec_i1_decode_d & i1_dp.mul);
 
    assign div_decode_d = (i0_legal_decode_d & i0_dp.div) |
-			 (dec_i1_decode_d & i1_dp.div);
+                         (dec_i1_decode_d & i1_dp.div);
 
 
    
@@ -1522,54 +1522,54 @@ end : cam_array
 
    
    rvdffe #(32) freeze_i0_wbff (.*, 
-			      .en(freeze_after_unfreeze1), 
-			      .din( (freeze_after_unfreeze2) ? i0_result_wb[31:0] : i0_result_e4_freeze[31:0]), 
-			      .dout(i0_result_wb_freeze[31:0])
-			      );
+                              .en(freeze_after_unfreeze1), 
+                              .din( (freeze_after_unfreeze2) ? i0_result_wb[31:0] : i0_result_e4_freeze[31:0]), 
+                              .dout(i0_result_wb_freeze[31:0])
+                              );
    
    rvdffe #(32) freeze_i1_wbff (.*, 
-			      .en(freeze_after_unfreeze1), 
-			      .din( (freeze_after_unfreeze2) ? i1_result_wb[31:0] : i1_result_e4_freeze[31:0]), 
-			      .dout(i1_result_wb_freeze[31:0])
-			      );
+                              .en(freeze_after_unfreeze1), 
+                              .din( (freeze_after_unfreeze2) ? i1_result_wb[31:0] : i1_result_e4_freeze[31:0]), 
+                              .dout(i1_result_wb_freeze[31:0])
+                              );
    
 
    
 // define bypasses for e2 stage - 1 is youngest
 
    assign dd.i0rs1bype2[1:0] = {  i0_dp.alu & i0_rs1_depth_d[3:0] == 4'd5 & i0_rs1_class_d.sec,
-                              	  i0_dp.alu & i0_rs1_depth_d[3:0] == 4'd6 & i0_rs1_class_d.sec };
+                                  i0_dp.alu & i0_rs1_depth_d[3:0] == 4'd6 & i0_rs1_class_d.sec };
    
    assign dd.i0rs2bype2[1:0] = {  i0_dp.alu & i0_rs2_depth_d[3:0] == 4'd5 & i0_rs2_class_d.sec,
-                              	  i0_dp.alu & i0_rs2_depth_d[3:0] == 4'd6 & i0_rs2_class_d.sec };
+                                  i0_dp.alu & i0_rs2_depth_d[3:0] == 4'd6 & i0_rs2_class_d.sec };
    
    assign dd.i1rs1bype2[1:0] = {  i1_dp.alu & i1_rs1_depth_d[3:0] == 4'd5 & i1_rs1_class_d.sec,
-                              	  i1_dp.alu & i1_rs1_depth_d[3:0] == 4'd6 & i1_rs1_class_d.sec };
+                                  i1_dp.alu & i1_rs1_depth_d[3:0] == 4'd6 & i1_rs1_class_d.sec };
    
    assign dd.i1rs2bype2[1:0] = {  i1_dp.alu & i1_rs2_depth_d[3:0] == 4'd5 & i1_rs2_class_d.sec,
-                              	  i1_dp.alu & i1_rs2_depth_d[3:0] == 4'd6 & i1_rs2_class_d.sec };
+                                  i1_dp.alu & i1_rs2_depth_d[3:0] == 4'd6 & i1_rs2_class_d.sec };
 
    
    assign i1_result_wb_eff[31:0] = (unfreeze_cycle1) ? i1_result_wb_freeze[31:0] :
-				   (unfreeze_cycle2) ? i1_result_e4_freeze[31:0] :
-				   i1_result_wb[31:0];
+                                   (unfreeze_cycle2) ? i1_result_e4_freeze[31:0] :
+                                   i1_result_wb[31:0];
    
    assign i0_result_wb_eff[31:0] = (unfreeze_cycle1) ? i0_result_wb_freeze[31:0] :
-				   (unfreeze_cycle2) ? i0_result_e4_freeze[31:0] :
-				   i0_result_wb[31:0];
+                                   (unfreeze_cycle2) ? i0_result_e4_freeze[31:0] :
+                                   i0_result_wb[31:0];
    
 
    assign i0_rs1_bypass_data_e2[31:0] = ({32{e2d.i0rs1bype2[1]}} & i1_result_wb_eff[31:0]) |
-					({32{e2d.i0rs1bype2[0]}} & i0_result_wb_eff[31:0]);
+                                        ({32{e2d.i0rs1bype2[0]}} & i0_result_wb_eff[31:0]);
 
    assign i0_rs2_bypass_data_e2[31:0] = ({32{e2d.i0rs2bype2[1]}} & i1_result_wb_eff[31:0]) |
-					({32{e2d.i0rs2bype2[0]}} & i0_result_wb_eff[31:0]);
+                                        ({32{e2d.i0rs2bype2[0]}} & i0_result_wb_eff[31:0]);
 
    assign i1_rs1_bypass_data_e2[31:0] = ({32{e2d.i1rs1bype2[1]}} & i1_result_wb_eff[31:0]) |
-					({32{e2d.i1rs1bype2[0]}} & i0_result_wb_eff[31:0]);
+                                        ({32{e2d.i1rs1bype2[0]}} & i0_result_wb_eff[31:0]);
 
    assign i1_rs2_bypass_data_e2[31:0] = ({32{e2d.i1rs2bype2[1]}} & i1_result_wb_eff[31:0]) |
-					({32{e2d.i1rs2bype2[0]}} & i0_result_wb_eff[31:0]);
+                                        ({32{e2d.i1rs2bype2[0]}} & i0_result_wb_eff[31:0]);
 
 
    assign dec_i0_rs1_bypass_en_e2 = |e2d.i0rs1bype2[1:0];
@@ -1589,26 +1589,26 @@ end : cam_array
 
 // i0   
    assign dd.i0rs1bype3[3:0] = { i0_dp.alu & i0_rs1_depth_d[3:0]==4'd1 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul),
-				 i0_dp.alu & i0_rs1_depth_d[3:0]==4'd2 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul),
-				 i0_dp.alu & i0_rs1_depth_d[3:0]==4'd3 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul),
-                              	 i0_dp.alu & i0_rs1_depth_d[3:0]==4'd4 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul) };
+                                 i0_dp.alu & i0_rs1_depth_d[3:0]==4'd2 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul),
+                                 i0_dp.alu & i0_rs1_depth_d[3:0]==4'd3 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul),
+                                 i0_dp.alu & i0_rs1_depth_d[3:0]==4'd4 & (i0_rs1_class_d.sec | i0_rs1_class_d.load | i0_rs1_class_d.mul) };
    
    assign dd.i0rs2bype3[3:0] = { i0_dp.alu & i0_rs2_depth_d[3:0]==4'd1 & (i0_rs2_class_d.sec | i0_rs2_class_d.load | i0_rs2_class_d.mul), 
-				 i0_dp.alu & i0_rs2_depth_d[3:0]==4'd2 & (i0_rs2_class_d.sec | i0_rs2_class_d.load | i0_rs2_class_d.mul),
-				 i0_dp.alu & i0_rs2_depth_d[3:0]==4'd3 & (i0_rs2_class_d.sec | i0_rs2_class_d.load | i0_rs2_class_d.mul),
-                              	 i0_dp.alu & i0_rs2_depth_d[3:0]==4'd4 & (i0_rs2_class_d.sec | i0_rs2_class_d.load | i0_rs2_class_d.mul) };
+                                 i0_dp.alu & i0_rs2_depth_d[3:0]==4'd2 & (i0_rs2_class_d.sec | i0_rs2_class_d.load | i0_rs2_class_d.mul),
+                                 i0_dp.alu & i0_rs2_depth_d[3:0]==4'd3 & (i0_rs2_class_d.sec | i0_rs2_class_d.load | i0_rs2_class_d.mul),
+                                 i0_dp.alu & i0_rs2_depth_d[3:0]==4'd4 & (i0_rs2_class_d.sec | i0_rs2_class_d.load | i0_rs2_class_d.mul) };
    
 // i1
    
    assign i1rs1_intra[2:0] = {   i1_dp.alu & i0_dp.alu  & i1_rs1_depend_i0_d,
-				 i1_dp.alu & i0_dp.mul  & i1_rs1_depend_i0_d,
-				 i1_dp.alu & i0_dp.load & i1_rs1_depend_i0_d
-				 };
+                                 i1_dp.alu & i0_dp.mul  & i1_rs1_depend_i0_d,
+                                 i1_dp.alu & i0_dp.load & i1_rs1_depend_i0_d
+                                 };
 
    assign i1rs2_intra[2:0] = {   i1_dp.alu & i0_dp.alu  & i1_rs2_depend_i0_d,
-				 i1_dp.alu & i0_dp.mul  & i1_rs2_depend_i0_d,
-				 i1_dp.alu & i0_dp.load & i1_rs2_depend_i0_d
-				 };
+                                 i1_dp.alu & i0_dp.mul  & i1_rs2_depend_i0_d,
+                                 i1_dp.alu & i0_dp.load & i1_rs2_depend_i0_d
+                                 };
    
    assign i1_rs1_intra_bypass = |i1rs1_intra[2:0];
 
@@ -1616,16 +1616,16 @@ end : cam_array
    
 
    assign dd.i1rs1bype3[6:0] = { i1rs1_intra[2:0],
-				 i1_dp.alu & i1_rs1_depth_d[3:0]==4'd1 & (i1_rs1_class_d.sec | i1_rs1_class_d.load | i1_rs1_class_d.mul) & ~i1_rs1_intra_bypass, 
-				 i1_dp.alu & i1_rs1_depth_d[3:0]==4'd2 & (i1_rs1_class_d.sec | i1_rs1_class_d.load | i1_rs1_class_d.mul) & ~i1_rs1_intra_bypass,
-				 i1_dp.alu & i1_rs1_depth_d[3:0]==4'd3 & (i1_rs1_class_d.sec | i1_rs1_class_d.load | i1_rs1_class_d.mul) & ~i1_rs1_intra_bypass,
-                              	 i1_dp.alu & i1_rs1_depth_d[3:0]==4'd4 & (i1_rs1_class_d.sec | i1_rs1_class_d.load | i1_rs1_class_d.mul) & ~i1_rs1_intra_bypass };
+                                 i1_dp.alu & i1_rs1_depth_d[3:0]==4'd1 & (i1_rs1_class_d.sec | i1_rs1_class_d.load | i1_rs1_class_d.mul) & ~i1_rs1_intra_bypass, 
+                                 i1_dp.alu & i1_rs1_depth_d[3:0]==4'd2 & (i1_rs1_class_d.sec | i1_rs1_class_d.load | i1_rs1_class_d.mul) & ~i1_rs1_intra_bypass,
+                                 i1_dp.alu & i1_rs1_depth_d[3:0]==4'd3 & (i1_rs1_class_d.sec | i1_rs1_class_d.load | i1_rs1_class_d.mul) & ~i1_rs1_intra_bypass,
+                                 i1_dp.alu & i1_rs1_depth_d[3:0]==4'd4 & (i1_rs1_class_d.sec | i1_rs1_class_d.load | i1_rs1_class_d.mul) & ~i1_rs1_intra_bypass };
    
    assign dd.i1rs2bype3[6:0] = { i1rs2_intra[2:0],
-				 i1_dp.alu & i1_rs2_depth_d[3:0]==4'd1 & (i1_rs2_class_d.sec | i1_rs2_class_d.load | i1_rs2_class_d.mul) & ~i1_rs2_intra_bypass, 
-				 i1_dp.alu & i1_rs2_depth_d[3:0]==4'd2 & (i1_rs2_class_d.sec | i1_rs2_class_d.load | i1_rs2_class_d.mul) & ~i1_rs2_intra_bypass,
-				 i1_dp.alu & i1_rs2_depth_d[3:0]==4'd3 & (i1_rs2_class_d.sec | i1_rs2_class_d.load | i1_rs2_class_d.mul) & ~i1_rs2_intra_bypass,
-                              	 i1_dp.alu & i1_rs2_depth_d[3:0]==4'd4 & (i1_rs2_class_d.sec | i1_rs2_class_d.load | i1_rs2_class_d.mul) & ~i1_rs2_intra_bypass };
+                                 i1_dp.alu & i1_rs2_depth_d[3:0]==4'd1 & (i1_rs2_class_d.sec | i1_rs2_class_d.load | i1_rs2_class_d.mul) & ~i1_rs2_intra_bypass, 
+                                 i1_dp.alu & i1_rs2_depth_d[3:0]==4'd2 & (i1_rs2_class_d.sec | i1_rs2_class_d.load | i1_rs2_class_d.mul) & ~i1_rs2_intra_bypass,
+                                 i1_dp.alu & i1_rs2_depth_d[3:0]==4'd3 & (i1_rs2_class_d.sec | i1_rs2_class_d.load | i1_rs2_class_d.mul) & ~i1_rs2_intra_bypass,
+                                 i1_dp.alu & i1_rs2_depth_d[3:0]==4'd4 & (i1_rs2_class_d.sec | i1_rs2_class_d.load | i1_rs2_class_d.mul) & ~i1_rs2_intra_bypass };
    
 
    
@@ -1642,38 +1642,38 @@ end : cam_array
 
    
    assign i1_result_e4_eff[31:0] = (unfreeze_cycle1) ? i1_result_e4_freeze[31:0] :
-				   i1_result_e4_final[31:0];
+                                   i1_result_e4_final[31:0];
    
    assign i0_result_e4_eff[31:0] = (unfreeze_cycle1) ? i0_result_e4_freeze[31:0] :
-				   i0_result_e4_final[31:0];
+                                   i0_result_e4_final[31:0];
    
 
    assign i0_rs1_bypass_data_e3[31:0] = ({32{e3d.i0rs1bype3[3]}} & i1_result_e4_eff[31:0]) |
-				        ({32{e3d.i0rs1bype3[2]}} & i0_result_e4_eff[31:0]) |
-				        ({32{e3d.i0rs1bype3[1]}} & i1_result_wb_eff[31:0]) |
-					({32{e3d.i0rs1bype3[0]}} & i0_result_wb_eff[31:0]);
+                                        ({32{e3d.i0rs1bype3[2]}} & i0_result_e4_eff[31:0]) |
+                                        ({32{e3d.i0rs1bype3[1]}} & i1_result_wb_eff[31:0]) |
+                                        ({32{e3d.i0rs1bype3[0]}} & i0_result_wb_eff[31:0]);
    
    assign i0_rs2_bypass_data_e3[31:0] = ({32{e3d.i0rs2bype3[3]}} & i1_result_e4_eff[31:0]) |
-				        ({32{e3d.i0rs2bype3[2]}} & i0_result_e4_eff[31:0]) |
-				        ({32{e3d.i0rs2bype3[1]}} & i1_result_wb_eff[31:0]) |
-					({32{e3d.i0rs2bype3[0]}} & i0_result_wb_eff[31:0]);
+                                        ({32{e3d.i0rs2bype3[2]}} & i0_result_e4_eff[31:0]) |
+                                        ({32{e3d.i0rs2bype3[1]}} & i1_result_wb_eff[31:0]) |
+                                        ({32{e3d.i0rs2bype3[0]}} & i0_result_wb_eff[31:0]);
 
    assign i1_rs1_bypass_data_e3[31:0] = ({32{e3d.i1rs1bype3[6]}} & i0_result_e3[31:0]) |
-					({32{e3d.i1rs1bype3[5]}} & exu_mul_result_e3[31:0]) |
-					({32{e3d.i1rs1bype3[4]}} & lsu_result_dc3[31:0]) |
-					({32{e3d.i1rs1bype3[3]}} & i1_result_e4_eff[31:0]) |
-				        ({32{e3d.i1rs1bype3[2]}} & i0_result_e4_eff[31:0]) |
-				        ({32{e3d.i1rs1bype3[1]}} & i1_result_wb_eff[31:0]) |
-					({32{e3d.i1rs1bype3[0]}} & i0_result_wb_eff[31:0]);
+                                        ({32{e3d.i1rs1bype3[5]}} & exu_mul_result_e3[31:0]) |
+                                        ({32{e3d.i1rs1bype3[4]}} & lsu_result_dc3[31:0]) |
+                                        ({32{e3d.i1rs1bype3[3]}} & i1_result_e4_eff[31:0]) |
+                                        ({32{e3d.i1rs1bype3[2]}} & i0_result_e4_eff[31:0]) |
+                                        ({32{e3d.i1rs1bype3[1]}} & i1_result_wb_eff[31:0]) |
+                                        ({32{e3d.i1rs1bype3[0]}} & i0_result_wb_eff[31:0]);
    
 
    assign i1_rs2_bypass_data_e3[31:0] = ({32{e3d.i1rs2bype3[6]}} & i0_result_e3[31:0]) |
-					({32{e3d.i1rs2bype3[5]}} & exu_mul_result_e3[31:0]) |
-					({32{e3d.i1rs2bype3[4]}} & lsu_result_dc3[31:0]) |
-					({32{e3d.i1rs2bype3[3]}} & i1_result_e4_eff[31:0]) |
-				        ({32{e3d.i1rs2bype3[2]}} & i0_result_e4_eff[31:0]) |
-				        ({32{e3d.i1rs2bype3[1]}} & i1_result_wb_eff[31:0]) |
-					({32{e3d.i1rs2bype3[0]}} & i0_result_wb_eff[31:0]);
+                                        ({32{e3d.i1rs2bype3[5]}} & exu_mul_result_e3[31:0]) |
+                                        ({32{e3d.i1rs2bype3[4]}} & lsu_result_dc3[31:0]) |
+                                        ({32{e3d.i1rs2bype3[3]}} & i1_result_e4_eff[31:0]) |
+                                        ({32{e3d.i1rs2bype3[2]}} & i0_result_e4_eff[31:0]) |
+                                        ({32{e3d.i1rs2bype3[1]}} & i1_result_wb_eff[31:0]) |
+                                        ({32{e3d.i1rs2bype3[0]}} & i0_result_wb_eff[31:0]);
    
 
    
@@ -1682,71 +1682,71 @@ end : cam_array
 
    
    assign {i0_rs1_class_d, i0_rs1_depth_d[3:0]} = 
-						  (i0_rs1_depend_i1_e1) ? { i1_e1c, 4'd1 } :
-						  (i0_rs1_depend_i0_e1) ? { i0_e1c, 4'd2 } :
-						  (i0_rs1_depend_i1_e2) ? { i1_e2c, 4'd3 } :
-						  (i0_rs1_depend_i0_e2) ? { i0_e2c, 4'd4 } :
-						  (i0_rs1_depend_i1_e3) ? { i1_e3c, 4'd5 } :
-						  (i0_rs1_depend_i0_e3) ? { i0_e3c, 4'd6 } : 
-						  (i0_rs1_depend_i1_e4) ? { i1_e4c, 4'd7 } :
-						  (i0_rs1_depend_i0_e4) ? { i0_e4c, 4'd8 } :  
-						  (i0_rs1_depend_i1_wb) ? { i1_wbc, 4'd9 } :
-						  (i0_rs1_depend_i0_wb) ? { i0_wbc, 4'd10 } : '0;
+                                                  (i0_rs1_depend_i1_e1) ? { i1_e1c, 4'd1 } :
+                                                  (i0_rs1_depend_i0_e1) ? { i0_e1c, 4'd2 } :
+                                                  (i0_rs1_depend_i1_e2) ? { i1_e2c, 4'd3 } :
+                                                  (i0_rs1_depend_i0_e2) ? { i0_e2c, 4'd4 } :
+                                                  (i0_rs1_depend_i1_e3) ? { i1_e3c, 4'd5 } :
+                                                  (i0_rs1_depend_i0_e3) ? { i0_e3c, 4'd6 } : 
+                                                  (i0_rs1_depend_i1_e4) ? { i1_e4c, 4'd7 } :
+                                                  (i0_rs1_depend_i0_e4) ? { i0_e4c, 4'd8 } :  
+                                                  (i0_rs1_depend_i1_wb) ? { i1_wbc, 4'd9 } :
+                                                  (i0_rs1_depend_i0_wb) ? { i0_wbc, 4'd10 } : '0;
    
    assign {i0_rs2_class_d, i0_rs2_depth_d[3:0]} = 
-						  (i0_rs2_depend_i1_e1) ? { i1_e1c, 4'd1 } :
-						  (i0_rs2_depend_i0_e1) ? { i0_e1c, 4'd2 } :
-						  (i0_rs2_depend_i1_e2) ? { i1_e2c, 4'd3 } :
-						  (i0_rs2_depend_i0_e2) ? { i0_e2c, 4'd4 } :
-						  (i0_rs2_depend_i1_e3) ? { i1_e3c, 4'd5 } :
-						  (i0_rs2_depend_i0_e3) ? { i0_e3c, 4'd6 } : 
-						  (i0_rs2_depend_i1_e4) ? { i1_e4c, 4'd7 } :
-						  (i0_rs2_depend_i0_e4) ? { i0_e4c, 4'd8 } :  
-						  (i0_rs2_depend_i1_wb) ? { i1_wbc, 4'd9 } :
-						  (i0_rs2_depend_i0_wb) ? { i0_wbc, 4'd10 } : '0;
+                                                  (i0_rs2_depend_i1_e1) ? { i1_e1c, 4'd1 } :
+                                                  (i0_rs2_depend_i0_e1) ? { i0_e1c, 4'd2 } :
+                                                  (i0_rs2_depend_i1_e2) ? { i1_e2c, 4'd3 } :
+                                                  (i0_rs2_depend_i0_e2) ? { i0_e2c, 4'd4 } :
+                                                  (i0_rs2_depend_i1_e3) ? { i1_e3c, 4'd5 } :
+                                                  (i0_rs2_depend_i0_e3) ? { i0_e3c, 4'd6 } : 
+                                                  (i0_rs2_depend_i1_e4) ? { i1_e4c, 4'd7 } :
+                                                  (i0_rs2_depend_i0_e4) ? { i0_e4c, 4'd8 } :  
+                                                  (i0_rs2_depend_i1_wb) ? { i1_wbc, 4'd9 } :
+                                                  (i0_rs2_depend_i0_wb) ? { i0_wbc, 4'd10 } : '0;
    
    assign {i1_rs1_class_d, i1_rs1_depth_d[3:0]} = 
-						  (i1_rs1_depend_i1_e1) ? { i1_e1c, 4'd1 } :
-						  (i1_rs1_depend_i0_e1) ? { i0_e1c, 4'd2 } :
-						  (i1_rs1_depend_i1_e2) ? { i1_e2c, 4'd3 } :
-						  (i1_rs1_depend_i0_e2) ? { i0_e2c, 4'd4 } :
-						  (i1_rs1_depend_i1_e3) ? { i1_e3c, 4'd5 } :
-						  (i1_rs1_depend_i0_e3) ? { i0_e3c, 4'd6 } : 
-						  (i1_rs1_depend_i1_e4) ? { i1_e4c, 4'd7 } :
-						  (i1_rs1_depend_i0_e4) ? { i0_e4c, 4'd8 } :  
-						  (i1_rs1_depend_i1_wb) ? { i1_wbc, 4'd9 } :
-						  (i1_rs1_depend_i0_wb) ? { i0_wbc, 4'd10 } : '0;
+                                                  (i1_rs1_depend_i1_e1) ? { i1_e1c, 4'd1 } :
+                                                  (i1_rs1_depend_i0_e1) ? { i0_e1c, 4'd2 } :
+                                                  (i1_rs1_depend_i1_e2) ? { i1_e2c, 4'd3 } :
+                                                  (i1_rs1_depend_i0_e2) ? { i0_e2c, 4'd4 } :
+                                                  (i1_rs1_depend_i1_e3) ? { i1_e3c, 4'd5 } :
+                                                  (i1_rs1_depend_i0_e3) ? { i0_e3c, 4'd6 } : 
+                                                  (i1_rs1_depend_i1_e4) ? { i1_e4c, 4'd7 } :
+                                                  (i1_rs1_depend_i0_e4) ? { i0_e4c, 4'd8 } :  
+                                                  (i1_rs1_depend_i1_wb) ? { i1_wbc, 4'd9 } :
+                                                  (i1_rs1_depend_i0_wb) ? { i0_wbc, 4'd10 } : '0;
    
    assign {i1_rs2_class_d, i1_rs2_depth_d[3:0]} = 
-						  (i1_rs2_depend_i1_e1) ? { i1_e1c, 4'd1 } :
-						  (i1_rs2_depend_i0_e1) ? { i0_e1c, 4'd2 } :
-						  (i1_rs2_depend_i1_e2) ? { i1_e2c, 4'd3 } :
-						  (i1_rs2_depend_i0_e2) ? { i0_e2c, 4'd4 } :
-						  (i1_rs2_depend_i1_e3) ? { i1_e3c, 4'd5 } :
-						  (i1_rs2_depend_i0_e3) ? { i0_e3c, 4'd6 } : 
-						  (i1_rs2_depend_i1_e4) ? { i1_e4c, 4'd7 } :
-						  (i1_rs2_depend_i0_e4) ? { i0_e4c, 4'd8 } :  
-						  (i1_rs2_depend_i1_wb) ? { i1_wbc, 4'd9 } :
-						  (i1_rs2_depend_i0_wb) ? { i0_wbc, 4'd10 } : '0;
+                                                  (i1_rs2_depend_i1_e1) ? { i1_e1c, 4'd1 } :
+                                                  (i1_rs2_depend_i0_e1) ? { i0_e1c, 4'd2 } :
+                                                  (i1_rs2_depend_i1_e2) ? { i1_e2c, 4'd3 } :
+                                                  (i1_rs2_depend_i0_e2) ? { i0_e2c, 4'd4 } :
+                                                  (i1_rs2_depend_i1_e3) ? { i1_e3c, 4'd5 } :
+                                                  (i1_rs2_depend_i0_e3) ? { i0_e3c, 4'd6 } : 
+                                                  (i1_rs2_depend_i1_e4) ? { i1_e4c, 4'd7 } :
+                                                  (i1_rs2_depend_i0_e4) ? { i0_e4c, 4'd8 } :  
+                                                  (i1_rs2_depend_i1_wb) ? { i1_wbc, 4'd9 } :
+                                                  (i1_rs2_depend_i0_wb) ? { i0_wbc, 4'd10 } : '0;
 
    
    assign i0_rs1_match_e1 = (i0_rs1_depth_d[3:0] == 4'd1 | 
-			     i0_rs1_depth_d[3:0] == 4'd2);
+                             i0_rs1_depth_d[3:0] == 4'd2);
    
    assign i0_rs1_match_e2 = (i0_rs1_depth_d[3:0] == 4'd3 | 
-			     i0_rs1_depth_d[3:0] == 4'd4);
+                             i0_rs1_depth_d[3:0] == 4'd4);
 
    assign i0_rs1_match_e3 = (i0_rs1_depth_d[3:0] == 4'd5 | 
-			     i0_rs1_depth_d[3:0] == 4'd6);
+                             i0_rs1_depth_d[3:0] == 4'd6);
 
    assign i0_rs2_match_e1 = (i0_rs2_depth_d[3:0] == 4'd1 | 
-			     i0_rs2_depth_d[3:0] == 4'd2);
+                             i0_rs2_depth_d[3:0] == 4'd2);
    
    assign i0_rs2_match_e2 = (i0_rs2_depth_d[3:0] == 4'd3 | 
-			     i0_rs2_depth_d[3:0] == 4'd4);
+                             i0_rs2_depth_d[3:0] == 4'd4);
 
    assign i0_rs2_match_e3 = (i0_rs2_depth_d[3:0] == 4'd5 | 
-			     i0_rs2_depth_d[3:0] == 4'd6);
+                             i0_rs2_depth_d[3:0] == 4'd6);
 
    assign i0_rs1_match_e1_e2 = i0_rs1_match_e1 | i0_rs1_match_e2;
    assign i0_rs1_match_e1_e3 = i0_rs1_match_e1 | i0_rs1_match_e2 | i0_rs1_match_e3;
@@ -1759,33 +1759,33 @@ end : cam_array
    
 
    assign i0_secondary_d = ((i0_dp.alu & (i0_rs1_class_d.load | i0_rs1_class_d.mul) & i0_rs1_match_e1_e2) |
-			    (i0_dp.alu & (i0_rs2_class_d.load | i0_rs2_class_d.mul) & i0_rs2_match_e1_e2) |
-			    (i0_dp.alu & i0_rs1_class_d.sec & i0_rs1_match_e1_e3) |                      
-			    (i0_dp.alu & i0_rs2_class_d.sec & i0_rs2_match_e1_e3)) & ~disable_secondary;
+                            (i0_dp.alu & (i0_rs2_class_d.load | i0_rs2_class_d.mul) & i0_rs2_match_e1_e2) |
+                            (i0_dp.alu & i0_rs1_class_d.sec & i0_rs1_match_e1_e3) |                      
+                            (i0_dp.alu & i0_rs2_class_d.sec & i0_rs2_match_e1_e3)) & ~disable_secondary;
 
   // stall i0 until it's not a secondary for performance 
    assign i0_secondary_stall_d = ((i0_dp.alu & i1_rs1_depend_i0_d & ~i1_dp.alu & i0_secondary_d) |
-				  (i0_dp.alu & i1_rs2_depend_i0_d & ~i1_dp.alu & ~i1_dp.store & i0_secondary_d)) & ~disable_secondary;
+                                  (i0_dp.alu & i1_rs2_depend_i0_d & ~i1_dp.alu & ~i1_dp.store & i0_secondary_d)) & ~disable_secondary;
    
 
 
    assign i1_rs1_match_e1 = (i1_rs1_depth_d[3:0] == 4'd1 | 
-			     i1_rs1_depth_d[3:0] == 4'd2);
+                             i1_rs1_depth_d[3:0] == 4'd2);
    
    assign i1_rs1_match_e2 = (i1_rs1_depth_d[3:0] == 4'd3 | 
-			     i1_rs1_depth_d[3:0] == 4'd4);
+                             i1_rs1_depth_d[3:0] == 4'd4);
 
    assign i1_rs1_match_e3 = (i1_rs1_depth_d[3:0] == 4'd5 | 
-			     i1_rs1_depth_d[3:0] == 4'd6);
+                             i1_rs1_depth_d[3:0] == 4'd6);
 
    assign i1_rs2_match_e1 = (i1_rs2_depth_d[3:0] == 4'd1 | 
-			     i1_rs2_depth_d[3:0] == 4'd2);
+                             i1_rs2_depth_d[3:0] == 4'd2);
    
    assign i1_rs2_match_e2 = (i1_rs2_depth_d[3:0] == 4'd3 | 
-			     i1_rs2_depth_d[3:0] == 4'd4);
+                             i1_rs2_depth_d[3:0] == 4'd4);
 
    assign i1_rs2_match_e3 = (i1_rs2_depth_d[3:0] == 4'd5 | 
-			     i1_rs2_depth_d[3:0] == 4'd6);
+                             i1_rs2_depth_d[3:0] == 4'd6);
 
    assign i1_rs1_match_e1_e2 = i1_rs1_match_e1 | i1_rs1_match_e2;
    assign i1_rs1_match_e1_e3 = i1_rs1_match_e1 | i1_rs1_match_e2 | i1_rs1_match_e3;
@@ -1795,75 +1795,75 @@ end : cam_array
    
    
 
-			   
+                           
    assign i1_secondary_d = ((i1_dp.alu & (i1_rs1_class_d.load | i1_rs1_class_d.mul) & i1_rs1_match_e1_e2) |
-			    (i1_dp.alu & (i1_rs2_class_d.load | i1_rs2_class_d.mul) & i1_rs2_match_e1_e2) |
-			    (i1_dp.alu & (i1_rs1_class_d.sec) & i1_rs1_match_e1_e3) |                      
-			    (i1_dp.alu & (i1_rs2_class_d.sec) & i1_rs2_match_e1_e3) |
-			    (non_block_case_d & i1_depend_i0_d)) & ~disable_secondary;			   
-			   
+                            (i1_dp.alu & (i1_rs2_class_d.load | i1_rs2_class_d.mul) & i1_rs2_match_e1_e2) |
+                            (i1_dp.alu & (i1_rs1_class_d.sec) & i1_rs1_match_e1_e3) |                      
+                            (i1_dp.alu & (i1_rs2_class_d.sec) & i1_rs2_match_e1_e3) |
+                            (non_block_case_d & i1_depend_i0_d)) & ~disable_secondary;                     
+                           
    
    
    assign store_data_bypass_i0_e2_c2 = i0_dp.alu & ~i0_secondary_d & i1_rs2_depend_i0_d & ~i1_rs1_depend_i0_d & i1_dp.store;
 
    assign non_block_case_d = (  // (i1_dp.alu & i0_dp.alu & ~i0_secondary_d) | - not a good idea, bad for performance
-				(i1_dp.alu & i0_dp.load) |
-				(i1_dp.alu & i0_dp.mul)
-				) & ~disable_secondary;
+                                (i1_dp.alu & i0_dp.load) |
+                                (i1_dp.alu & i0_dp.mul)
+                                ) & ~disable_secondary;
    
 
    
 
    assign store_data_bypass_c2 =  ((             i0_dp.store & i0_rs2_depth_d[3:0] == 4'd1 & i0_rs2_class_d.load) |
-			      (             i0_dp.store & i0_rs2_depth_d[3:0] == 4'd2 & i0_rs2_class_d.load) |
-			      (~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd1 & i1_rs2_class_d.load) |
-			      (~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd2 & i1_rs2_class_d.load));
+                              (             i0_dp.store & i0_rs2_depth_d[3:0] == 4'd2 & i0_rs2_class_d.load) |
+                              (~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd1 & i1_rs2_class_d.load) |
+                              (~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd2 & i1_rs2_class_d.load));
    
    assign store_data_bypass_c1 =  ((             i0_dp.store & i0_rs2_depth_d[3:0] == 4'd3 & i0_rs2_class_d.load) |
-			      (             i0_dp.store & i0_rs2_depth_d[3:0] == 4'd4 & i0_rs2_class_d.load) |
-			      (~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd3 & i1_rs2_class_d.load) |
-			      (~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd4 & i1_rs2_class_d.load));
+                              (             i0_dp.store & i0_rs2_depth_d[3:0] == 4'd4 & i0_rs2_class_d.load) |
+                              (~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd3 & i1_rs2_class_d.load) |
+                              (~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd4 & i1_rs2_class_d.load));
    
    assign load_ldst_bypass_c1 =  ((         (i0_dp.load | i0_dp.store) & i0_rs1_depth_d[3:0] == 4'd3 & i0_rs1_class_d.load) |
-			      (             (i0_dp.load | i0_dp.store) & i0_rs1_depth_d[3:0] == 4'd4 & i0_rs1_class_d.load) |
-			      (~i0_dp.lsu & (i1_dp.load | i1_dp.store) & i1_rs1_depth_d[3:0] == 4'd3 & i1_rs1_class_d.load) |
-			      (~i0_dp.lsu & (i1_dp.load | i1_dp.store) & i1_rs1_depth_d[3:0] == 4'd4 & i1_rs1_class_d.load));
+                              (             (i0_dp.load | i0_dp.store) & i0_rs1_depth_d[3:0] == 4'd4 & i0_rs1_class_d.load) |
+                              (~i0_dp.lsu & (i1_dp.load | i1_dp.store) & i1_rs1_depth_d[3:0] == 4'd3 & i1_rs1_class_d.load) |
+                              (~i0_dp.lsu & (i1_dp.load | i1_dp.store) & i1_rs1_depth_d[3:0] == 4'd4 & i1_rs1_class_d.load));
    
    assign load_mul_rs1_bypass_e1 =  ((             (i0_dp.mul) & i0_rs1_depth_d[3:0] == 4'd3 & i0_rs1_class_d.load) |
-				     (             (i0_dp.mul) & i0_rs1_depth_d[3:0] == 4'd4 & i0_rs1_class_d.load) |
-				     (~i0_dp.mul & (i1_dp.mul) & i1_rs1_depth_d[3:0] == 4'd3 & i1_rs1_class_d.load) |
-				     (~i0_dp.mul & (i1_dp.mul) & i1_rs1_depth_d[3:0] == 4'd4 & i1_rs1_class_d.load));
+                                     (             (i0_dp.mul) & i0_rs1_depth_d[3:0] == 4'd4 & i0_rs1_class_d.load) |
+                                     (~i0_dp.mul & (i1_dp.mul) & i1_rs1_depth_d[3:0] == 4'd3 & i1_rs1_class_d.load) |
+                                     (~i0_dp.mul & (i1_dp.mul) & i1_rs1_depth_d[3:0] == 4'd4 & i1_rs1_class_d.load));
    
    assign load_mul_rs2_bypass_e1 =  ((             (i0_dp.mul) & i0_rs2_depth_d[3:0] == 4'd3 & i0_rs2_class_d.load) |
-				     (             (i0_dp.mul) & i0_rs2_depth_d[3:0] == 4'd4 & i0_rs2_class_d.load) |
-				     (~i0_dp.mul & (i1_dp.mul) & i1_rs2_depth_d[3:0] == 4'd3 & i1_rs2_class_d.load) |
-				     (~i0_dp.mul & (i1_dp.mul) & i1_rs2_depth_d[3:0] == 4'd4 & i1_rs2_class_d.load));
+                                     (             (i0_dp.mul) & i0_rs2_depth_d[3:0] == 4'd4 & i0_rs2_class_d.load) |
+                                     (~i0_dp.mul & (i1_dp.mul) & i1_rs2_depth_d[3:0] == 4'd3 & i1_rs2_class_d.load) |
+                                     (~i0_dp.mul & (i1_dp.mul) & i1_rs2_depth_d[3:0] == 4'd4 & i1_rs2_class_d.load));
    
 
    assign store_data_bypass_e4_c3[1:0] = {
-				      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd1 & i1_rs2_class_d.sec ) |
-				      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd1 & i0_rs2_class_d.sec ),
+                                      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd1 & i1_rs2_class_d.sec ) |
+                                      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd1 & i0_rs2_class_d.sec ),
 
-				      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd2 & i1_rs2_class_d.sec ) |
-				      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd2 & i0_rs2_class_d.sec )
-				     };
+                                      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd2 & i1_rs2_class_d.sec ) |
+                                      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd2 & i0_rs2_class_d.sec )
+                                     };
 
    assign store_data_bypass_e4_c2[1:0] = {
-				      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd3 & i1_rs2_class_d.sec ) |
-				      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd3 & i0_rs2_class_d.sec ),
+                                      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd3 & i1_rs2_class_d.sec ) |
+                                      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd3 & i0_rs2_class_d.sec ),
 
-				      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd4 & i1_rs2_class_d.sec ) |
-				      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd4 & i0_rs2_class_d.sec )
-				     };
+                                      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd4 & i1_rs2_class_d.sec ) |
+                                      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd4 & i0_rs2_class_d.sec )
+                                     };
 
 
    assign store_data_bypass_e4_c1[1:0] = {
-				      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd5 & i1_rs2_class_d.sec ) |
-				      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd5 & i0_rs2_class_d.sec ),
+                                      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd5 & i1_rs2_class_d.sec ) |
+                                      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd5 & i0_rs2_class_d.sec ),
 
-				      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd6 & i1_rs2_class_d.sec ) |
-				      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd6 & i0_rs2_class_d.sec )
-				     };
+                                      ( ~i0_dp.lsu & i1_dp.store & i1_rs2_depth_d[3:0] == 4'd6 & i1_rs2_class_d.sec ) |
+                                      (              i0_dp.store & i0_rs2_depth_d[3:0] == 4'd6 & i0_rs2_class_d.sec )
+                                     };
 
 
    
@@ -1872,26 +1872,26 @@ end : cam_array
    
 // stores will bypass load data in the lsu pipe
    assign i0_load_block_d = (i0_not_alu_eff & i0_rs1_class_d.load & i0_rs1_match_e1) |
-			    (i0_not_alu_eff & i0_rs1_class_d.load & i0_rs1_match_e2 & ~i0_dp.load & ~i0_dp.store & ~i0_dp.mul) | // can bypass load to address of load/store
-			    (i0_not_alu_eff & i0_rs2_class_d.load & i0_rs2_match_e1 & ~i0_dp.store) |
-			    (i0_not_alu_eff & i0_rs2_class_d.load & i0_rs2_match_e2 & ~i0_dp.store & ~i0_dp.mul);      
-			    
+                            (i0_not_alu_eff & i0_rs1_class_d.load & i0_rs1_match_e2 & ~i0_dp.load & ~i0_dp.store & ~i0_dp.mul) | // can bypass load to address of load/store
+                            (i0_not_alu_eff & i0_rs2_class_d.load & i0_rs2_match_e1 & ~i0_dp.store) |
+                            (i0_not_alu_eff & i0_rs2_class_d.load & i0_rs2_match_e2 & ~i0_dp.store & ~i0_dp.mul);      
+                            
    assign i1_load_block_d = (i1_not_alu_eff & i1_rs1_class_d.load & i1_rs1_match_e1) |
-			    (i1_not_alu_eff & i1_rs1_class_d.load & i1_rs1_match_e2 & ~i1_dp.load & ~i1_dp.store & ~i1_dp.mul) |
-			    (i1_not_alu_eff & i1_rs2_class_d.load & i1_rs2_match_e1 & ~i1_dp.store) |
-			    (i1_not_alu_eff & i1_rs2_class_d.load & i1_rs2_match_e2 & ~i1_dp.store & ~i1_dp.mul);			    
-			    
+                            (i1_not_alu_eff & i1_rs1_class_d.load & i1_rs1_match_e2 & ~i1_dp.load & ~i1_dp.store & ~i1_dp.mul) |
+                            (i1_not_alu_eff & i1_rs2_class_d.load & i1_rs2_match_e1 & ~i1_dp.store) |
+                            (i1_not_alu_eff & i1_rs2_class_d.load & i1_rs2_match_e2 & ~i1_dp.store & ~i1_dp.mul);                           
+                            
    assign i0_mul_block_d = (i0_not_alu_eff & i0_rs1_class_d.mul & i0_rs1_match_e1_e2) |
-			   (i0_not_alu_eff & i0_rs2_class_d.mul & i0_rs2_match_e1_e2);
-			    
+                           (i0_not_alu_eff & i0_rs2_class_d.mul & i0_rs2_match_e1_e2);
+                            
    assign i1_mul_block_d = (i1_not_alu_eff & i1_rs1_class_d.mul & i1_rs1_match_e1_e2) |
-			   (i1_not_alu_eff & i1_rs2_class_d.mul & i1_rs2_match_e1_e2);
-			    
+                           (i1_not_alu_eff & i1_rs2_class_d.mul & i1_rs2_match_e1_e2);
+                            
    assign i0_secondary_block_d = ((~i0_dp.alu & i0_rs1_class_d.sec & i0_rs1_match_e1_e3) |
-				  (~i0_dp.alu & i0_rs2_class_d.sec & i0_rs2_match_e1_e3 & ~i0_dp.store)) & ~disable_secondary;
+                                  (~i0_dp.alu & i0_rs2_class_d.sec & i0_rs2_match_e1_e3 & ~i0_dp.store)) & ~disable_secondary;
   
    assign i1_secondary_block_d = ((~i1_dp.alu & i1_rs1_class_d.sec & i1_rs1_match_e1_e3) |
-				  (~i1_dp.alu & i1_rs2_class_d.sec & i1_rs2_match_e1_e3 & ~i1_dp.store) & ~disable_secondary);
+                                  (~i1_dp.alu & i1_rs2_class_d.sec & i1_rs2_match_e1_e3 & ~i1_dp.store) & ~disable_secondary);
 
    
    // use this to flop the npc address of a divide for externals
@@ -1902,7 +1902,7 @@ end : cam_array
    assign dec_tlu_i0_valid_e4 = (e4d.i0valid & ~e4d.i0div & ~flush_lower_wb) | exu_div_finish;
    assign dec_tlu_i1_valid_e4 = e4d.i1valid & ~flush_lower_wb;
    
-			       
+                               
    trap_pkt_t   dt, e1t_in, e1t, e2t_in, e2t, e3t_in, e3t, e4t;
 
    assign dt.legal     =  i0_legal_decode_d                ;
@@ -1977,9 +1977,9 @@ end : cam_array
    always_comb begin
 
       if (exu_div_finish)    // wipe data for exu_div_finish - safer
-	dec_tlu_packet_e4 = '0;
+        dec_tlu_packet_e4 = '0;
       else
-	dec_tlu_packet_e4 = e4t;
+        dec_tlu_packet_e4 = e4t;
 
       dec_tlu_packet_e4.legal = e4t.legal | exu_div_finish;
       dec_tlu_packet_e4.i0trigger[3:0] = (exu_div_finish) ? div_trigger[3:0] : e4t.i0trigger[3:0];
@@ -1987,8 +1987,8 @@ end : cam_array
       dec_tlu_packet_e4.pmu_divide = exu_div_finish;
 
       if (freeze_e4) begin  // in case of freeze, pipe down trigger information
-	 dec_tlu_packet_e4.i0trigger[3:0] = e4t_i0trigger[3:0];
-	 dec_tlu_packet_e4.i1trigger[3:0] = e4t_i1trigger[3:0];
+         dec_tlu_packet_e4.i0trigger[3:0] = e4t_i0trigger[3:0];
+         dec_tlu_packet_e4.i1trigger[3:0] = e4t_i1trigger[3:0];
       end
       
    end   
@@ -2008,8 +2008,8 @@ end : cam_array
    assign i0_dc.mul   = i0_dp.mul & i0_legal_decode_d;
    assign i0_dc.load  = i0_dp.load & i0_legal_decode_d;
    assign i0_dc.sec = i0_dp.alu &  i0_secondary_d & i0_legal_decode_d;
-   assign i0_dc.alu = i0_dp.alu & ~i0_secondary_d & i0_legal_decode_d;					
-					
+   assign i0_dc.alu = i0_dp.alu & ~i0_secondary_d & i0_legal_decode_d;                                  
+                                        
    rvdffs #( $bits(class_pkt_t) ) i0_e1c_ff (.*, .en(i0_e1_ctl_en), .clk(active_clk), .din(i0_dc),   .dout(i0_e1c));
    rvdffs #( $bits(class_pkt_t) ) i0_e2c_ff (.*, .en(i0_e2_ctl_en), .clk(active_clk), .din(i0_e1c),  .dout(i0_e2c));
    rvdffs #( $bits(class_pkt_t) ) i0_e3c_ff (.*, .en(i0_e3_ctl_en), .clk(active_clk), .din(i0_e2c),  .dout(i0_e3c));
@@ -2018,14 +2018,14 @@ end : cam_array
    
    rvdffs  #( $bits(class_pkt_t) ) i0_e4c_ff (.*, .en(i0_e4_ctl_en),              .clk(active_clk), .din(i0_e4c_in), .dout(i0_e4c));
 
-   rvdffs  #( $bits(class_pkt_t) ) i0_wbc_ff (.*, .en(i0_wb_ctl_en),              .clk(active_clk), .din(i0_e4c),    .dout(i0_wbc));					
+   rvdffs  #( $bits(class_pkt_t) ) i0_wbc_ff (.*, .en(i0_wb_ctl_en),              .clk(active_clk), .din(i0_e4c),    .dout(i0_wbc));                                    
 
 
    assign i1_dc.mul   = i1_dp.mul & dec_i1_decode_d;
    assign i1_dc.load  = i1_dp.load & dec_i1_decode_d;   
    assign i1_dc.sec = i1_dp.alu &  i1_secondary_d & dec_i1_decode_d;
-   assign i1_dc.alu = i1_dp.alu & ~i1_secondary_d & dec_i1_decode_d;					
-					
+   assign i1_dc.alu = i1_dp.alu & ~i1_secondary_d & dec_i1_decode_d;                                    
+                                        
    rvdffs #( $bits(class_pkt_t) ) i1_e1c_ff (.*, .en(i0_e1_ctl_en), .clk(active_clk), .din(i1_dc),   .dout(i1_e1c));
    rvdffs #( $bits(class_pkt_t) ) i1_e2c_ff (.*, .en(i0_e2_ctl_en), .clk(active_clk), .din(i1_e1c),  .dout(i1_e2c));
    rvdffs #( $bits(class_pkt_t) ) i1_e3c_ff (.*, .en(i0_e3_ctl_en), .clk(active_clk), .din(i1_e2c),  .dout(i1_e3c));
@@ -2034,7 +2034,7 @@ end : cam_array
 
    rvdffs #( $bits(class_pkt_t) ) i1_e4c_ff (.*, .en(i0_e4_ctl_en), .clk(active_clk), .din(i1_e4c_in), .dout(i1_e4c));
 
-   rvdffs #( $bits(class_pkt_t) ) i1_wbc_ff (.*, .en(i0_wb_ctl_en), .clk(active_clk), .din(i1_e4c),    .dout(i1_wbc));					
+   rvdffs #( $bits(class_pkt_t) ) i1_wbc_ff (.*, .en(i0_wb_ctl_en), .clk(active_clk), .din(i1_e4c),    .dout(i1_wbc));                                  
        
    dest_pkt_t  dd, e1d, e2d, e3d, e4d, wbd;
 
@@ -2169,9 +2169,9 @@ end : cam_array
    always_comb begin
 
       if (exu_div_finish)    // wipe data for exu_div_finish - bug where csr_wen was set for fast divide
-	e4d_in = '0;
+        e4d_in = '0;
       else
-	e4d_in = e4d;
+        e4d_in = e4d;
 
 
       e4d_in.i0rd[4:0] = (exu_div_finish) ? div_waddr_wb[4:0] : e4d.i0rd[4:0];
@@ -2249,10 +2249,10 @@ end : cam_array
    rvdffe #(32) i1e4resultff (.*, .en(i1_e4_data_en), .din(i1_result_e3_final[31:0]), .dout(i1_result_e4[31:0]));   
    
    assign i0_result_e4_final[31:0] =
-				     (          e4d.i0secondary) ? exu_i0_result_e4[31:0] : (e4d.i0v & e4d.i0load) ? lsu_result_corr_dc4[31:0] : i0_result_e4[31:0];				    
+                                     (          e4d.i0secondary) ? exu_i0_result_e4[31:0] : (e4d.i0v & e4d.i0load) ? lsu_result_corr_dc4[31:0] : i0_result_e4[31:0];                                
    
    assign i1_result_e4_final[31:0] = 
-				     (e4d.i1v & e4d.i1secondary) ? exu_i1_result_e4[31:0] : (e4d.i1v & e4d.i1load) ? lsu_result_corr_dc4[31:0] :i1_result_e4[31:0];
+                                     (e4d.i1v & e4d.i1secondary) ? exu_i1_result_e4[31:0] : (e4d.i1v & e4d.i1load) ? lsu_result_corr_dc4[31:0] :i1_result_e4[31:0];
 
    rvdffe #(32) i0wbresultff (.*, .en(i0_wb_data_en), .din(i0_result_e4_final[31:0]), .dout(i0_result_wb_raw[31:0]));
    rvdffe #(32) i1wbresultff (.*, .en(i1_wb_data_en), .din(i1_result_e4_final[31:0]), .dout(i1_result_wb_raw[31:0]));   
@@ -2262,7 +2262,7 @@ end : cam_array
    assign i1_result_wb[31:0] = i1_result_wb_raw[31:0];
 
    logic [12:1] last_br_immed_e1, last_br_immed_e2;
-					  
+                                          
    rvdffe #(12) e1brpcff (.*, .en(i0_e1_data_en), .din(last_br_immed_d[12:1] ), .dout(last_br_immed_e1[12:1]));
    rvdffe #(12) e2brpcff (.*, .en(i0_e2_data_en), .din(last_br_immed_e1[12:1]), .dout(last_br_immed_e2[12:1]));
 
@@ -2338,10 +2338,10 @@ end : cam_array
    assign last_pc_e2[31:1] = (e2d.i1valid) ? i1_pc_e2[31:1] : i0_pc_e2[31:1];
    
    rvbradder ibradder_correct (
-		     .pc(last_pc_e2[31:1]),
-		     .offset(last_br_immed_e2[12:1]),
-		     .dout(pred_correct_npc_e2[31:1])
-		     );
+                     .pc(last_pc_e2[31:1]),
+                     .offset(last_br_immed_e2[12:1]),
+                     .dout(pred_correct_npc_e2[31:1])
+                     );
 
 
 
@@ -2358,51 +2358,51 @@ end : cam_array
 
    
    assign i0_rs1bypass[9:0] = {   i0_rs1_depth_d[3:0] == 4'd1  &  i0_rs1_class_d.alu,
-				  i0_rs1_depth_d[3:0] == 4'd2  &  i0_rs1_class_d.alu,
-				  i0_rs1_depth_d[3:0] == 4'd3  &  i0_rs1_class_d.alu,
-				  i0_rs1_depth_d[3:0] == 4'd4  &  i0_rs1_class_d.alu,
-				  i0_rs1_depth_d[3:0] == 4'd5  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul),
-				  i0_rs1_depth_d[3:0] == 4'd6  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul),
-				  i0_rs1_depth_d[3:0] == 4'd7  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul | i0_rs1_class_d.sec),
-				  i0_rs1_depth_d[3:0] == 4'd8  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul | i0_rs1_class_d.sec),
-				  i0_rs1_depth_d[3:0] == 4'd9  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul | i0_rs1_class_d.sec),
-				  i0_rs1_depth_d[3:0] == 4'd10 & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul | i0_rs1_class_d.sec) };
+                                  i0_rs1_depth_d[3:0] == 4'd2  &  i0_rs1_class_d.alu,
+                                  i0_rs1_depth_d[3:0] == 4'd3  &  i0_rs1_class_d.alu,
+                                  i0_rs1_depth_d[3:0] == 4'd4  &  i0_rs1_class_d.alu,
+                                  i0_rs1_depth_d[3:0] == 4'd5  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul),
+                                  i0_rs1_depth_d[3:0] == 4'd6  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul),
+                                  i0_rs1_depth_d[3:0] == 4'd7  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul | i0_rs1_class_d.sec),
+                                  i0_rs1_depth_d[3:0] == 4'd8  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul | i0_rs1_class_d.sec),
+                                  i0_rs1_depth_d[3:0] == 4'd9  & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul | i0_rs1_class_d.sec),
+                                  i0_rs1_depth_d[3:0] == 4'd10 & (i0_rs1_class_d.alu | i0_rs1_class_d.load | i0_rs1_class_d.mul | i0_rs1_class_d.sec) };
    
 
    assign i0_rs2bypass[9:0] = {   i0_rs2_depth_d[3:0] == 4'd1  &  i0_rs2_class_d.alu,
-				  i0_rs2_depth_d[3:0] == 4'd2  &  i0_rs2_class_d.alu,
-				  i0_rs2_depth_d[3:0] == 4'd3  &  i0_rs2_class_d.alu,
-				  i0_rs2_depth_d[3:0] == 4'd4  &  i0_rs2_class_d.alu,
-				  i0_rs2_depth_d[3:0] == 4'd5  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul),
-				  i0_rs2_depth_d[3:0] == 4'd6  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul),
-				  i0_rs2_depth_d[3:0] == 4'd7  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul | i0_rs2_class_d.sec),
-				  i0_rs2_depth_d[3:0] == 4'd8  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul | i0_rs2_class_d.sec),
-				  i0_rs2_depth_d[3:0] == 4'd9  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul | i0_rs2_class_d.sec),
-				  i0_rs2_depth_d[3:0] == 4'd10 & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul | i0_rs2_class_d.sec) };
+                                  i0_rs2_depth_d[3:0] == 4'd2  &  i0_rs2_class_d.alu,
+                                  i0_rs2_depth_d[3:0] == 4'd3  &  i0_rs2_class_d.alu,
+                                  i0_rs2_depth_d[3:0] == 4'd4  &  i0_rs2_class_d.alu,
+                                  i0_rs2_depth_d[3:0] == 4'd5  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul),
+                                  i0_rs2_depth_d[3:0] == 4'd6  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul),
+                                  i0_rs2_depth_d[3:0] == 4'd7  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul | i0_rs2_class_d.sec),
+                                  i0_rs2_depth_d[3:0] == 4'd8  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul | i0_rs2_class_d.sec),
+                                  i0_rs2_depth_d[3:0] == 4'd9  & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul | i0_rs2_class_d.sec),
+                                  i0_rs2_depth_d[3:0] == 4'd10 & (i0_rs2_class_d.alu | i0_rs2_class_d.load | i0_rs2_class_d.mul | i0_rs2_class_d.sec) };
    
 
    assign i1_rs1bypass[9:0] = {   i1_rs1_depth_d[3:0] == 4'd1  &  i1_rs1_class_d.alu,
-				  i1_rs1_depth_d[3:0] == 4'd2  &  i1_rs1_class_d.alu,
-				  i1_rs1_depth_d[3:0] == 4'd3  &  i1_rs1_class_d.alu,
-				  i1_rs1_depth_d[3:0] == 4'd4  &  i1_rs1_class_d.alu,
-				  i1_rs1_depth_d[3:0] == 4'd5  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul),
-				  i1_rs1_depth_d[3:0] == 4'd6  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul),
-				  i1_rs1_depth_d[3:0] == 4'd7  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul | i1_rs1_class_d.sec),
-				  i1_rs1_depth_d[3:0] == 4'd8  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul | i1_rs1_class_d.sec),
-				  i1_rs1_depth_d[3:0] == 4'd9  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul | i1_rs1_class_d.sec),
-				  i1_rs1_depth_d[3:0] == 4'd10 & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul | i1_rs1_class_d.sec) };
+                                  i1_rs1_depth_d[3:0] == 4'd2  &  i1_rs1_class_d.alu,
+                                  i1_rs1_depth_d[3:0] == 4'd3  &  i1_rs1_class_d.alu,
+                                  i1_rs1_depth_d[3:0] == 4'd4  &  i1_rs1_class_d.alu,
+                                  i1_rs1_depth_d[3:0] == 4'd5  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul),
+                                  i1_rs1_depth_d[3:0] == 4'd6  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul),
+                                  i1_rs1_depth_d[3:0] == 4'd7  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul | i1_rs1_class_d.sec),
+                                  i1_rs1_depth_d[3:0] == 4'd8  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul | i1_rs1_class_d.sec),
+                                  i1_rs1_depth_d[3:0] == 4'd9  & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul | i1_rs1_class_d.sec),
+                                  i1_rs1_depth_d[3:0] == 4'd10 & (i1_rs1_class_d.alu | i1_rs1_class_d.load | i1_rs1_class_d.mul | i1_rs1_class_d.sec) };
    
 
    assign i1_rs2bypass[9:0] = {   i1_rs2_depth_d[3:0] == 4'd1  &  i1_rs2_class_d.alu,
-				  i1_rs2_depth_d[3:0] == 4'd2  &  i1_rs2_class_d.alu,
-				  i1_rs2_depth_d[3:0] == 4'd3  &  i1_rs2_class_d.alu,
-				  i1_rs2_depth_d[3:0] == 4'd4  &  i1_rs2_class_d.alu,
-				  i1_rs2_depth_d[3:0] == 4'd5  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul),
-				  i1_rs2_depth_d[3:0] == 4'd6  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul),
-				  i1_rs2_depth_d[3:0] == 4'd7  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec),
-				  i1_rs2_depth_d[3:0] == 4'd8  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec),
-				  i1_rs2_depth_d[3:0] == 4'd9  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec),
-				  i1_rs2_depth_d[3:0] == 4'd10 & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec) };
+                                  i1_rs2_depth_d[3:0] == 4'd2  &  i1_rs2_class_d.alu,
+                                  i1_rs2_depth_d[3:0] == 4'd3  &  i1_rs2_class_d.alu,
+                                  i1_rs2_depth_d[3:0] == 4'd4  &  i1_rs2_class_d.alu,
+                                  i1_rs2_depth_d[3:0] == 4'd5  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul),
+                                  i1_rs2_depth_d[3:0] == 4'd6  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul),
+                                  i1_rs2_depth_d[3:0] == 4'd7  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec),
+                                  i1_rs2_depth_d[3:0] == 4'd8  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec),
+                                  i1_rs2_depth_d[3:0] == 4'd9  & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec),
+                                  i1_rs2_depth_d[3:0] == 4'd10 & (i1_rs2_class_d.alu | i1_rs2_class_d.load | i1_rs2_class_d.mul | i1_rs2_class_d.sec) };
    
 
 
@@ -2415,50 +2415,50 @@ end : cam_array
    
 
    assign i0_rs1_bypass_data_d[31:0] = ({32{i0_rs1bypass[9]}} & i1_result_e1[31:0]) |
-				       ({32{i0_rs1bypass[8]}} & i0_result_e1[31:0]) |
-				       ({32{i0_rs1bypass[7]}} & i1_result_e2[31:0]) |
-				       ({32{i0_rs1bypass[6]}} & i0_result_e2[31:0]) |
-				       ({32{i0_rs1bypass[5]}} & i1_result_e3_final[31:0]) |
-				       ({32{i0_rs1bypass[4]}} & i0_result_e3_final[31:0]) |
-				       ({32{i0_rs1bypass[3]}} & i1_result_e4_final[31:0]) |
-				       ({32{i0_rs1bypass[2]}} & i0_result_e4_final[31:0]) |
-				       ({32{i0_rs1bypass[1]}} & i1_result_wb[31:0]) |
-				       ({32{i0_rs1bypass[0]}} & i0_result_wb[31:0]);
+                                       ({32{i0_rs1bypass[8]}} & i0_result_e1[31:0]) |
+                                       ({32{i0_rs1bypass[7]}} & i1_result_e2[31:0]) |
+                                       ({32{i0_rs1bypass[6]}} & i0_result_e2[31:0]) |
+                                       ({32{i0_rs1bypass[5]}} & i1_result_e3_final[31:0]) |
+                                       ({32{i0_rs1bypass[4]}} & i0_result_e3_final[31:0]) |
+                                       ({32{i0_rs1bypass[3]}} & i1_result_e4_final[31:0]) |
+                                       ({32{i0_rs1bypass[2]}} & i0_result_e4_final[31:0]) |
+                                       ({32{i0_rs1bypass[1]}} & i1_result_wb[31:0]) |
+                                       ({32{i0_rs1bypass[0]}} & i0_result_wb[31:0]);
    
 
    assign i0_rs2_bypass_data_d[31:0] = ({32{i0_rs2bypass[9]}} & i1_result_e1[31:0]) |
-				       ({32{i0_rs2bypass[8]}} & i0_result_e1[31:0]) |
-				       ({32{i0_rs2bypass[7]}} & i1_result_e2[31:0]) |
-				       ({32{i0_rs2bypass[6]}} & i0_result_e2[31:0]) |
-				       ({32{i0_rs2bypass[5]}} & i1_result_e3_final[31:0]) |
-				       ({32{i0_rs2bypass[4]}} & i0_result_e3_final[31:0]) |
-				       ({32{i0_rs2bypass[3]}} & i1_result_e4_final[31:0]) |
-				       ({32{i0_rs2bypass[2]}} & i0_result_e4_final[31:0]) |
-				       ({32{i0_rs2bypass[1]}} & i1_result_wb[31:0]) |
-				       ({32{i0_rs2bypass[0]}} & i0_result_wb[31:0]);
+                                       ({32{i0_rs2bypass[8]}} & i0_result_e1[31:0]) |
+                                       ({32{i0_rs2bypass[7]}} & i1_result_e2[31:0]) |
+                                       ({32{i0_rs2bypass[6]}} & i0_result_e2[31:0]) |
+                                       ({32{i0_rs2bypass[5]}} & i1_result_e3_final[31:0]) |
+                                       ({32{i0_rs2bypass[4]}} & i0_result_e3_final[31:0]) |
+                                       ({32{i0_rs2bypass[3]}} & i1_result_e4_final[31:0]) |
+                                       ({32{i0_rs2bypass[2]}} & i0_result_e4_final[31:0]) |
+                                       ({32{i0_rs2bypass[1]}} & i1_result_wb[31:0]) |
+                                       ({32{i0_rs2bypass[0]}} & i0_result_wb[31:0]);
    
    assign i1_rs1_bypass_data_d[31:0] = ({32{i1_rs1bypass[9]}} & i1_result_e1[31:0]) |
-				       ({32{i1_rs1bypass[8]}} & i0_result_e1[31:0]) |
-				       ({32{i1_rs1bypass[7]}} & i1_result_e2[31:0]) |
-				       ({32{i1_rs1bypass[6]}} & i0_result_e2[31:0]) |
-				       ({32{i1_rs1bypass[5]}} & i1_result_e3_final[31:0]) |
-				       ({32{i1_rs1bypass[4]}} & i0_result_e3_final[31:0]) |
-				       ({32{i1_rs1bypass[3]}} & i1_result_e4_final[31:0]) |
-				       ({32{i1_rs1bypass[2]}} & i0_result_e4_final[31:0]) |
-				       ({32{i1_rs1bypass[1]}} & i1_result_wb[31:0]) |
-				       ({32{i1_rs1bypass[0]}} & i0_result_wb[31:0]);
+                                       ({32{i1_rs1bypass[8]}} & i0_result_e1[31:0]) |
+                                       ({32{i1_rs1bypass[7]}} & i1_result_e2[31:0]) |
+                                       ({32{i1_rs1bypass[6]}} & i0_result_e2[31:0]) |
+                                       ({32{i1_rs1bypass[5]}} & i1_result_e3_final[31:0]) |
+                                       ({32{i1_rs1bypass[4]}} & i0_result_e3_final[31:0]) |
+                                       ({32{i1_rs1bypass[3]}} & i1_result_e4_final[31:0]) |
+                                       ({32{i1_rs1bypass[2]}} & i0_result_e4_final[31:0]) |
+                                       ({32{i1_rs1bypass[1]}} & i1_result_wb[31:0]) |
+                                       ({32{i1_rs1bypass[0]}} & i0_result_wb[31:0]);
    
 
    assign i1_rs2_bypass_data_d[31:0] = ({32{i1_rs2bypass[9]}} & i1_result_e1[31:0]) |
-				       ({32{i1_rs2bypass[8]}} & i0_result_e1[31:0]) |
-				       ({32{i1_rs2bypass[7]}} & i1_result_e2[31:0]) |
-				       ({32{i1_rs2bypass[6]}} & i0_result_e2[31:0]) |
-				       ({32{i1_rs2bypass[5]}} & i1_result_e3_final[31:0]) |
-				       ({32{i1_rs2bypass[4]}} & i0_result_e3_final[31:0]) |
-				       ({32{i1_rs2bypass[3]}} & i1_result_e4_final[31:0]) |
-				       ({32{i1_rs2bypass[2]}} & i0_result_e4_final[31:0]) |
-				       ({32{i1_rs2bypass[1]}} & i1_result_wb[31:0]) |
-				       ({32{i1_rs2bypass[0]}} & i0_result_wb[31:0]);
+                                       ({32{i1_rs2bypass[8]}} & i0_result_e1[31:0]) |
+                                       ({32{i1_rs2bypass[7]}} & i1_result_e2[31:0]) |
+                                       ({32{i1_rs2bypass[6]}} & i0_result_e2[31:0]) |
+                                       ({32{i1_rs2bypass[5]}} & i1_result_e3_final[31:0]) |
+                                       ({32{i1_rs2bypass[4]}} & i0_result_e3_final[31:0]) |
+                                       ({32{i1_rs2bypass[3]}} & i1_result_e4_final[31:0]) |
+                                       ({32{i1_rs2bypass[2]}} & i0_result_e4_final[31:0]) |
+                                       ({32{i1_rs2bypass[1]}} & i1_result_wb[31:0]) |
+                                       ({32{i1_rs2bypass[0]}} & i0_result_wb[31:0]);
    
    
    

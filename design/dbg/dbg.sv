@@ -121,7 +121,7 @@ module dbg (
    
    state_t       dbg_state;       
    state_t       dbg_nxtstate;
-   logic  	 dbg_state_en;
+   logic         dbg_state_en;
    // these are the registers that the debug module implements
    logic [31:0]  dmstatus_reg;        // [26:24]-dmerr, [17:16]-resume ack, [9:8]-halted, [3:0]-version
    logic [31:0]  dmcontrol_reg;       // dmcontrol register has only 6 bits implemented. 31: haltreq, 30: resumereq, 29: haltreset, 28: ackhavereset, 1: ndmreset, 0: dmactive.
@@ -167,13 +167,13 @@ module dbg (
 
    //System bus section
    logic              sbcs_wren; 
-   logic 	      sbcs_sbbusy_wren;
+   logic              sbcs_sbbusy_wren;
    logic              sbcs_sbbusy_din;
-   logic 	      sbcs_sbbusyerror_wren;
+   logic              sbcs_sbbusyerror_wren;
    logic              sbcs_sbbusyerror_din;
    
    logic              sbcs_sberror_wren;
-   logic [2:0] 	      sbcs_sberror_din;
+   logic [2:0]        sbcs_sberror_din;
    logic              sbcs_unaligned;
    logic              sbcs_illegal_size;
    
@@ -192,7 +192,7 @@ module dbg (
    logic              sbaddress0_reg_wren1;
    logic              sbaddress0_reg_wren;
    logic [31:0]       sbaddress0_reg_din;
-   logic [3:0] 	      sbaddress0_incr;
+   logic [3:0]        sbaddress0_incr;
    logic              sbreadonaddr_access;
    logic              sbreadondata_access;
    logic              sbdata0wr_access;
@@ -268,8 +268,8 @@ module dbg (
 
    assign sbaddress0_incr[3:0] = ({4{(sbcs_reg[19:17] == 3'b000)}} &  4'b0001) |
                                  ({4{(sbcs_reg[19:17] == 3'b001)}} &  4'b0010) |
-				 ({4{(sbcs_reg[19:17] == 3'b010)}} &  4'b0100) |
-				 ({4{(sbcs_reg[19:17] == 3'b100)}} &  4'b1000);
+                                 ({4{(sbcs_reg[19:17] == 3'b010)}} &  4'b0100) |
+                                 ({4{(sbcs_reg[19:17] == 3'b100)}} &  4'b1000);
  
    // sbdata     
    //assign        sbdata0_reg_wren0   = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 32'h3c);
@@ -350,7 +350,7 @@ module dbg (
    assign        abstractcs_error_sel4 = (dmi_reg_addr ==  7'h17) & dmi_reg_en & dmi_reg_wr_en & 
                                          ( ((dmi_reg_wdata[22:20] == 3'b001) &  data1_reg[0]) |  
                                            ((dmi_reg_wdata[22:20] == 3'b010) &  (|data1_reg[1:0])) |  
-			                   dmi_reg_wdata[22] | (dmi_reg_wdata[22:20] == 3'b011)
+                                           dmi_reg_wdata[22] | (dmi_reg_wdata[22:20] == 3'b011)
                                            );
    
    assign        abstractcs_error_sel5 = (dmi_reg_addr ==  7'h16) & dmi_reg_en & dmi_reg_wr_en;
@@ -361,7 +361,7 @@ module dbg (
                                               ({3{abstractcs_error_sel1}} & 3'b010) |       // writing a non-zero command to cmd field of command
                                               ({3{abstractcs_error_sel2}} & 3'b011) |       // exception while running command
                                               ({3{abstractcs_error_sel3}} & 3'b100) |       // writing a comnand when not in the halted state
-					      ({3{abstractcs_error_sel4}} & 3'b111) |       // unaligned abstract memory command
+                                              ({3{abstractcs_error_sel4}} & 3'b111) |       // unaligned abstract memory command
                                               ({3{abstractcs_error_sel5}} & ~dmi_reg_wdata[10:8] & abstractcs_reg[10:8]) |        // W1C
                                               ({3{~abstractcs_error_selor}} & abstractcs_reg[10:8]);                              // hold
    
@@ -414,37 +414,37 @@ module dbg (
             HALTING : begin
                      dbg_nxtstate         = HALTED;                                        // Goto HALTED once the core sends an ACK
                      dbg_state_en         = dmstatus_reg[9];                               // core indicates halted
-	    end
+            end
             HALTED: begin
                      // wait for halted to go away before send to resume. Else start of new command
                      dbg_nxtstate         = (dmstatus_reg[9] & ~dmcontrol_reg[1]) ? ((dmcontrol_reg[30] & ~dmcontrol_reg[31]) ? RESUMING : CMD_START) : 
                                                                                     (dmcontrol_reg[31] ? HALTING : IDLE);       // This is MPC halted case
                      //dbg_nxtstate         = dmcontrol_reg[1] ? IDLE : (dmcontrol_reg[30] & ~dmcontrol_reg[31]) ? RESUMING : CMD_START; // wait for halted to go away before send to resume. Else start of new command
-           	     dbg_state_en         = (dmstatus_reg[9] & dmcontrol_reg[30] & ~dmcontrol_reg[31] & dmcontrol_wren_Q) | command_wren | dmcontrol_reg[1] | ~(dmstatus_reg[9] | dec_tlu_mpc_halted_only);
+                     dbg_state_en         = (dmstatus_reg[9] & dmcontrol_reg[30] & ~dmcontrol_reg[31] & dmcontrol_wren_Q) | command_wren | dmcontrol_reg[1] | ~(dmstatus_reg[9] | dec_tlu_mpc_halted_only);
                      abstractcs_busy_wren = dbg_state_en & (dbg_nxtstate == CMD_START);                      // write busy when a new command was written by jtag
                      abstractcs_busy_din  = 1'b1;                                                            
                      dbg_resume_req       = dbg_state_en & (dbg_nxtstate == RESUMING);                       // single cycle pulse to core if resuming 
-	    end
+            end
             CMD_START: begin
                      dbg_nxtstate         = (|abstractcs_reg[10:8]) ? CMD_DONE : CMD_WAIT;                   // new command sent to the core                   
                      dbg_state_en         = dbg_cmd_valid | (|abstractcs_reg[10:8]);                               
-   	    end 
+            end 
             CMD_WAIT: begin
                      dbg_nxtstate         = CMD_DONE;                                           
                      dbg_state_en         = core_dbg_cmd_done;                   // go to done state for one cycle after completing current command
             end
-	    CMD_DONE: begin
+            CMD_DONE: begin
                      dbg_nxtstate         = HALTED;                          
                      dbg_state_en         = 1'b1;
-	             abstractcs_busy_wren = dbg_state_en;                    // remove the busy bit from the abstracts ( bit 12 )
+                     abstractcs_busy_wren = dbg_state_en;                    // remove the busy bit from the abstracts ( bit 12 )
                      abstractcs_busy_din  = 1'b0;
             end
-	    RESUMING : begin
-   	             dbg_nxtstate            = IDLE;                         
+            RESUMING : begin
+                     dbg_nxtstate            = IDLE;                         
                      dbg_state_en            = dmstatus_reg[17];             // resume ack has been updated in the dmstatus register
            end
            default : begin
-	             dbg_nxtstate            = IDLE;
+                     dbg_nxtstate            = IDLE;
                      dbg_state_en            = 1'b0;
                      abstractcs_busy_wren    = 1'b0;
                      abstractcs_busy_din     = 1'b0;
@@ -461,7 +461,7 @@ module dbg (
                                     ({32{dmi_reg_addr == 7'h16}} & abstractcs_reg[31:0]) |   
                                     ({32{dmi_reg_addr == 7'h17}} & command_reg[31:0])    |
                                     ({32{dmi_reg_addr == 7'h40}} & haltsum0_reg[31:0])   |
-				    ({32{dmi_reg_addr == 7'h38}} & sbcs_reg[31:0])       |
+                                    ({32{dmi_reg_addr == 7'h38}} & sbcs_reg[31:0])       |
                                     ({32{dmi_reg_addr == 7'h39}} & sbaddress0_reg[31:0]) | 
                                     ({32{dmi_reg_addr == 7'h3c}} & sbdata0_reg[31:0])    |  
                                     ({32{dmi_reg_addr == 7'h3d}} & sbdata1_reg[31:0]);
@@ -495,58 +495,58 @@ module dbg (
       case (sb_state)
             SBIDLE: begin
                      sb_nxtstate            = sbdata0wr_access ? WAIT_WR : WAIT_RD;
-	             sb_state_en            = sbdata0wr_access | sbreadondata_access | sbreadonaddr_access;
-	             sbcs_sbbusy_wren       = sb_state_en;                                                 // set the single read bit if it is a singlread command
-	             sbcs_sbbusy_din        = 1'b1;
+                     sb_state_en            = sbdata0wr_access | sbreadondata_access | sbreadonaddr_access;
+                     sbcs_sbbusy_wren       = sb_state_en;                                                 // set the single read bit if it is a singlread command
+                     sbcs_sbbusy_din        = 1'b1;
                      sbcs_sberror_wren      = sbcs_wren & (|dmi_reg_wdata[14:12]);                                            // write to clear the error bits
-	             sbcs_sberror_din[2:0]  = ~dmi_reg_wdata[14:12] & sbcs_reg[14:12];
+                     sbcs_sberror_din[2:0]  = ~dmi_reg_wdata[14:12] & sbcs_reg[14:12];
             end               
             WAIT_RD: begin
                      sb_nxtstate           = (sbcs_unaligned | sbcs_illegal_size) ? DONE : CMD_RD;
                      sb_state_en           = dbg_bus_clk_en | sbcs_unaligned | sbcs_illegal_size;
                      sbcs_sberror_wren     = sbcs_unaligned | sbcs_illegal_size;
-	             sbcs_sberror_din[2:0] = sbcs_unaligned ? 3'b011 : 3'b100;
+                     sbcs_sberror_din[2:0] = sbcs_unaligned ? 3'b011 : 3'b100;
             end
             WAIT_WR: begin
                      sb_nxtstate           = (sbcs_unaligned | sbcs_illegal_size) ? DONE : CMD_WR;
                      sb_state_en           = dbg_bus_clk_en | sbcs_unaligned | sbcs_illegal_size;
                      sbcs_sberror_wren     = sbcs_unaligned | sbcs_illegal_size;
-	             sbcs_sberror_din[2:0] = sbcs_unaligned ? 3'b011 : 3'b100;
+                     sbcs_sberror_din[2:0] = sbcs_unaligned ? 3'b011 : 3'b100;
             end
-            CMD_RD : begin	      
-	             sb_nxtstate           = RSP_RD; 
+            CMD_RD : begin            
+                     sb_nxtstate           = RSP_RD; 
                      sb_state_en           = sb_axi_arvalid_q & sb_axi_arready_q & dbg_bus_clk_en;
-	    end		      
-            CMD_WR : begin	      
-	             sb_nxtstate           = (sb_axi_awready_q & sb_axi_wready_q) ? RSP_WR : (sb_axi_awready_q ? CMD_WR_DATA : CMD_WR_ADDR); 
+            end               
+            CMD_WR : begin            
+                     sb_nxtstate           = (sb_axi_awready_q & sb_axi_wready_q) ? RSP_WR : (sb_axi_awready_q ? CMD_WR_DATA : CMD_WR_ADDR); 
                      sb_state_en           = ((sb_axi_awvalid_q & sb_axi_awready_q) | (sb_axi_wvalid_q & sb_axi_wready_q)) & dbg_bus_clk_en;
-	    end		      
-            CMD_WR_ADDR : begin	      
-	             sb_nxtstate           = RSP_WR; 
+            end               
+            CMD_WR_ADDR : begin       
+                     sb_nxtstate           = RSP_WR; 
                      sb_state_en           = sb_axi_awvalid_q & sb_axi_awready_q & dbg_bus_clk_en;
-	    end		      
-            CMD_WR_DATA : begin	      
-	             sb_nxtstate           = RSP_WR; 
+            end               
+            CMD_WR_DATA : begin       
+                     sb_nxtstate           = RSP_WR; 
                      sb_state_en           = sb_axi_wvalid_q & sb_axi_wready_q & dbg_bus_clk_en;
-	    end		      
-            RSP_RD: begin	      
+            end               
+            RSP_RD: begin             
                      sb_nxtstate           = DONE;
-	             sb_state_en           = sb_axi_rvalid_q & sb_axi_rready_q & dbg_bus_clk_en;
+                     sb_state_en           = sb_axi_rvalid_q & sb_axi_rready_q & dbg_bus_clk_en;
                      sbcs_sberror_wren     = sb_state_en & sb_axi_rresp_q[1];
-	             sbcs_sberror_din[2:0] = 3'b010;
-            end		      
-            RSP_WR: begin	      
+                     sbcs_sberror_din[2:0] = 3'b010;
+            end               
+            RSP_WR: begin             
                      sb_nxtstate           = DONE;
-	             sb_state_en           = sb_axi_bvalid_q & sb_axi_bready_q & dbg_bus_clk_en;
+                     sb_state_en           = sb_axi_bvalid_q & sb_axi_bready_q & dbg_bus_clk_en;
                      sbcs_sberror_wren     = sb_state_en & sb_axi_bresp_q[1];
-	             sbcs_sberror_din[2:0] = 3'b010;
-            end		      
-    	    DONE: begin	      
+                     sbcs_sberror_din[2:0] = 3'b010;
+            end               
+            DONE: begin       
                      sb_nxtstate            = SBIDLE;
                      sb_state_en            = 1'b1;
-	             sbcs_sbbusy_wren       = 1'b1;                           // reset the single read
+                     sbcs_sbbusy_wren       = 1'b1;                           // reset the single read
                      sbcs_sbbusy_din        = 1'b0;
-	             sbaddress0_reg_wren1   = sbcs_reg[16];                   // auto increment was set. Update to new address after completing the current command	       
+                     sbaddress0_reg_wren1   = sbcs_reg[16];                   // auto increment was set. Update to new address after completing the current command            
             end
             default : begin 
                      sb_nxtstate            = SBIDLE;
