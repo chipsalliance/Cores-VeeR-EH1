@@ -3,8 +3,8 @@
 1. SWERV core RISCV compatibility improvements
     * The ebreak and ecall instructions are no longer counted in the MINSRET
 	  control and status register.
-    * Write to SBDATA0 does not start an SB write access when
-	  sbreadonaddr/dbreadondata is set.
+    * Write to SBDATA0 does not start SB write access when both
+	  sbreadonaddr/sbreadondata are zero.
 
 1. FPGA support: Add fpga_optimize option to swerv.config which
    eliminates over 90% of clock-gating enabling faster FPGA
