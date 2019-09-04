@@ -100,7 +100,9 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
 
    logic        [31:0]                  cycleCnt       ;
    logic                                mailbox_data_val;
+`ifndef VERILATOR
    logic                                finished;
+`endif
 
    wire                                 dma_hready_out;
 
