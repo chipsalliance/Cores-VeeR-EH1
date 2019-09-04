@@ -1,3 +1,8 @@
+# SweRV RISC-V Core<sup>TM</sup> 1.3 from Western Digital
+## Release Notes
+1. Make the FPGA optimization code work with the latest version of Verilator.
+1. Move JTAG TAP to swerv_wrapper module.
+
 # SweRV RISC-V Core<sup>TM</sup> 1.2 from Western Digital
 ## Release Notes
 1. SWERV core RISCV compatibility improvements

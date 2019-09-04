@@ -393,6 +393,13 @@ module swerv_wrapper
    logic        icm_clk_override;
    logic        dec_tlu_core_ecc_disable;
   
+   logic        dmi_reg_en;
+   logic [6:0]  dmi_reg_addr;
+   logic        dmi_reg_wr_en;
+   logic [31:0] dmi_reg_wdata;
+   logic [31:0] dmi_reg_rdata;
+   logic        dmi_hard_reset;
+
    // Instantiate the swerv core
    swerv swerv (
           .*
@@ -403,7 +410,30 @@ module swerv_wrapper
         .rst_l(core_rst_l),
         .*
         );
-                 
-                 
+
+  // Instantiate the JTAG/DMI
+   dmi_wrapper  dmi_wrapper (
+           .scan_mode(scan_mode),           // scan mode
+
+           // JTAG signals
+           .trst_n(jtag_trst_n),           // JTAG reset
+           .tck   (jtag_tck),              // JTAG clock
+           .tms   (jtag_tms),              // Test mode select
+           .tdi   (jtag_tdi),              // Test Data Input
+           .tdo   (jtag_tdo),              // Test Data Output
+           .tdoEnable (),                  // Test Data Output enable
+
+           // Processor Signals
+           .core_rst_n  (core_rst_l),     // Core reset, active low
+           .core_clk    (clk),            // Core clock
+           .jtag_id     (jtag_id),        // 32 bit JTAG ID
+           .rd_data     (dmi_reg_rdata),  // 32 bit Read data from  Processor
+           .reg_wr_data (dmi_reg_wdata),  // 32 bit Write data to Processor
+           .reg_wr_addr (dmi_reg_addr),   // 32 bit Write address to Processor
+           .reg_en      (dmi_reg_en),     // 1 bit  Write interface bit to Processor
+           .reg_wr_en   (dmi_reg_wr_en),   // 1 bit  Write enable to Processor
+           .dmi_hard_reset   (dmi_hard_reset)   //a hard reset of the DTM, causing the DTM to forget about any outstanding DMI transactions
+);
+
 endmodule
    

@@ -1,6 +1,6 @@
-# SweRV RISC-V Core<sup>TM</sup> 1.2 from Western Digital
+# SweRV RISC-V Core<sup>TM</sup> 1.3 from Western Digital
 
-This repository contains the SweRV Core<sup>TM</sup> 1.2 design RTL. The previous version can be found in [branch 1.1.](https://github.com/chipsalliance/Cores-SweRV/tree/branch1.1)
+This repository contains the SweRV Core<sup>TM</sup> 1.3 design RTL. The previous version can be found in [branch 1.2.](https://github.com/chipsalliance/Cores-SweRV/tree/branch1.2)
 The SweRV 1 series provides a 32-bit, machine-mode only, implementation of the RISC-V ISA including options I (base integer), M (multiply/divide) and C (compressed instructions from I and M).
 
 ## License

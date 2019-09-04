@@ -143,30 +143,23 @@ module rvdffe #( parameter WIDTH=1 )
 
    logic                      l1clk;
 
-`ifdef RV_FPGA_OPTIMIZE
-
-`ifndef PHYSICAL   
-   begin: genblock
-`endif
-     rvdffs #(WIDTH) dff ( .* );
-`ifndef PHYSICAL   
-   end
-`endif
-
-`else
-   
 `ifndef PHYSICAL   
    if (WIDTH >= 8) begin: genblock
 `endif
+
+`ifdef RV_FPGA_OPTIMIZE
+      rvdffs #(WIDTH) dff ( .* );
+`else
       rvclkhdr clkhdr ( .* );
       rvdff #(WIDTH) dff (.*, .clk(l1clk));
+`endif
+
 `ifndef PHYSICAL
    end
    else 
       $error("%m: rvdffe width must be >= 8");
 `endif
-
-`endif
+   
    
 endmodule // rvdffe
 
