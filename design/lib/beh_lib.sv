@@ -108,7 +108,7 @@ module rvclkhdr
    logic        TE;
    assign       TE = scan_mode;
    
-   `TEC_RV_ICG rvclkhdr ( .*, .E(en), .CP(clk), .Q(l1clk));
+   `TEC_RV_ICG clkhdr ( .*, .E(en), .CP(clk), .Q(l1clk));
 
 endmodule
 
@@ -126,7 +126,7 @@ module rvoclkhdr
 `ifdef RV_FPGA_OPTIMIZE
    assign l1clk = clk;
 `else
-   `TEC_RV_ICG rvclkhdr ( .*, .E(en), .CP(clk), .Q(l1clk));
+   `TEC_RV_ICG clkhdr ( .*, .E(en), .CP(clk), .Q(l1clk));
 `endif
 
 endmodule
