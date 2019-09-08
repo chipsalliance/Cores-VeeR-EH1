@@ -118,7 +118,7 @@ You can re-execute using
     End of sim
 
 A vcd file `sim.vcd` is created which can be browsed by gtkwave or similar waveform viewers. `trace_port.csv` contains a log of
-the trace port.
+the trace port. `exec.log` contains a basic execution trace showing PC, opcode and GPR writes.
 
 The Makefile allows you to specify different assembly files from command line
      
