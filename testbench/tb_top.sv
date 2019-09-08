@@ -105,7 +105,11 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
 `endif
 
    wire                                 dma_hready_out;
+   integer                              commit_count;
 
+   logic                                wb_valid[1:0];
+   logic [4:0]                          wb_dest[1:0];
+   logic [31:0]                         wb_data[1:0];
 
    //assign mailbox_write = &{i_ahb_lsu.Write, i_ahb_lsu.Last_HADDR==32'hD0580000, i_ahb_lsu.HRESETn==1};
    assign mailbox_write = i_ahb_lsu.mailbox_write;
@@ -118,6 +122,8 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
    assign jtag_id[27:12] = '0;
    assign jtag_id[11:1]  = 11'h45;
 
+
+
 `ifndef VERILATOR
    `define FORCE force
 `else
@@ -128,9 +134,10 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
    integer fd;
    initial begin
      fd = $fopen("console.log","w");
+     commit_count = 0;
    end
 
-   integer tp;
+   integer tp,el;
 
    always @(posedge core_clk or negedge reset_l) begin
      if( reset_l == 0)
@@ -160,15 +167,31 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
 
    always @(posedge finished) begin
         $display("\n\nFinished : minstret = %0d, mcycle = %0d", rvtop.swerv.dec.tlu.minstretl[31:0],rvtop.swerv.dec.tlu.mcyclel[31:0]);
+        $display("\n\nSee \"exec.log\" for execution trace with register updates..\n");
 `ifndef VERILATOR
         $finish;
 `endif
      end
 
-   always @(posedge core_clk)
-       if (rvtop.trace_rv_i_valid_ip !== 0) begin
-        $fwrite(tp,"%b,%h,%h,%0h,%0h,3,%b,%h,%h,%b\n", rvtop.trace_rv_i_valid_ip, rvtop.trace_rv_i_address_ip[63:32], rvtop.trace_rv_i_address_ip[31:0], rvtop.trace_rv_i_insn_ip[63:32], rvtop.trace_rv_i_insn_ip[31:0],rvtop.trace_rv_i_exception_ip,rvtop.trace_rv_i_ecause_ip,rvtop.trace_rv_i_tval_ip,rvtop.trace_rv_i_interrupt_ip);
+     always @(posedge core_clk) begin
+         wb_valid[1:0]  <= '{rvtop.swerv.dec.dec_i1_wen_wb & ~rvtop.swerv.dec.decode.dec_tlu_i1_kill_writeb_wb, 
+                             rvtop.swerv.dec.decode.wbd.i0v & ~rvtop.swerv.dec.decode.dec_tlu_i0_kill_writeb_wb};
+         wb_dest[1:0]   <= '{rvtop.swerv.dec.dec_i1_waddr_wb, rvtop.swerv.dec.dec_i0_waddr_wb};
+         wb_data[1:0]   <= '{rvtop.swerv.dec.dec_i1_wdata_wb, rvtop.swerv.dec.dec_i0_wdata_wb};
+        if (rvtop.trace_rv_i_valid_ip !== 0) begin
+            $fwrite(tp,"%b,%h,%h,%0h,%0h,3,%b,%h,%h,%b\n", rvtop.trace_rv_i_valid_ip, rvtop.trace_rv_i_address_ip[63:32], rvtop.trace_rv_i_address_ip[31:0], rvtop.trace_rv_i_insn_ip[63:32], rvtop.trace_rv_i_insn_ip[31:0],rvtop.trace_rv_i_exception_ip,rvtop.trace_rv_i_ecause_ip,rvtop.trace_rv_i_tval_ip,rvtop.trace_rv_i_interrupt_ip);
+            // Basic trace - no exception register updates
+            // #1 0 ee000000 b0201073 c 0b02       00000000
+            if (rvtop.trace_rv_i_valid_ip[0]==1) begin
+                commit_count ++;
+                $fwrite (el, "%0d : #%0d 0 %0h %0h r %0d %0h\n",$time(), commit_count, rvtop.trace_rv_i_address_ip[31:0], rvtop.trace_rv_i_insn_ip[31:0], wb_dest[0], wb_data[0]);
+            end
+            if (rvtop.trace_rv_i_valid_ip[1]==1) begin
+                commit_count ++;
+                $fwrite (el, "%0d : #%0d 0 0x%0h 0x%0h r %0d 0x%h\n",$time(), commit_count, rvtop.trace_rv_i_address_ip[63:32], rvtop.trace_rv_i_insn_ip[63:32], wb_dest[1], wb_data[1]);
+            end
         end
+    end
 
    initial begin
 
@@ -189,6 +212,8 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
      $readmemh("data.hex",     i_ahb_lsu.mem);
      $readmemh("program.hex",  i_ahb_ic.mem);
      tp = $fopen("trace_port.csv","w");
+     el = $fopen("exec.log","w");
+     $fwrite (el, "//Time : #inst 0  pc opcode reg regnum value\n");
 
 `ifndef VERILATOR
      repeat (5) @(posedge core_clk);
