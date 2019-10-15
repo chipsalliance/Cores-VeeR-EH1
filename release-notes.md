@@ -1,3 +1,8 @@
+# SweRV RISC-V Core<sup>TM</sup> 1.4 from Western Digital
+## Release Notes
+Move declarations to top of Verilog file to fix fpga compile issues.
+
+
 # SweRV RISC-V Core<sup>TM</sup> 1.3 from Western Digital
 ## Release Notes
 1. Make the FPGA optimization code work with the latest version of Verilator.[Pull request #13](https://github.com/chipsalliance/Cores-SweRV/pull/12)

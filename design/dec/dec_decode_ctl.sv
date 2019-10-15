@@ -509,6 +509,78 @@ module dec_decode_ctl
    
    logic        tlu_wr_pause_wb1, tlu_wr_pause_wb2;
 
+   localparam NBLOAD_SIZE     = `RV_LSU_NUM_NBLOAD;
+   localparam NBLOAD_SIZE_MSB = `RV_LSU_NUM_NBLOAD-1;
+   localparam NBLOAD_TAG_MSB  = `RV_LSU_NUM_NBLOAD_WIDTH-1;   
+
+// non block load cam logic
+ 
+   logic 	             cam_write, cam_inv_reset, cam_data_reset;
+   logic [NBLOAD_TAG_MSB:0]  cam_write_tag, cam_inv_reset_tag, cam_data_reset_tag;
+   logic [NBLOAD_SIZE_MSB:0] cam_wen; 
+
+   logic [NBLOAD_TAG_MSB:0]  load_data_tag;
+   logic [NBLOAD_SIZE_MSB:0] nonblock_load_write;
+  
+   load_cam_pkt_t [NBLOAD_SIZE_MSB:0] cam;
+   load_cam_pkt_t [NBLOAD_SIZE_MSB:0] cam_in;   
+
+   logic [4:0] nonblock_load_rd;
+   logic i1_nonblock_load_stall,     i0_nonblock_load_stall;
+   logic i1_nonblock_boundary_stall, i0_nonblock_boundary_stall;
+   logic i0_depend_load_e1_d, i0_depend_load_e2_d;
+   logic i1_depend_load_e1_d, i1_depend_load_e2_d;
+   logic    depend_load_e1_d,  depend_load_e2_d,  depend_load_same_cycle_d;
+   logic    depend_load_e2_e1,                    depend_load_same_cycle_e1;
+   logic                                          depend_load_same_cycle_e2;
+
+   logic nonblock_load_valid_dc4, nonblock_load_valid_wb;
+   logic i0_load_kill_wen, i1_load_kill_wen;
+
+   logic found;
+
+   logic cam_reset_same_dest_wb;
+   logic [NBLOAD_SIZE_MSB:0] cam_inv_reset_val, cam_data_reset_val;
+   logic       i1_wen_wb, i0_wen_wb;
+
+   inst_t i0_itype, i1_itype;
+
+   logic csr_read, csr_write;
+   logic i0_br_unpred, i1_br_unpred;
+
+   logic debug_fence_raw;
+
+   logic freeze_before;
+   logic freeze_e3, freeze_e4;
+   logic [3:0] e4t_i0trigger;
+   logic [3:0] e4t_i1trigger;
+   logic       e4d_i0load;
+
+   logic [4:0] div_waddr_wb;
+   logic [12:1] last_br_immed_e1, last_br_immed_e2;
+   logic [31:0]        i0_inst_d, i1_inst_d;
+   logic [31:0]        i0_inst_e1, i1_inst_e1;   
+   logic [31:0]        i0_inst_e2, i1_inst_e2;
+   logic [31:0]        i0_inst_e3, i1_inst_e3;
+   logic [31:0]        i0_inst_e4, i1_inst_e4;
+   logic [31:0]        i0_inst_wb, i1_inst_wb;
+   logic [31:0]        i0_inst_wb1,i1_inst_wb1;   
+
+   logic [31:0]        div_inst;
+   logic [31:1] i0_pc_wb, i0_pc_wb1;
+   logic [31:1]           i1_pc_wb1;   
+   logic [31:1] last_pc_e2;
+
+   reg_pkt_t i0r, i1r;
+
+   trap_pkt_t   dt, e1t_in, e1t, e2t_in, e2t, e3t_in, e3t, e4t;
+
+   class_pkt_t i0_e4c_in, i1_e4c_in;
+
+   dest_pkt_t  dd, e1d, e2d, e3d, e4d, wbd;
+   dest_pkt_t e1d_in, e2d_in, e3d_in, e4d_in;
+
+   
    assign freeze = lsu_freeze_dc3;
 
 `ifdef RV_NO_SECONDARY_ALU
@@ -694,35 +766,6 @@ module dec_decode_ctl
    assign i1_ap.predict_nt = i1_predict_nt;
    assign i1_ap.predict_t  = i1_predict_t;
 
-   localparam NBLOAD_SIZE     = `RV_LSU_NUM_NBLOAD;
-   localparam NBLOAD_SIZE_MSB = `RV_LSU_NUM_NBLOAD-1;
-   localparam NBLOAD_TAG_MSB  = `RV_LSU_NUM_NBLOAD_WIDTH-1;   
-   
-// non block load cam logic
- 
-   logic                     cam_write, cam_inv_reset, cam_data_reset;
-   logic [NBLOAD_TAG_MSB:0]  cam_write_tag, cam_inv_reset_tag, cam_data_reset_tag;
-   logic [NBLOAD_SIZE_MSB:0] cam_wen; 
-
-   logic [NBLOAD_TAG_MSB:0]  load_data_tag;
-   logic [NBLOAD_SIZE_MSB:0] nonblock_load_write;
-  
-   load_cam_pkt_t [NBLOAD_SIZE_MSB:0] cam;
-   load_cam_pkt_t [NBLOAD_SIZE_MSB:0] cam_in;   
-
-   logic [4:0] nonblock_load_rd;
-   logic i1_nonblock_load_stall,     i0_nonblock_load_stall;
-   logic i1_nonblock_boundary_stall, i0_nonblock_boundary_stall;
-   logic i0_depend_load_e1_d, i0_depend_load_e2_d;
-   logic i1_depend_load_e1_d, i1_depend_load_e2_d;
-   logic    depend_load_e1_d,  depend_load_e2_d,  depend_load_same_cycle_d;
-   logic    depend_load_e2_e1,                    depend_load_same_cycle_e1;
-   logic                                          depend_load_same_cycle_e2;
-
-   logic nonblock_load_valid_dc4, nonblock_load_valid_wb;
-   logic i0_load_kill_wen, i1_load_kill_wen;
-
-   logic found;
    always_comb begin
       found = 0;
       cam_wen[NBLOAD_SIZE_MSB:0] = '0;
@@ -735,8 +778,6 @@ module dec_decode_ctl
          end
       end
    end
-   
-   logic cam_reset_same_dest_wb;
    
    assign cam_reset_same_dest_wb = wbd.i0v & wbd.i1v & (wbd.i0rd[4:0] == wbd.i1rd[4:0]) & 
                                    wbd.i0load & nonblock_load_valid_wb & ~dec_tlu_i0_kill_writeb_wb & ~dec_tlu_i1_kill_writeb_wb;
@@ -753,9 +794,6 @@ module dec_decode_ctl
 
    assign nonblock_load_rd[4:0] = (e3d.i0load) ? e3d.i0rd[4:0] : e3d.i1rd[4:0];  // rd data
 
-   logic [NBLOAD_SIZE_MSB:0] cam_inv_reset_val, cam_data_reset_val;
-   logic       i1_wen_wb, i0_wen_wb;
-   
    // checks
 
 `ifdef ASSERT_ON   
@@ -897,11 +935,6 @@ end : cam_array
 // end non block load cam logic
    
 // pmu start
-   
-   inst_t i0_itype, i1_itype;
-
-   logic csr_read, csr_write;
-   logic i0_br_unpred, i1_br_unpred;
    
 
    assign csr_read = dec_csr_ren_d;
@@ -1077,7 +1110,6 @@ end : cam_array
    
    // defined register packet
 
-   reg_pkt_t i0r, i1r;
 
 
    assign i0r.rs1[4:0] = i0[19:15];
@@ -1257,7 +1289,6 @@ end : cam_array
 
    assign i1_load2_block_d = i1_dp.lsu & i0_dp.lsu;
 
-   logic debug_fence_raw;
    
 // some CSR reads need to be presync'd
    assign i0_presync = i0_dp.presync | dec_tlu_presync_d | debug_fence_i | debug_fence_raw | dec_tlu_pipelining_disable;  // both fence's presync
@@ -1903,8 +1934,6 @@ end : cam_array
    assign dec_tlu_i1_valid_e4 = e4d.i1valid & ~flush_lower_wb;
    
                                
-   trap_pkt_t   dt, e1t_in, e1t, e2t_in, e2t, e3t_in, e3t, e4t;
-
    assign dt.legal     =  i0_legal_decode_d                ;
    assign dt.icaf      =  i0_icaf_d & i0_legal_decode_d;            // dbecc is icaf exception
    assign dt.icaf_f1   =  dec_i0_icaf_f1_d & i0_legal_decode_d;     // this includes icaf and dbecc
@@ -1959,12 +1988,6 @@ end : cam_array
    rvdffe #( $bits(trap_pkt_t) ) trap_e4ff (.*, .en(i0_e4_ctl_en), .din(e3t_in),  .dout(e4t));
 
    
-   logic freeze_before;
-   logic freeze_e3, freeze_e4;
-   logic [3:0] e4t_i0trigger;
-   logic [3:0] e4t_i1trigger;
-   logic       e4d_i0load;
-   
    assign freeze_e3 = freeze & ~freeze_before;
    
    rvdff #(1) freeze_before_ff (.*, .clk(active_clk), .din(freeze), .dout(freeze_before));
@@ -2002,9 +2025,6 @@ end : cam_array
 
 // end tlu stuff
 
-   class_pkt_t i0_e4c_in, i1_e4c_in;
-   
-   
    assign i0_dc.mul   = i0_dp.mul & i0_legal_decode_d;
    assign i0_dc.load  = i0_dp.load & i0_legal_decode_d;
    assign i0_dc.sec = i0_dp.alu &  i0_secondary_d & i0_legal_decode_d;
@@ -2036,9 +2056,6 @@ end : cam_array
 
    rvdffs #( $bits(class_pkt_t) ) i1_wbc_ff (.*, .en(i0_wb_ctl_en), .clk(active_clk), .din(i1_e4c),    .dout(i1_wbc));                                  
        
-   dest_pkt_t  dd, e1d, e2d, e3d, e4d, wbd;
-
-   dest_pkt_t e1d_in, e2d_in, e3d_in, e4d_in;
 
    assign dd.i0rd[4:0] = i0r.rd[4:0];
    assign dd.i0v = i0_rd_en_d & i0_legal_decode_d;
@@ -2162,8 +2179,6 @@ end : cam_array
    assign dec_i1_sec_decode_e3 = e3d.i1secondary & ~i0_flush_final_e3 & ~flush_lower_wb & ~freeze;   
    
 
-   logic [4:0] div_waddr_wb;
-
    rvdffe #( $bits(dest_pkt_t) ) e4ff (.*, .en(i0_e4_ctl_en), .din(e3d_in), .dout(e4d));
 
    always_comb begin
@@ -2261,22 +2276,11 @@ end : cam_array
 
    assign i1_result_wb[31:0] = i1_result_wb_raw[31:0];
 
-   logic [12:1] last_br_immed_e1, last_br_immed_e2;
                                           
    rvdffe #(12) e1brpcff (.*, .en(i0_e1_data_en), .din(last_br_immed_d[12:1] ), .dout(last_br_immed_e1[12:1]));
    rvdffe #(12) e2brpcff (.*, .en(i0_e2_data_en), .din(last_br_immed_e1[12:1]), .dout(last_br_immed_e2[12:1]));
 
 
-   logic [31:0]        i0_inst_d, i1_inst_d;
-   logic [31:0]        i0_inst_e1, i1_inst_e1;   
-   logic [31:0]        i0_inst_e2, i1_inst_e2;
-   logic [31:0]        i0_inst_e3, i1_inst_e3;
-   logic [31:0]        i0_inst_e4, i1_inst_e4;
-   logic [31:0]        i0_inst_wb, i1_inst_wb;
-   logic [31:0]        i0_inst_wb1,i1_inst_wb1;   
-
-   logic [31:0]        div_inst;
-   
 // trace stuff
 
    rvdffe #(32) divinstff   (.*, .en(i0_div_decode_d), .din(i0_inst_d[31:0]), .dout(div_inst[31:0]));
@@ -2302,8 +2306,6 @@ end : cam_array
    assign dec_i0_inst_wb1[31:0] = i0_inst_wb1[31:0];
    assign dec_i1_inst_wb1[31:0] = i1_inst_wb1[31:0];   
 
-   logic [31:1] i0_pc_wb, i0_pc_wb1;
-   logic [31:1]           i1_pc_wb1;   
 
    rvdffe #(31) i0wbpcff  (.*, .en(i0_wb_data_en | exu_div_finish), .din(dec_tlu_i0_pc_e4[31:1]), .dout(i0_pc_wb[31:1]));
    rvdffe #(31) i0wb1pcff (.*, .en(i0_wb1_data_en | div_wen_wb),    .din(i0_pc_wb[31:1]),         .dout(i0_pc_wb1[31:1]));      
@@ -2332,8 +2334,6 @@ end : cam_array
    assign dec_tlu_i0_pc_e4[31:1] = (exu_div_finish) ? div_pc[31:1] : i0_pc_e4[31:1];
    assign dec_tlu_i1_pc_e4[31:1] = i1_pc_e4[31:1];   
    
-   logic [31:1] last_pc_e2;
-
    // generate the correct npc for correct br predictions
    assign last_pc_e2[31:1] = (e2d.i1valid) ? i1_pc_e2[31:1] : i0_pc_e2[31:1];
    
