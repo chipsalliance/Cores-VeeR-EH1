@@ -8,6 +8,7 @@ env:
     - VERILATOR_ROOT=$PWD/verilator
     - VERILATOR_NUM_JOBS=$((`nproc` + 1))
     - OBJCACHE=ccache
+    - PATH=$PATH:$VERILATOR_ROOT/bin
     - VERILATOR=$VERILATOR_ROOT/bin/verilator
     - RV_ROOT=$PWD
 
