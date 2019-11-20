@@ -129,5 +129,8 @@ If you change only the assembly files, you do not need to rebuild verilator, jus
     make -f $RV_ROOT/tools/Makefile program.hex ASM_TEST=my_hello_world.s ASM_TEST_DIR=/path/to/dir
     ./obj_dir/Vtb_top
 
+### SweRV CoreMark Benchmarking
+We ran [CoreMark](https://www.eembc.org/coremark/) benchmark on Nexys4 board and achieved CoreMark score of **4.94**. Please see the [document](https://github.com/chipsalliance/Cores-SweRV/blob/master/docs/SweRV_CoreMark_Benchmarking.pdf) for details. 
+
 ----
 Western Digital, the Western Digital logo, G-Technology, SanDisk, Tegile, Upthere, WD, SweRV Core, SweRV ISS, and OmniXtend are registered trademarks or trademarks of Western Digital Corporation or its affiliates in the US and/or other countries. All other marks are the property of their respective owners.
