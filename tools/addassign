@@ -7,38 +7,34 @@ $helpusage = "placeholder";
 GetOptions ('in=s'      => \$in,
             'prefix=s'  => \$prefix) || die("$helpusage");
 
-
-
 @in=`cat $in`;
 
-
 foreach $line (@in) {
-
-    if ($line=~/\#/) { next; }
-
-    if ($line=~/([^=]+)=/) {
-	$sig=$1;
-	$sig=~s/\s+//g;
-	printf("logic $sig;\n");
-    }
+  next if ($line=~/\#/);
+  if ($line=~/([^=]+)=/) {
+    $sig=$1;
+    $sig=~s/\s+//g;
+    printf("logic $sig;\n");
+  }
 }
 
 foreach $line (@in) {
+  next if ($line=~/\#/);
+  if ($line=~/([^=]+)=\s*;/) {
+    printf("assign ${prefix}$1 = 1'b0;\n");
+    next;
+  }
 
-    if ($line=~/\#/) { next; }
+  if ($line=~/([^=]+)=\s*\(\s*\);/) {
+    printf("assign ${prefix}$1 = 1'b0;\n");
+    next;
+  }
 
-    if ($line=~/([^=]+)=\s*;/) {
-	printf("assign ${prefix}$1 = 1'b0;\n");
-	next;
-    }
-
-    if ($line=~/([^=]+)=\s*\(\s*\);/) {
-	printf("assign ${prefix}$1 = 1'b0;\n");
-	next;
-    }
-
-    if ($line =~ /=/) { printf("assign ${prefix}$line"); }
-    else              { printf("$line"); }
+  if ($line =~ /=/) {
+    printf("assign ${prefix}$line");
+  } else {
+    printf("$line");
+  }
 }
 
 

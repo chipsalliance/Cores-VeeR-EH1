@@ -6,16 +6,18 @@ use integer;
 
 $helpusage = "placeholder";
 
-GetOptions ('len=s'       => \$len,
-            'num=s'       => \$num,
-	    'den=s'       => \$den,
-            'skip'   => \$skip)  || die("$helpusage");
+GetOptions ('len=s' => \$len,
+            'num=s' => \$num,
+            'den=s' => \$den,
+            'skip'  => \$skip)  || die("$helpusage");
 
-if (!defined($len)) { $len=8; }
-$LEN=$len;
+if (!defined($len)) {
+  $len = 8;
+}
+$LEN = $len;
 
-$n=d2b($num);  # numerator - quotient
-$m=d2b($den);  # denominator - divisor
+$n = d2b($num);  # numerator - quotient
+$m = d2b($den);  # denominator - divisor
 
 
 printf(".i 8\n");
@@ -23,99 +25,93 @@ printf(".o 4\n");
 printf(".ilb q_ff[3] q_ff[2] q_ff[1] q_ff[0] m_ff[3] m_ff[2] m_ff[1] m_ff[0]\n");
 printf(".ob smallnum[3] smallnum[2] smallnum[1] smallnum[0]\n");
 printf(".type fr\n");
-for ($q=0; $q<16; $q++) {
-    for ($m=0; $m<16; $m++) {
-	if ($m==0) { next; }
-	$result=int($q/$m);
-	printf("%s %s %s\n",d2bl($q,4),d2bl($m,4),d2bl($result,4));
+for ($q = 0; $q<16; $q++) {
+  for ($m = 0; $m<16; $m++) {
+    if ($m==0) {
+      next;
     }
+    $result = int($q/$m);
+    printf("%s %s %s\n",d2bl($q,4),d2bl($m,4),d2bl($result,4));
+  }
 }
 
 exit;
 
-#$LEN=length($n);
+#$LEN = length($n);
 
-$a="0"x$LEN;
-$q=$n;
+$a = "0"x$LEN;
+$q = $n;
 
-#printf("n=%s, m=%s\n",$n,$m);
-#printf("a=%s, q=%s\n",$a,$q);
+#printf("n = %s, m = %s\n",$n,$m);
+#printf("a = %s, q = %s\n",$a,$q);
 
-for ($i=1; $i<=$LEN; $i++) {
+for ($i = 1; $i< = $LEN; $i++) {
+  printf("$i: a = %s q = %s\n",$a,$q);
 
-    #printf("iteration $n:\n");
+  $signa = substr($a,0,1);
+  $a = substr($a.$q,1,$LEN);  # new a with q shifted in
 
-    printf("$i: a=%s q=%s\n",$a,$q);
+  if ($signa==0) {
+    $a = b2d($a)-b2d($m);
+  } else {
+    $a = b2d($a)+b2d($m);
+  }
 
+  $a = d2b($a);
 
-    $signa = substr($a,0,1);
-
-
-    $a = substr($a.$q,1,$LEN);  # new a with q shifted in
-
-    if ($signa==0) { $a=b2d($a)-b2d($m); }
-    else           { $a=b2d($a)+b2d($m); }
-
-    $a=d2b($a);
-
-
-    $signa = substr($a,0,1);
-    if ($signa==0) { $q=substr($q,1,$LEN-1)."1"; }
-    else           { $q=substr($q,1,$LEN-1)."0"; }
-
+  $signa = substr($a,0,1);
+  if ($signa==0) {
+    $q = substr($q,1,$LEN-1)."1";
+  } else {
+    $q = substr($q,1,$LEN-1)."0";
+  }
 }
 
 
-#printf("a=$a\n");
+#printf("a = $a\n");
 $signa = substr($a,0,1);
 if ($signa==1 && !defined($skip)) {
-    printf("correction:\n");
-    $a=b2d($a)+b2d($m);
-    $a=d2b($a);
+  printf("correction:\n");
+  $a = b2d($a)+b2d($m);
+  $a = d2b($a);
 }
-#printf("a=$a\n");
+#printf("a = $a\n");
 printf("%d / %d = %d R %d ",b2d($n),b2d($m),b2d($q),b2d($a));
-if ($a eq $n) { printf("-> remainder equal numerator\n"); }
-else          { printf("\n"); }
+if ($a eq $n) {
+  printf("-> remainder equal numerator\n");
+} else {
+  printf("\n");
+}
 
 sub b2d {
-    my ($v) = @_;
-
-    $v = oct("0b" . $v);
-
-    return($v);
+  my ($v) = @_;
+  $v = oct("0b" . $v);
+  return($v);
 }
 
 sub d2b {
-    my ($v) = @_;
-
-    my $repeat;
-
-    $v = sprintf "%b",$v;
-    if (length($v)<$LEN) {
-	$repeat=$LEN-length($v);
-	$v="0"x$repeat.$v;
-    }
-    elsif (length($v)>$LEN) {
-	$v=substr($v,length($v)-$LEN,$LEN);
-    }
-
-    return($v);
+  my ($v) = @_;
+  my $repeat;
+  $v = sprintf "%b",$v;
+  if (length($v)<$LEN) {
+    $repeat = $LEN-length($v);
+    $v = "0"x$repeat.$v;
+  } elsif (length($v)>$LEN) {
+    $v = substr($v,length($v)-$LEN,$LEN);
+  }
+  return($v);
 }
 
 sub d2bl {
-    my ($v,$LEN) = @_;
+  my ($v,$LEN) = @_;
+  my $repeat;
 
-    my $repeat;
-
-    $v = sprintf "%b",$v;
-    if (length($v)<$LEN) {
-	$repeat=$LEN-length($v);
-	$v="0"x$repeat.$v;
-    }
-    elsif (length($v)>$LEN) {
-	$v=substr($v,length($v)-$LEN,$LEN);
-    }
-
-    return($v);
+  $v = sprintf "%b",$v;
+  if (length($v)<$LEN) {
+    $repeat = $LEN-length($v);
+    $v = "0"x$repeat.$v;
+  } elsif (length($v)>$LEN) {
+    $v = substr($v,length($v)-$LEN,$LEN);
+  }
+  return($v);
 }

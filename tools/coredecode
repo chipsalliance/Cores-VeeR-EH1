@@ -5,124 +5,152 @@ use Getopt::Long;
 $helpusage = "placeholder";
 
 GetOptions ('legal'  => \$legal,
-	    'in=s'   => \$in,
-	    'out=s'  => \$out,
-	    'view=s' => \$view ) || die("$helpusage");
+            'in=s'   => \$in,
+            'out=s'  => \$out,
+            'view=s' => \$view ) || die("$helpusage");
 
+if (!defined($in))  { die("must define -in = input"); }
+if (!defined($out)) { $out = "${in}.out"; }
 
-if (!defined($in))  { die("must define -in=input"); }
-if (!defined($out)) { $out="${in}.out"; }
+if ($in eq "decode") {
+  $view = "rv32i";
+} elsif ($in eq "cdecode"){
+  $view = "rv32c";
+} elsif ($in eq "csrdecode") {
+  $view = "csr";
+}
 
-if ($in eq "decode")       { $view="rv32i";  }
-elsif ($in eq "cdecode")   { $view="rv32c";  }
-elsif ($in eq "csrdecode") { $view="csr";  }
+printf("in = $in\n") if (defined($in));
+printf("out = $out\n") if (defined($out));
+printf("view = $view\n") if (defined($view));
 
-if (defined($in)) { printf("in=$in\n"); }
-if (defined($out)) { printf("out=$out\n"); }
-if (defined($view)) { printf("view=$view\n"); }
+@in = `cat $in`;
 
-@in=`cat $in`;
+$gather = 0;
 
-$gather=0;
-
-$TIMEOUT=50;
+$TIMEOUT = 50;
 
 foreach $line (@in) {
+  #printf("$pstate: $line");
 
-    #printf("$pstate: $line");
+  if ($line = ~/^\s*\#/) {
+    #printf("skip $line");
+    next;
+  }
 
-    if ($line=~/^\s*\#/) { #printf("skip $line");
-			   next; }
-
-    if ($gather==1) {
-	if ($line=~/(\S+)/) {
-	    if ($line=~/}/) { $gather=0; $position=0; next; }
-	    $label=$1;
-	    $label=~s/,//g;
-	    if ($pstate==2) {
-		if (defined($INPUT{$CVIEW}{$label})) { die("input $label already defined"); }
-		$INPUT{$CVIEW}{$label}=$position++;
-		$INPUTLEN{$CVIEW}++;
-		$INPUTSTR{$CVIEW}.=" $label";
-	    }
-	    elsif ($pstate==3) {
-		if (defined($OUTPUT{$CVIEW}{$label})) { die("output $label already defined"); }
-		$OUTPUT{$CVIEW}{$label}=$position++;
-		$OUTPUTLEN{$CVIEW}++;
-		$OUTPUTSTR{$CVIEW}.=" $label";
-	    }
-	    else { die("unknown pstate $pstate in gather"); }
-	}
+  if ($gather==1) {
+    if ($line = ~/(\S+)/) {
+    if ($line = ~/}/) {
+      $gather = 0;
+      $position = 0;
+      next;
     }
-
-    if ($line=~/^.definition/) {
-	$pstate=1; next;
+    $label = $1;
+    $label = ~s/,//g;
+    if ($pstate==2) {
+      if (defined($INPUT{$CVIEW}{$label})) {
+        die("input $label already defined");
+      }
+      $INPUT{$CVIEW}{$label} = $position++;
+      $INPUTLEN{$CVIEW}++;
+      $INPUTSTR{$CVIEW}. = " $label";
+    } elsif ($pstate==3) {
+      if (defined($OUTPUT{$CVIEW}{$label})) {
+        die("output $label already defined");
+      }
+      $OUTPUT{$CVIEW}{$label} = $position++;
+      $OUTPUTLEN{$CVIEW}++;
+      $OUTPUTSTR{$CVIEW}. = " $label";
+    } else {
+      die("unknown pstate $pstate in gather");
     }
-     if ($pstate==1) {  # definition
-	if ($line!~/^.output/) {
-	    if ($line=~/(\S+)\s*=\s*(\S+)/) {
-		$key=$1; $value=$2;
-		$value=~s/\./-/g;
-		$value=~s/\[//g;
-		$value=~s/\]//g;
-		$DEFINITION{$key}=$value;
-	    }
-	}
-	else { $pstate=2; next; }
+  }
+}
+
+  if ($line = ~/^.definition/) {
+    $pstate = 1; next;
+  }
+  if ($pstate==1) {  # definition
+    if ($line!~/^.output/) {
+      if ($line = ~/(\S+)\s* = \s*(\S+)/) {
+        $key = $1;
+        $value = $2;
+        $value = ~s/\./-/g;
+        $value = ~s/\[//g;
+        $value = ~s/\]//g;
+        $DEFINITION{$key} = $value;
+      }
+    } else {
+      $pstate = 2;
+      next;
     }
+  }
 
-    if ($line=~/^.input/) {
-	$pstate=2; next;
+  if ($line = ~/^.input/) {
+    $pstate = 2;
+    next;
+  }
+
+  if ($pstate==2) {  # input
+    if ($line = ~/(\S+)\s* = \s*\{/) {
+      $CVIEW = $1;
+      $gather = 1;
+      next;
     }
+  }
 
-    if ($pstate==2) {  # input
-	if ($line=~/(\S+)\s*=\s*\{/) {
-	    $CVIEW=$1; $gather=1; next;
-	}
+  if ($line = ~/^.output/) {
+    $pstate = 3;
+    next;
+  }
+
+  if ($pstate==3) {  # output
+    if ($line = ~/(\S+)\s* = \s*\{/) {
+      $CVIEW = $1;
+      $gather = 1;
+      next;
     }
+  }
 
-    if ($line=~/^.output/) {
-	$pstate=3; next;
+  if ($line = ~/^.decode/) {
+    $pstate = 4;
+    next;
+  }
+
+  if ($pstate==4) {  # decode
+    if ($line = ~/([^\[]+)\[([^\]]+)\]\s+ = \s+\{([^\}]+)\}/) {
+      $dview = $1;
+      $inst = $2;
+      $body = $3;
+      $dview = ~s/\s+//g;
+      $inst = ~s/\s+//g;
+      #printf("$dview $inst $body\n");
+      if ($inst = ~/([^\{]+)\{([^-]+)-([^\}]+)\}/) {
+        $base = $1;
+        $lo = $2;
+        $hi = $3;
+        $hi++;
+        for ($i = 0; $i<$TIMEOUT && $lo ne $hi; $i++) {
+          #printf("decode $dview $base$lo\n");
+          $expand = $base.$lo;
+          if (!defined($DEFINITION{$expand})) {
+            die("could not find instruction definition for inst $expand");
+          }
+          $DECODE{$dview}{$expand} = $body;
+          $lo++;
+        }
+        if ($i == $TIMEOUT) {
+          die("timeout in decode expansion");
+        }
+
+      } else {
+        if (!defined($DEFINITION{$inst})) {
+          die("could not find instruction definition for inst $inst");
+        }
+        $DECODE{$dview}{$inst} = $body;
+      }
     }
-
-    if ($pstate==3) {  # output
-	if ($line=~/(\S+)\s*=\s*\{/) {
-	    $CVIEW=$1; $gather=1; next;
-	}
-    }
-
-    if ($line=~/^.decode/) {
-	$pstate=4; next;
-    }
-
-   if ($pstate==4) {  # decode
-	if ($line=~/([^\[]+)\[([^\]]+)\]\s+=\s+\{([^\}]+)\}/) {
-	    $dview=$1; $inst=$2; $body=$3;
-	    $dview=~s/\s+//g;
-	    $inst=~s/\s+//g;
-	    #printf("$dview $inst $body\n");
-	    if ($inst=~/([^\{]+)\{([^-]+)-([^\}]+)\}/) {
-		$base=$1; $lo=$2; $hi=$3;
-		$hi++;
-		for ($i=0; $i<$TIMEOUT && $lo ne $hi; $i++) {
-		    #printf("decode $dview $base$lo\n");
-
-		    $expand=$base.$lo;
-		    if (!defined($DEFINITION{$expand})) { die("could not find instruction definition for inst $expand"); }
-
-		    $DECODE{$dview}{$expand}=$body;
-		    $lo++;
-		}
-		if ($i == $TIMEOUT) { die("timeout in decode expansion"); }
-
-	    }
-	    else {
-		if (!defined($DEFINITION{$inst})) { die("could not find instruction definition for inst $inst"); }
-		$DECODE{$dview}{$inst}=$body;
-	    }
-	}
-   }
-
+  }
 }
 
 
@@ -130,69 +158,60 @@ foreach $line (@in) {
 
 #printf("$OUTPUTSTR{$view}\n");
 
-
 # need to switch this somehow based on 16/32
 printf(".i %d\n",$INPUTLEN{$view});
 
 if (defined($legal)) {
-    printf(".o 1\n");
-}
-else {
-    printf(".o %d\n",$OUTPUTLEN{$view});
+  printf(".o 1\n");
+} else {
+  printf(".o %d\n",$OUTPUTLEN{$view});
 }
 
 printf(".ilb %s\n",$INPUTSTR{$view});
 
 if (defined($legal)) {
-    printf(".ob legal\n");
-}
-else {
-    printf(".ob %s\n",$OUTPUTSTR{$view});
+  printf(".ob legal\n");
+} else {
+  printf(".ob %s\n",$OUTPUTSTR{$view});
 }
 
 if (defined($legal)) {
-    printf(".type fd\n");
-}
-else {
-    printf(".type fr\n");
+  printf(".type fd\n");
+} else {
+  printf(".type fr\n");
 }
 
-$DEFAULT_TEMPLATE='0'x$OUTPUTLEN{$view};
+$DEFAULT_TEMPLATE = '0'x$OUTPUTLEN{$view};
 
 foreach $inst (sort keys %{ $DECODE{$view} }) {
+  $body = $DECODE{$view}{$inst};
+  @sigs = split(' ',$body);
 
-    $body=$DECODE{$view}{$inst};
-    @sigs=split(' ',$body);
-
-    $template=$DEFAULT_TEMPLATE;
-    foreach $sig (@sigs) {
-	if (!defined($OUTPUT{$view}{$sig})) { die("could not find output definition for sig $sig in view $view"); }
-	$position=$OUTPUT{$view}{$sig};
-	substr($template,$position,1,1);
+  $template = $DEFAULT_TEMPLATE;
+  foreach $sig (@sigs) {
+    if (!defined($OUTPUT{$view}{$sig})) {
+      die("could not find output definition for sig $sig in view $view");
     }
+    $position = $OUTPUT{$view}{$sig};
+    substr($template,$position,1,1);
+  }
 
-#    if (!defined($DEFINITION{$inst})) { die("could not find instruction defintion for inst $inst"); }
-
-    printf("# $inst\n");
-    if (defined($legal)) {
-	printf("$DEFINITION{$inst} 1\n");
-    }
-    else {
-	printf("$DEFINITION{$inst} $template\n");
-    }
-
+  printf("# $inst\n");
+  if (defined($legal)) {
+    printf("$DEFINITION{$inst} 1\n");
+  } else {
+    printf("$DEFINITION{$inst} $template\n");
+  }
 }
-
 
 exit;
 
 foreach $inst (sort keys %DEFINITION) {
-    $value=$DEFINITION{$inst};
-    printf("%-10s = $value\n",$inst);
+  $value = $DEFINITION{$inst};
+  printf("%-10s = $value\n",$inst);
 }
 
-
 foreach $sig (sort keys %{ $OUTPUT{$view} }) {
-    $position=$OUTPUT{$view}{$sig};
-    printf("$sig $position\n");
+  $position = $OUTPUT{$view}{$sig};
+  printf("$sig $position\n");
 }
