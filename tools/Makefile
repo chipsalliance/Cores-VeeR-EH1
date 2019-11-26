@@ -25,11 +25,11 @@ ifeq ($(strip $(snapshot)),)
 endif
 
 # Allow tool override
-SWERV_CONFIG = ${RV_ROOT}/configs/swerv.config
-IRUN = irun
-VCS = vcs
-VERILATOR = verilator
-GCC_PREFIX = riscv64-unknown-elf
+SWERV_CONFIG ?= ${RV_ROOT}/configs/swerv.config
+IRUN ?= irun
+VCS ?= vcs
+VERILATOR ?= verilator
+GCC_PREFIX ?= riscv64-unknown-elf
 
 # Define test name
 ifeq ($(strip $(ASM_TEST)),)
@@ -41,8 +41,8 @@ ifeq ($(strip $(ASM_TEST_DIR)),)
 	ASM_TEST_DIR = ${RV_ROOT}/testbench/asm
 endif
 
-defines = ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh ${RV_ROOT}/design/include/build.h ${RV_ROOT}/design/include/global.h ${RV_ROOT}/design/include/swerv_types.sv
-includes = -I${RV_ROOT}/design/include -I${RV_ROOT}/design/lib -I${RV_ROOT}/design/dmi -I${RV_ROOT}/configs/snapshots/$(snapshot)
+defines = ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh ${RV_ROOT}/design/lib/swerv_types.sv
+includes = -I${RV_ROOT}/design/lib -I${RV_ROOT}/design/dmi -I${RV_ROOT}/configs/snapshots/$(snapshot)
 
 # CFLAGS for verilator generated Makefiles. Without -std=c++11 it complains for `auto` variables
 CFLAGS += "-std=c++11"
@@ -63,14 +63,14 @@ verilator: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
 	$(MAKE) -C obj_dir/ -f Vswerv_wrapper.mk $(VERILATOR_MAKE_FLAGS)
 
 vcs: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
-	$(VCS) -full64 -assert svaext -sverilog +define+RV_OPENSOURCE +error+500 +incdir+${RV_ROOT}/design/lib +incdir+${RV_ROOT}/design/include \
+	$(VCS) -full64 -assert svaext -sverilog +define+RV_OPENSOURCE +error+500 +incdir+${RV_ROOT}/design/lib \
 		${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
 		+incdir+${RV_ROOT}/design/dmi +incdir+${RV_ROOT}/configs/snapshots/$(snapshot)  +libext+.v ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
 		 $(defines)-f ${RV_ROOT}/testbench/flist.vcs -l vcs.log
 
 irun: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
 	$(IRUN) -64bit -elaborate -ida -access +rw -q -sv -sysv  -nowarn CUVIHR -nclibdirpath ${PWD} -nclibdirname swerv.build \
-		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh+.h\
+		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh+.h\
 		$(defines)  -incdir ${RV_ROOT}/configs/snapshots/$(snapshot) -f ${RV_ROOT}/testbench/flist.vcs -elaborate  -snapshot default
 
 ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh:
@@ -91,7 +91,7 @@ irun-run: program.hex
 	snapshot=ahb_lite
 	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
 	$(IRUN) -64bit -ida -access +rw -q -sv -sysv  -nowarn CUVIHR -nclibdirpath ${PWD} -nclibdirname swerv.build \
-		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh+.h\
+		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh+.h\
 		$(defines) -top tb_top  ${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench ${RV_ROOT}/testbench/ahb_sif.sv\
 		-incdir ${RV_ROOT}/configs/snapshots/$(snapshot) -f ${RV_ROOT}/testbench/flist.vcs -snapshot default
 
@@ -99,7 +99,7 @@ vcs-run: program.hex
 	snapshot=ahb_lite
 	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
 	cp ${RV_ROOT}/testbench/hex/*.hex .
-	$(VCS) -full64 -assert svaext -sverilog +define+RV_OPENSOURCE +error+500 +incdir+${RV_ROOT}/design/lib +incdir+${RV_ROOT}/design/include \
+	$(VCS) -full64 -assert svaext -sverilog +define+RV_OPENSOURCE +error+500 +incdir+${RV_ROOT}/design/lib \
 		${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
 		+incdir+${RV_ROOT}/design/dmi +incdir+${RV_ROOT}/configs/snapshots/$(snapshot)  +libext+.v  \
 		$(defines) -f ${RV_ROOT}/testbench/flist.vcs ${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench ${RV_ROOT}/testbench/ahb_sif.sv -l vcs.log

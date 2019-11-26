@@ -171,8 +171,6 @@ module lsu_bus_intf
 
 );
 
-`include "global.h"
-
    logic              ld_freeze_dc3;
 
    logic              lsu_bus_clk_en_q;

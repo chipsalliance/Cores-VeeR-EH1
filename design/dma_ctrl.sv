@@ -107,12 +107,11 @@ module dma_ctrl (
 
    input logic         scan_mode
 );
-
-`include "global.h"
-
-   localparam DEPTH = DMA_BUF_DEPTH;
-   localparam DEPTH_PTR = $clog2(DEPTH);
-   localparam NACK_COUNT = 7;
+   localparam DMA_BUS_TAG   = `RV_DMA_BUS_TAG;
+   localparam DMA_BUF_DEPTH = `RV_DMA_BUF_DEPTH;
+   localparam DEPTH         = DMA_BUF_DEPTH;
+   localparam DEPTH_PTR     = $clog2(DEPTH);
+   localparam NACK_COUNT    = 7;
 
    logic [DEPTH-1:0]        fifo_valid;
    logic [DEPTH-1:0][1:0]   fifo_error;

@@ -177,8 +177,11 @@ module lsu
 
    );
 
-
-`include "global.h"
+   localparam LSU_SB_BITS      = `RV_LSU_SB_BITS;
+   localparam DCCM_BITS        = `RV_DCCM_BITS;
+   localparam DCCM_BYTE_WIDTH  = `RV_DCCM_BYTE_WIDTH;
+   localparam DCCM_DATA_WIDTH  = `RV_DCCM_DATA_WIDTH;
+   localparam DCCM_FDATA_WIDTH = `RV_DCCM_FDATA_WIDTH;
 
    logic        lsu_dccm_rden_dc3;
    logic [63:0] store_data_dc2;

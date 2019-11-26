@@ -58,28 +58,26 @@ module ifu_ic_mem
       input  logic         scan_mode
       ) ;
 
-`include "global.h"
-
-   IC_TAG #( .ICACHE_TAG_HIGH(ICACHE_TAG_HIGH) ,
-             .ICACHE_TAG_LOW(ICACHE_TAG_LOW) ,
-             .ICACHE_TAG_DEPTH(ICACHE_TAG_DEPTH)
+   IC_TAG #( .ICACHE_TAG_HIGH(`RV_ICACHE_TAG_HIGH) ,
+             .ICACHE_TAG_LOW(`RV_ICACHE_TAG_LOW) ,
+             .ICACHE_TAG_DEPTH(`RV_ICACHE_TAG_DEPTH)
              ) ic_tag_inst
           (
            .*,
            .ic_wr_en     (ic_wr_en[3:0]),
-           .ic_debug_addr(ic_debug_addr[ICACHE_TAG_HIGH-1:2]),
+           .ic_debug_addr(ic_debug_addr[`RV_ICACHE_TAG_HIGH-1:2]),
            .ic_rw_addr   (ic_rw_addr[31:3])
            ) ;
 
-   IC_DATA #( .ICACHE_TAG_HIGH(ICACHE_TAG_HIGH) ,
-              .ICACHE_TAG_LOW(ICACHE_TAG_LOW) ,
-              .ICACHE_IC_DEPTH(ICACHE_IC_DEPTH)
+   IC_DATA #( .ICACHE_TAG_HIGH(`RV_ICACHE_TAG_HIGH) ,
+              .ICACHE_TAG_LOW(`RV_ICACHE_TAG_LOW) ,
+              .ICACHE_IC_DEPTH(`RV_ICACHE_IC_DEPTH)
              ) ic_data_inst
           (
            .*,
            .ic_wr_en     (ic_wr_en[3:0]),
-           .ic_debug_addr(ic_debug_addr[ICACHE_TAG_HIGH-1:2]),
-           .ic_rw_addr   (ic_rw_addr[ICACHE_TAG_HIGH-1:3])
+           .ic_debug_addr(ic_debug_addr[`RV_ICACHE_TAG_HIGH-1:2]),
+           .ic_rw_addr   (ic_rw_addr[`RV_ICACHE_TAG_HIGH-1:3])
            ) ;
 
  endmodule

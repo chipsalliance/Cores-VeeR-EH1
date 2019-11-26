@@ -114,7 +114,6 @@ module dbg (
    input logic                         scan_mode
 );
 
-`include "global.h"
 
    typedef enum logic [2:0] {IDLE=3'b000, HALTING=3'b001, HALTED=3'b010, CMD_START=3'b011, CMD_WAIT=3'b100, CMD_DONE=3'b101, RESUMING=3'b110} state_t;
    typedef enum logic [3:0] {SBIDLE=4'h0, WAIT_RD=4'h1, WAIT_WR=4'h2, CMD_RD=4'h3, CMD_WR=4'h4, CMD_WR_ADDR=4'h5, CMD_WR_DATA=4'h6, RSP_RD=4'h7, RSP_WR=4'h8, DONE=4'h9} sb_state_t;
@@ -582,7 +581,7 @@ module dbg (
    // AXI Request signals
    assign sb_axi_awvalid              = ((sb_state == CMD_WR) | (sb_state == CMD_WR_ADDR)) & ~(sb_axi_awvalid_q & sb_axi_awready_q);
    assign sb_axi_awaddr[31:0]         = sbaddress0_reg[31:0];
-   assign sb_axi_awid[SB_BUS_TAG-1:0] = '0;
+   assign sb_axi_awid[`RV_SB_BUS_TAG-1:0] = '0;
    assign sb_axi_awsize[2:0]          = sbcs_reg[19:17];
    assign sb_axi_awprot[2:0]          = '0;
    assign sb_axi_awcache[3:0]         = 4'b1111;
@@ -605,7 +604,7 @@ module dbg (
 
    assign sb_axi_arvalid              = (sb_state == CMD_RD) & ~(sb_axi_arvalid_q & sb_axi_arready_q);
    assign sb_axi_araddr[31:0]         = {sbaddress0_reg[31:3],3'b0};
-   assign sb_axi_arid[SB_BUS_TAG-1:0] = '0;
+   assign sb_axi_arid[`RV_SB_BUS_TAG-1:0] = '0;
    assign sb_axi_arsize[2:0]          = 3'b011;
    assign sb_axi_arprot[2:0]          = '0;
    assign sb_axi_arcache[3:0]         = 4'b0;

@@ -47,10 +47,13 @@ module lsu_dccm_mem
    input  logic         scan_mode
 );
 
-`include "global.h"
-
-   localparam DCCM_WIDTH_BITS = $clog2(DCCM_BYTE_WIDTH);
-   localparam DCCM_INDEX_BITS = (DCCM_BITS - DCCM_BANK_BITS - DCCM_WIDTH_BITS);
+   localparam DCCM_BITS        = `RV_DCCM_BITS;
+   localparam DCCM_BANK_BITS   = `RV_DCCM_BANK_BITS;
+   localparam DCCM_BYTE_WIDTH  = `RV_DCCM_BYTE_WIDTH;
+   localparam DCCM_FDATA_WIDTH = `RV_DCCM_FDATA_WIDTH;
+   localparam DCCM_NUM_BANKS   = `RV_DCCM_NUM_BANKS;
+   localparam DCCM_WIDTH_BITS  = $clog2(DCCM_BYTE_WIDTH);
+   localparam DCCM_INDEX_BITS  = (DCCM_BITS - DCCM_BANK_BITS - DCCM_WIDTH_BITS);
 
    logic [DCCM_NUM_BANKS-1:0]         wren_bank;
    logic [DCCM_NUM_BANKS-1:0]         rden_bank;

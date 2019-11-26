@@ -382,9 +382,10 @@ module swerv
    input logic                   scan_mode
 );
 
-`include "global.h"
-
-
+   localparam LSU_BUS_TAG = `RV_LSU_BUS_TAG;
+   localparam IFU_BUS_TAG = `RV_IFU_BUS_TAG;
+   localparam DMA_BUS_TAG = `RV_DMA_BUS_TAG;
+   localparam SB_BUS_TAG  = `RV_SB_BUS_TAG;
 
 // for the testbench
 // `define DATAWIDTH 64

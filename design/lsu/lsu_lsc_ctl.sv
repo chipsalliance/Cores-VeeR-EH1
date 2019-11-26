@@ -136,8 +136,6 @@ module lsu_lsc_ctl
 
    );
 
-`include "global.h"
-
    logic [31:0]        full_addr_dc1;
    logic [31:0]        full_end_addr_dc1;
    logic [31:0]        lsu_rs1_d;

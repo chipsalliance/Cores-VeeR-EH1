@@ -105,12 +105,11 @@ module lsu_stbuf
 
 );
 
-`include "global.h"
-
-   localparam DEPTH = LSU_STBUF_DEPTH;
-   localparam DATA_WIDTH = DCCM_DATA_WIDTH;
-   localparam BYTE_WIDTH = DCCM_BYTE_WIDTH;
-   localparam DEPTH_LOG2 = $clog2(DEPTH);
+   localparam DEPTH       = `RV_LSU_STBUF_DEPTH;
+   localparam DATA_WIDTH  = `RV_DCCM_DATA_WIDTH;
+   localparam BYTE_WIDTH  = `RV_DCCM_BYTE_WIDTH;
+   localparam DEPTH_LOG2  = $clog2(DEPTH);
+   localparam LSU_SB_BITS = `RV_LSU_SB_BITS;
 
    logic [DEPTH-1:0]       stbuf_data_vld;
    logic [DEPTH-1:0]       stbuf_drain_vld;

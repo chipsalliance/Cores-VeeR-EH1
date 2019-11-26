@@ -185,17 +185,16 @@ module lsu_bus_buffer
 
 );
 
-`include "global.h"
-
    // For Ld: IDLE -> WAIT -> CMD -> RESP -> DONE -> IDLE
    // For St: IDLE -> WAIT -> CMD -> RESP(?) -> IDLE
    typedef enum logic [2:0] {IDLE=3'b000, WAIT=3'b001, CMD=3'b010, RESP=3'b011, DONE=3'b100} state_t;
 
-   localparam DEPTH     = `RV_LSU_NUM_NBLOAD;
-   localparam DEPTH_LOG2 = `RV_LSU_NUM_NBLOAD_WIDTH;
-   localparam TIMER     = 8;   // This can be only power of 2
-   localparam TIMER_LOG2 = (TIMER < 2) ? 1 : $clog2(TIMER);
-   localparam TIMER_MAX = (TIMER == 0) ? TIMER_LOG2'(0) : TIMER_LOG2'(TIMER - 1);  // Maximum value of timer
+   localparam DEPTH       = `RV_LSU_NUM_NBLOAD;
+   localparam DEPTH_LOG2  = `RV_LSU_NUM_NBLOAD_WIDTH;
+   localparam TIMER       = 8;   // This can be only power of 2
+   localparam TIMER_LOG2  = (TIMER < 2) ? 1 : $clog2(TIMER);
+   localparam TIMER_MAX   = (TIMER == 0) ? TIMER_LOG2'(0) : TIMER_LOG2'(TIMER - 1);  // Maximum value of timer
+   localparam LSU_BUS_TAG = `RV_LSU_BUS_TAG;
 
    logic [3:0]                          ldst_byteen_hi_dc2, ldst_byteen_lo_dc2;
    logic [DEPTH-1:0]                    ld_addr_hitvec_lo, ld_addr_hitvec_hi;

@@ -20,8 +20,6 @@
 // Comments:
 //
 //********************************************************************************
-`include "build.h"
-//`include "def.sv"
 module swerv_wrapper
    import swerv_types::*;
 (
@@ -327,18 +325,16 @@ module swerv_wrapper
    input logic                       mbist_mode // to enable mbist
 );
 
-`include "global.h"
-
    // DCCM ports
    logic         dccm_wren;
    logic         dccm_rden;
-   logic [DCCM_BITS-1:0]  dccm_wr_addr;
-   logic [DCCM_BITS-1:0]  dccm_rd_addr_lo;
-   logic [DCCM_BITS-1:0]  dccm_rd_addr_hi;
-   logic [DCCM_FDATA_WIDTH-1:0]  dccm_wr_data;
+   logic [`RV_DCCM_BITS-1:0]  dccm_wr_addr;
+   logic [`RV_DCCM_BITS-1:0]  dccm_rd_addr_lo;
+   logic [`RV_DCCM_BITS-1:0]  dccm_rd_addr_hi;
+   logic [`RV_DCCM_FDATA_WIDTH-1:0]  dccm_wr_data;
 
-   logic [DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_lo;
-   logic [DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_hi;
+   logic [`RV_DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_lo;
+   logic [`RV_DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_hi;
 
    logic         lsu_freeze_dc3;
 

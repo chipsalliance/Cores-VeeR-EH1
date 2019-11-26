@@ -98,7 +98,12 @@ module lsu_dccm_ctl
    input logic                             scan_mode           // scan mode
 );
 
-`include "global.h"
+   localparam DCCM_DATA_WIDTH   = `RV_DCCM_DATA_WIDTH;
+   localparam DCCM_FDATA_WIDTH  = `RV_DCCM_FDATA_WIDTH;
+   localparam DCCM_BYTE_WIDTH   = `RV_DCCM_BYTE_WIDTH;
+   localparam DCCM_ECC_WIDTH    = `RV_DCCM_ECC_WIDTH;
+   localparam DCCM_BANK_BITS    = `RV_DCCM_BANK_BITS;
+   localparam DCCM_BITS         = `RV_DCCM_BITS;
 
    `ifdef RV_DCCM_ENABLE
       localparam DCCM_ENABLE = 1'b1;

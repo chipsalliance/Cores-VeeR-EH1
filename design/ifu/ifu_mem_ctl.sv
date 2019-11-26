@@ -188,7 +188,11 @@ module ifu_mem_ctl
    input  logic         scan_mode
    );
 
-`include "global.h"
+   localparam ICACHE_TAG_HIGH   = `RV_ICACHE_TAG_HIGH;
+   localparam ICACHE_TAG_LOW    = `RV_ICACHE_TAG_LOW;
+   localparam ICACHE_TAG_DEPTH  = `RV_ICACHE_TAG_DEPTH;
+   localparam ICCM_BITS         = `RV_ICCM_BITS;
+   localparam IFU_BUS_TAG       = `RV_IFU_BUS_TAG;
 
 //  Create different defines for ICACHE and ICCM enable combinations
 `ifdef RV_ICCM_ENABLE

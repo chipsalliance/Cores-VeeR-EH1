@@ -45,8 +45,8 @@ module pic_ctrl
                      input  logic                   scan_mode             // scan mode
 
 );
-`include "global.h"
 
+localparam TOTAL_INT             = `RV_PIC_TOTAL_INT_PLUS1;
 localparam NUM_LEVELS            = $clog2(TOTAL_INT);
 localparam INTPRIORITY_BASE_ADDR = `RV_PIC_BASE_ADDR ;
 localparam INTPEND_BASE_ADDR     = `RV_PIC_BASE_ADDR + 32'h00001000 ;

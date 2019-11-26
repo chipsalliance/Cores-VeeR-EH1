@@ -109,8 +109,6 @@ module ifu_aln_ctl
 
    );
 
-`include "global.h"
-
    logic         ifvalid;
    logic         shift_f1_f0, shift_f2_f0, shift_f2_f1;
    logic         fetch_to_f0, fetch_to_f1, fetch_to_f2;
@@ -1170,7 +1168,7 @@ module ifu_aln_ctl
 
    assign i1_shift = ifu_i1_valid & ibuffer_room2_more;
 
-   if (DEC_INSTBUF_DEPTH==4) begin
+   if (`RV_DEC_INSTBUF_DEPTH==4) begin
       assign ibuffer_room1_more = ~dec_ib3_valid_d;
       assign ibuffer_room2_more = ~dec_ib2_valid_d;
    end

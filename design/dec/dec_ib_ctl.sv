@@ -106,7 +106,7 @@ module dec_ib_ctl
 
    );
 
-`include "global.h"
+   localparam DEC_INSTBUF_DEPTH = `RV_DEC_INSTBUF_DEPTH;
 
    logic         flush_final;
 
