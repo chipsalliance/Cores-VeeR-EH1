@@ -70,91 +70,91 @@ csr_perfvi =        [00110011....]
 .input
 
 csr = {
-        dec_csr_rdaddr_d[11]
-        dec_csr_rdaddr_d[10]
-        dec_csr_rdaddr_d[9]
-        dec_csr_rdaddr_d[8]
-        dec_csr_rdaddr_d[7]
-        dec_csr_rdaddr_d[6]
-        dec_csr_rdaddr_d[5]
-        dec_csr_rdaddr_d[4]
-        dec_csr_rdaddr_d[3]
-        dec_csr_rdaddr_d[2]
-        dec_csr_rdaddr_d[1]
-        dec_csr_rdaddr_d[0]
+  dec_csr_rdaddr_d[11]
+  dec_csr_rdaddr_d[10]
+  dec_csr_rdaddr_d[9]
+  dec_csr_rdaddr_d[8]
+  dec_csr_rdaddr_d[7]
+  dec_csr_rdaddr_d[6]
+  dec_csr_rdaddr_d[5]
+  dec_csr_rdaddr_d[4]
+  dec_csr_rdaddr_d[3]
+  dec_csr_rdaddr_d[2]
+  dec_csr_rdaddr_d[1]
+  dec_csr_rdaddr_d[0]
 }
 
 .output
 
 csr = {
-     csr_misa
-     csr_mvendorid
-     csr_marchid
-     csr_mimpid
-     csr_mhartid
-     csr_mstatus
-     csr_mtvec
-     csr_mip
-     csr_mie
-     csr_mcyclel
-     csr_mcycleh
-     csr_minstretl
-     csr_minstreth
-     csr_mscratch
-     csr_mepc
-     csr_mcause
-     csr_mtval
-     csr_mrac
-     csr_dmst
-     csr_mdeau
-     csr_mdseac
-     csr_meihap
-     csr_meivt
-     csr_meipt
-     csr_meicpct
-     csr_meicurpl
-     csr_meicidpl
-     csr_dcsr
-     csr_mpmc
-     csr_mcgc
-     csr_mcpc
-     csr_mfdc
-     csr_dpc
-     csr_mtsel
-     csr_mtdata1
-     csr_mtdata2
-     csr_mhpmc3
-     csr_mhpmc4
-     csr_mhpmc5
-     csr_mhpmc6
-     csr_mhpmc3h
-     csr_mhpmc4h
-     csr_mhpmc5h
-     csr_mhpmc6h
-     csr_mhpme3
-     csr_mhpme4
-     csr_mhpme5
-     csr_mhpme6
-     csr_mgpmc
-csr_perfva
-csr_perfvb
-csr_perfvc
-csr_perfvd
-csr_perfve
-csr_perfvf
-csr_perfvg
-csr_perfvh
-csr_perfvi
-     csr_micect
-     csr_miccmect
-     csr_mdccmect
-csr_dicawics
-csr_dicad0
-csr_dicad1
-csr_dicago
-     valid_only
-     presync
-     postsync
+  csr_misa
+  csr_mvendorid
+  csr_marchid
+  csr_mimpid
+  csr_mhartid
+  csr_mstatus
+  csr_mtvec
+  csr_mip
+  csr_mie
+  csr_mcyclel
+  csr_mcycleh
+  csr_minstretl
+  csr_minstreth
+  csr_mscratch
+  csr_mepc
+  csr_mcause
+  csr_mtval
+  csr_mrac
+  csr_dmst
+  csr_mdeau
+  csr_mdseac
+  csr_meihap
+  csr_meivt
+  csr_meipt
+  csr_meicpct
+  csr_meicurpl
+  csr_meicidpl
+  csr_dcsr
+  csr_mpmc
+  csr_mcgc
+  csr_mcpc
+  csr_mfdc
+  csr_dpc
+  csr_mtsel
+  csr_mtdata1
+  csr_mtdata2
+  csr_mhpmc3
+  csr_mhpmc4
+  csr_mhpmc5
+  csr_mhpmc6
+  csr_mhpmc3h
+  csr_mhpmc4h
+  csr_mhpmc5h
+  csr_mhpmc6h
+  csr_mhpme3
+  csr_mhpme4
+  csr_mhpme5
+  csr_mhpme6
+  csr_mgpmc
+  csr_perfva
+  csr_perfvb
+  csr_perfvc
+  csr_perfvd
+  csr_perfve
+  csr_perfvf
+  csr_perfvg
+  csr_perfvh
+  csr_perfvi
+  csr_micect
+  csr_miccmect
+  csr_mdccmect
+  csr_dicawics
+  csr_dicad0
+  csr_dicad1
+  csr_dicago
+  valid_only
+  presync
+  postsync
 }
 
 .decode
@@ -217,13 +217,13 @@ csr[ csr_dicad1    ] = {  csr_dicad1    }
 csr[ csr_dicago    ] = {  csr_dicago    }
 
 csr[ csr_perfva    ] = { valid_only }
-csr[ csr_perfvb	   ] = { valid_only }
-csr[ csr_perfvc	   ] = { valid_only }
-csr[ csr_perfvd	   ] = { valid_only }
-csr[ csr_perfve	   ] = { valid_only }
-csr[ csr_perfvf	   ] = { valid_only }
-csr[ csr_perfvg	   ] = { valid_only }
-csr[ csr_perfvh	   ] = { valid_only }
+csr[ csr_perfvb    ] = { valid_only }
+csr[ csr_perfvc    ] = { valid_only }
+csr[ csr_perfvd    ] = { valid_only }
+csr[ csr_perfve    ] = { valid_only }
+csr[ csr_perfvf    ] = { valid_only }
+csr[ csr_perfvg    ] = { valid_only }
+csr[ csr_perfvh    ] = { valid_only }
 csr[ csr_perfvi    ] = { valid_only }
 
 .end

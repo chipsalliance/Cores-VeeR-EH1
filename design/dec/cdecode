@@ -118,22 +118,22 @@ c.xor =         [100011...01...01]
 
 .input
 rv32c = {
-	i[15]
-	i[14]
-	i[13]
-	i[12]
-	i[11]
-	i[10]
-	i[9]
-	i[8]
-	i[7]
-	i[6]
-	i[5]
-	i[4]
-	i[3]
-	i[2]
-	i[1]
-	i[0]
+  i[15]
+  i[14]
+  i[13]
+  i[12]
+  i[11]
+  i[10]
+  i[9]
+  i[8]
+  i[7]
+  i[6]
+  i[5]
+  i[4]
+  i[3]
+  i[2]
+  i[1]
+  i[0]
 }
 
 .output
@@ -145,20 +145,20 @@ rv32c = {
         rdprs1
         rs2prs2
         rs2prd
-	uimm9_2
-	ulwimm6_2
-	ulwspimm7_2
-	rdeq2
-	rdeq1
-	rs1eq2
-	sbroffset8_1
-	simm9_4
-	simm5_0
-	sjaloffset11_1
-	sluimm17_12
-	uimm5_0
-	uswimm6_2
-	uswspimm7_2
+  uimm9_2
+  ulwimm6_2
+  ulwspimm7_2
+  rdeq2
+  rdeq1
+  rs1eq2
+  sbroffset8_1
+  simm9_4
+  simm5_0
+  sjaloffset11_1
+  sluimm17_12
+  uimm5_0
+  uswimm6_2
+  uswspimm7_2
         o[31]
         o[30]
         o[29]
@@ -204,51 +204,44 @@ rv32c = {
 .decode
 
 
+rv32c[c.add{0-4}] =       { rdrd rdrs1 rs2rs2                                               o[5] o[4]           o[1] o[0] }
+
+rv32c[c.mv{0-4}] =        { rdrd rs2rs2                                                     o[5] o[4]           o[1] o[0] }
+
+rv32c[c.addi] =           { rdrd rdrs1 simm5_0                                                   o[4]           o[1] o[0] }
+
+rv32c[c.addi16sp{0-5}] =  { rdeq2 rs1eq2 simm9_4                                                 o[4]           o[1] o[0] }
+rv32c[c.addi4spn{0-7}] =  { rs2prd rs1eq2 uimm9_2                                                o[4]           o[1] o[0] }
+
+rv32c[c.and] =            { rdprd rdprs1 rs2prs2                   o[14] o[13] o[12]        o[5] o[4]           o[1] o[0] }
+rv32c[c.andi] =           { rdprd rdprs1 simm5_0                   o[14] o[13] o[12]             o[4]           o[1] o[0] }
+rv32c[c.beqz] =           { rdprs1 sbroffset8_1                                        o[6] o[5]                o[1] o[0] }
+rv32c[c.bnez] =           { rdprs1 sbroffset8_1                                o[12]   o[6] o[5]                o[1] o[0] }
+
+rv32c[c.ebreak] =         {                                  o[20]                     o[6] o[5] o[4]           o[1] o[0] }
+
+rv32c[c.j] =              { sjaloffset11_1                                             o[6] o[5]      o[3] o[2] o[1] o[0] }
+rv32c[c.jal] =            { sjaloffset11_1 rdeq1                                       o[6] o[5]      o[3] o[2] o[1] o[0] }
 
 
-rv32c[c.add{0-4}] =             { rdrd rdrs1 rs2rs2                                    o[5] o[4] o[1] o[0] }
+rv32c[c.jalr{0-4}] =      { rdeq1 rdrs1                                                o[6] o[5]           o[2] o[1] o[0] }
+rv32c[c.jr{0-4}] =        {       rdrs1                                                o[6] o[5]           o[2] o[1] o[0] }
+rv32c[c.li] =             { rdrd simm5_0                                                         o[4]           o[1] o[0] }
 
-rv32c[c.mv{0-4}] =              { rdrd rs2rs2                                          o[5] o[4] o[1] o[0] }
-
-rv32c[c.addi] =                 { rdrd rdrs1 simm5_0                                          o[4] o[1] o[0] }
-
-rv32c[c.addi16sp{0-5}] =        { rdeq2 rs1eq2 simm9_4                                        o[4] o[1] o[0] }
-rv32c[c.addi4spn{0-7}] =        { rs2prd rs1eq2 uimm9_2                                         o[4] o[1] o[0] }
-
-
-rv32c[c.and] =                  { rdprd rdprs1 rs2prs2          o[14] o[13] o[12]      o[5] o[4] o[1] o[0] }
-rv32c[c.andi] =                 { rdprd rdprs1 simm5_0            o[14] o[13] o[12]           o[4] o[1] o[0] }
-rv32c[c.beqz] =                 { rdprs1 sbroffset8_1                                o[6] o[5]      o[1] o[0] }
-rv32c[c.bnez] =                 { rdprs1 sbroffset8_1                          o[12] o[6] o[5]      o[1] o[0] }
+rv32c[c.lui{0-29}] =      { rdrd sluimm17_12                                                o[5] o[4]      o[2] o[1] o[0] }
+rv32c[c.lw] =             { rs2prd rdprs1 ulwimm6_2                      o[13]                                  o[1] o[0] }
+rv32c[c.lwsp] =           { rdrd rs1eq2 ulwspimm7_2                      o[13]                                  o[1] o[0] }
 
 
-rv32c[c.ebreak] =               {                            o[20]                o[6] o[5] o[4] o[1] o[0] }
+rv32c[c.or] =             { rdprd rdprs1 rs2prs2                   o[14] o[13]              o[5] o[4]           o[1] o[0] }
 
-rv32c[c.j] =                    { sjaloffset11_1                                            o[6] o[5]      o[3] o[2] o[1] o[0] }
-rv32c[c.jal] =                  { sjaloffset11_1 rdeq1                                      o[6] o[5]      o[3] o[2] o[1] o[0] }
+rv32c[c.slli] =           { rdrd rdrs1 uimm5_0                                 o[12]             o[4]           o[1] o[0] }
+rv32c[c.srai] =           { rdprd rdprs1 uimm5_0       o[30]       o[14]       o[12]             o[4]           o[1] o[0] }
+rv32c[c.srli] =           { rdprd rdprs1 uimm5_0                   o[14]       o[12]             o[4]           o[1] o[0] }
 
-
-rv32c[c.jalr{0-4}] =            { rdeq1 rdrs1                                           o[6] o[5]           o[2] o[1] o[0] }
-rv32c[c.jr{0-4}] =              {       rdrs1                                           o[6] o[5]           o[2] o[1] o[0] }
-rv32c[c.li] =                   { rdrd simm5_0                                               o[4]           o[1] o[0] }
-
-rv32c[c.lui{0-29}] =            { rdrd sluimm17_12                                                o[5] o[4]      o[2] o[1] o[0] }
-rv32c[c.lw] =                   { rs2prd rdprs1 ulwimm6_2                    o[13]                                 o[1] o[0] }
-rv32c[c.lwsp] =                 { rdrd rs1eq2 ulwspimm7_2                    o[13]                                 o[1] o[0] }
-
-
-rv32c[c.or] =                   { rdprd rdprs1 rs2prs2               o[14] o[13]             o[5] o[4] o[1] o[0] }
-
-rv32c[c.slli] =            { rdrd rdrs1 uimm5_0                               o[12]            o[4] o[1] o[0] }
-rv32c[c.srai] =           { rdprd rdprs1 uimm5_0          o[30] o[14]        o[12]            o[4] o[1] o[0] }
-rv32c[c.srli] =            { rdprd rdprs1 uimm5_0                o[14]        o[12]            o[4] o[1] o[0] }
-
-
-rv32c[c.sub] =                  { rdprd rdprs1 rs2prs2        o[30]                          o[5] o[4] o[1] o[0] }
-rv32c[c.sw] =                   { rdprs1 rs2prs2 uswimm6_2                   o[13]             o[5]      o[1] o[0] }
-rv32c[c.swsp] =                 { rs2rs2 rs1eq2  uswspimm7_2                 o[13]             o[5]      o[1] o[0] }
-rv32c[c.xor] =                  { rdprd rdprs1 rs2prs2              o[14]                    o[5] o[4] o[1] o[0] }
-
-
+rv32c[c.sub] =            { rdprd rdprs1 rs2prs2       o[30]                                o[5] o[4]           o[1] o[0] }
+rv32c[c.sw] =             { rdprs1 rs2prs2 uswimm6_2                      o[13]             o[5]                o[1] o[0] }
+rv32c[c.swsp] =           { rs2rs2 rs1eq2  uswspimm7_2                    o[13]             o[5]                o[1] o[0] }
+rv32c[c.xor] =            { rdprd rdprs1 rs2prs2                   o[14]                    o[5] o[4]           o[1] o[0] }
 
 .end

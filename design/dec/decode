@@ -120,93 +120,93 @@ remu =       [0000001..........111.....0110011]
 .input
 
 rv32i = {
-	i[31]
-	i[30]
-	i[29]
-	i[28]
-	i[27]
-	i[26]
-	i[25]
-	i[24]
-	i[23]
-	i[22]
-	i[21]
-	i[20]
-	i[19]
-	i[18]
-	i[17]
-	i[16]
-	i[15]
-	i[14]
-	i[13]
-	i[12]
-	i[11]
-	i[10]
-	i[9]
-	i[8]
-	i[7]
-	i[6]
-	i[5]
-	i[4]
-	i[3]
-	i[2]
-	i[1]
-	i[0]
+  i[31]
+  i[30]
+  i[29]
+  i[28]
+  i[27]
+  i[26]
+  i[25]
+  i[24]
+  i[23]
+  i[22]
+  i[21]
+  i[20]
+  i[19]
+  i[18]
+  i[17]
+  i[16]
+  i[15]
+  i[14]
+  i[13]
+  i[12]
+  i[11]
+  i[10]
+  i[9]
+  i[8]
+  i[7]
+  i[6]
+  i[5]
+  i[4]
+  i[3]
+  i[2]
+  i[1]
+  i[0]
 }
 
 
 .output
 
 rv32i = {
-      alu
-      rs1
-      rs2
-      imm12
-      rd
-      shimm5
-      imm20
-      pc
-      load
-      store
-      lsu
-      add
-      sub
-      land
-      lor
-      lxor
-      sll
-      sra
-      srl
-      slt
-      unsign
-      condbr
-      beq
-      bne
-      bge
-      blt
-      jal
-      by
-      half
-      word
-      csr_read
-      csr_clr
-      csr_set
-      csr_write
-      csr_imm
-      presync
-      postsync
-      ebreak
-      ecall
-      mret
-      mul
-      rs1_sign
-      rs2_sign
-      low
-      div
-      rem
-      fence
-      fence_i
-      pm_alu
+  alu
+  rs1
+  rs2
+  imm12
+  rd
+  shimm5
+  imm20
+  pc
+  load
+  store
+  lsu
+  add
+  sub
+  land
+  lor
+  lxor
+  sll
+  sra
+  srl
+  slt
+  unsign
+  condbr
+  beq
+  bne
+  bge
+  blt
+  jal
+  by
+  half
+  word
+  csr_read
+  csr_clr
+  csr_set
+  csr_write
+  csr_imm
+  presync
+  postsync
+  ebreak
+  ecall
+  mret
+  mul
+  rs1_sign
+  rs2_sign
+  low
+  div
+  rem
+  fence
+  fence_i
+  pm_alu
 }
 
 .decode
@@ -273,7 +273,6 @@ rv32i[sb] =      { lsu store rs1 rs2 by   }
 rv32i[sh] =      { lsu store rs1 rs2 half }
 rv32i[sw] =      { lsu store rs1 rs2 word }
 
-
 rv32i[fence] =   { alu lor fence presync}
 
 # fence.i has fence effect in addtion to flush I$ and redirect
@@ -281,11 +280,10 @@ rv32i[fence.i] = { alu lor fence fence_i presync postsync}
 
 # nops for now
 
-rv32i[ebreak] = {  alu rs1 imm12 rd lor ebreak postsync}
-rv32i[ecall] =  {  alu rs1 imm12 rd lor ecall  postsync}
-rv32i[mret] =   {  alu rs1 imm12 rd lor mret   postsync}
-
-rv32i[wfi] =    {  alu rs1 imm12 rd lor pm_alu }
+rv32i[ebreak] = { alu rs1 imm12 rd lor ebreak postsync}
+rv32i[ecall] =  { alu rs1 imm12 rd lor ecall  postsync}
+rv32i[mret] =   { alu rs1 imm12 rd lor mret   postsync}
+rv32i[wfi] =    { alu rs1 imm12 rd lor pm_alu }
 
 # csr means read
 
@@ -307,16 +305,14 @@ rv32i[csrrsi_ro] =       { alu rd csr_read lor }
 
 rv32i[csrrsi_rw{0-4}] =  { alu rd csr_read rs1 csr_set   csr_imm lor presync postsync }
 
-rv32i[csrrw{0-4}] =     { alu rd csr_read rs1 csr_write         lor presync postsync }
+rv32i[csrrw{0-4}] =      { alu rd csr_read rs1 csr_write         lor presync postsync }
 
-
-rv32i[csrrwi{0-4}] =         { alu rd csr_read rs1 csr_write csr_imm lor presync postsync }
+rv32i[csrrwi{0-4}] =     { alu rd csr_read rs1 csr_write csr_imm lor presync postsync }
 
 # optimize csr write only - pipelined
-rv32i[csrw] =                { alu rd rs1 csr_write           }
+rv32i[csrw] =            { alu rd rs1 csr_write           }
 
-rv32i[csrwi]       =         { alu rd     csr_write csr_imm   }
-
+rv32i[csrwi] =           { alu rd     csr_write csr_imm   }
 
 .end
 

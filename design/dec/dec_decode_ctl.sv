@@ -515,7 +515,7 @@ module dec_decode_ctl
 
 // non block load cam logic
 
-   logic 	             cam_write, cam_inv_reset, cam_data_reset;
+   logic                cam_write, cam_inv_reset, cam_data_reset;
    logic [NBLOAD_TAG_MSB:0]  cam_write_tag, cam_inv_reset_tag, cam_data_reset_tag;
    logic [NBLOAD_SIZE_MSB:0] cam_wen;
 
