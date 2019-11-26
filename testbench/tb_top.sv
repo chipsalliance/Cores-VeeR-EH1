@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2019 Western Digital Corporation or its affiliates.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -91,7 +91,7 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
    logic                                dma_hready       ;
    logic                                dma_hresp        ;
 
-   logic                                mpc_debug_halt_req; 
+   logic                                mpc_debug_halt_req;
    logic                                mpc_debug_run_req;
    logic                                mpc_reset_run_req;
    logic                                mpc_debug_halt_ack;
@@ -127,7 +127,7 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
 `ifndef VERILATOR
    `define FORCE force
 `else
-   `define FORCE 
+   `define FORCE
 `endif
 
 
@@ -142,7 +142,7 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
    always @(posedge core_clk or negedge reset_l) begin
      if( reset_l == 0)
          cycleCnt <= 0;
-     else 
+     else
          cycleCnt <= cycleCnt+1;
    end
 
@@ -174,7 +174,7 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
      end
 
      always @(posedge core_clk) begin
-         wb_valid[1:0]  <= '{rvtop.swerv.dec.dec_i1_wen_wb & ~rvtop.swerv.dec.decode.dec_tlu_i1_kill_writeb_wb, 
+         wb_valid[1:0]  <= '{rvtop.swerv.dec.dec_i1_wen_wb & ~rvtop.swerv.dec.decode.dec_tlu_i1_kill_writeb_wb,
                              rvtop.swerv.dec.decode.wbd.i0v & ~rvtop.swerv.dec.decode.dec_tlu_i0_kill_writeb_wb};
          wb_dest[1:0]   <= '{rvtop.swerv.dec.dec_i1_waddr_wb, rvtop.swerv.dec.dec_i0_waddr_wb};
          wb_data[1:0]   <= '{rvtop.swerv.dec.dec_i1_wdata_wb, rvtop.swerv.dec.dec_i0_wdata_wb};
@@ -224,7 +224,7 @@ module tb_top ( input logic core_clk, input logic reset_l, output finished);
 
 `ifndef VERILATOR
 initial begin
-   forever  begin 
+   forever  begin
      core_clk = #5 ~core_clk;
    end
 end
@@ -301,7 +301,7 @@ end
 
            .dma_hrdata          ( dma_hrdata    ),
            .dma_hresp           ( dma_hresp     ),
-           .dma_hsel            ( 1'b1            ), 
+           .dma_hsel            ( 1'b1            ),
            .dma_hreadyin        ( dma_hready_out  ),
            .dma_hreadyout       ( dma_hready_out  ),
 

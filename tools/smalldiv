@@ -49,20 +49,20 @@ for ($i=1; $i<=$LEN; $i++) {
 
 
     $signa = substr($a,0,1);
-    
-    
+
+
     $a = substr($a.$q,1,$LEN);  # new a with q shifted in
-    
+
     if ($signa==0) { $a=b2d($a)-b2d($m); }
     else           { $a=b2d($a)+b2d($m); }
-    
+
     $a=d2b($a);
-    
-    
+
+
     $signa = substr($a,0,1);
     if ($signa==0) { $q=substr($q,1,$LEN-1)."1"; }
     else           { $q=substr($q,1,$LEN-1)."0"; }
-    
+
 }
 
 
@@ -80,9 +80,9 @@ else          { printf("\n"); }
 
 sub b2d {
     my ($v) = @_;
-    
+
     $v = oct("0b" . $v);
-    
+
     return($v);
 }
 

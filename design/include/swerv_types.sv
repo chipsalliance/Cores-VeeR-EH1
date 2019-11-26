@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2019 Western Digital Corporation or its affiliates.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,18 @@ package swerv_types;
 typedef struct packed {
                        logic [2:0] trace_rv_i_valid_ip;
                        logic [95:0] trace_rv_i_insn_ip;
-                       logic [95:0] trace_rv_i_address_ip;  
+                       logic [95:0] trace_rv_i_address_ip;
                        logic [2:0] trace_rv_i_exception_ip;
-                       logic [4:0] trace_rv_i_ecause_ip;        
-                       logic [2:0] trace_rv_i_interrupt_ip;                        
+                       logic [4:0] trace_rv_i_ecause_ip;
+                       logic [2:0] trace_rv_i_interrupt_ip;
                        logic [31:0] trace_rv_i_tval_ip;
                        } trace_pkt_t;
 
 
 typedef enum logic [3:0] {
                           NULL     = 4'b0000,
-                          MUL      = 4'b0001, 
-                          LOAD     = 4'b0010, 
+                          MUL      = 4'b0001,
+                          LOAD     = 4'b0010,
                           STORE    = 4'b0011,
                           ALU      = 4'b0100,
                           CSRREAD  = 4'b0101,
@@ -45,7 +45,7 @@ typedef enum logic [3:0] {
                           } inst_t;
 
 typedef struct packed {
-`ifdef RV_ICACHE_ECC                   
+`ifdef RV_ICACHE_ECC
                        logic [39:0] ecc;
 `else
                        logic [7:0] parity;
@@ -103,15 +103,15 @@ typedef struct packed {
                        } br_tlu_pkt_t;
 
 typedef struct packed {
-                       logic misp;   
+                       logic misp;
                        logic ataken;
-                       logic boffset; 
+                       logic boffset;
                        logic pc4;
-                       logic [1:0] hist;    
+                       logic [1:0] hist;
                        logic [11:0] toffset;
-                       logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] index;  
-                       logic [1:0] bank;    
-                       logic valid; 
+                       logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] index;
+                       logic [1:0] bank;
+                       logic valid;
                        logic br_error;
                        logic br_start_error;
                        logic [31:1] prett;
@@ -130,7 +130,7 @@ typedef struct packed {
 typedef struct packed {
                        logic legal;
                        logic icaf;
-                       logic icaf_f1;                  
+                       logic icaf_f1;
                        logic perr;
                        logic sbecc;
                        logic fence_i;
@@ -146,7 +146,7 @@ typedef struct packed {
 
 typedef struct packed {
                        logic [4:0] i0rd;
-                       logic i0mul;                    
+                       logic i0mul;
                        logic i0load;
                        logic i0store;
                        logic i0div;
@@ -154,11 +154,11 @@ typedef struct packed {
                        logic i0valid;
                        logic i0secondary;
                        logic [1:0] i0rs1bype2;
-                       logic [1:0] i0rs2bype2;                 
+                       logic [1:0] i0rs2bype2;
                        logic [3:0] i0rs1bype3;
-                       logic [3:0] i0rs2bype3;                 
+                       logic [3:0] i0rs2bype3;
                        logic [4:0] i1rd;
-                       logic i1mul;                    
+                       logic i1mul;
                        logic i1load;
                        logic i1store;
                        logic i1v;
@@ -166,11 +166,11 @@ typedef struct packed {
                        logic csrwen;
                        logic csrwonly;
                        logic [11:0] csrwaddr;
-                       logic i1secondary;                      
+                       logic i1secondary;
                        logic [1:0] i1rs1bype2;
-                       logic [1:0] i1rs2bype2;                 
+                       logic [1:0] i1rs2bype2;
                        logic [6:0] i1rs1bype3;
-                       logic [6:0] i1rs2bype3;                 
+                       logic [6:0] i1rs2bype3;
                        } dest_pkt_t;
 
 typedef struct packed {
@@ -192,7 +192,7 @@ typedef struct packed {
                        logic land;
                        logic lor;
                        logic lxor;
-                       logic sll; 
+                       logic sll;
                        logic srl;
                        logic sra;
                        logic beq;
@@ -230,13 +230,13 @@ typedef struct packed {
                        } lsu_pkt_t;
 
 typedef struct packed {
-                      logic exc_valid; 
-                      logic single_ecc_error; 
-                      logic inst_type;   //0: Load, 1: Store 
+                      logic exc_valid;
+                      logic single_ecc_error;
+                      logic inst_type;   //0: Load, 1: Store
                       logic inst_pipe;   //0: i0, 1: i1
                       logic dma_valid;
-                      logic exc_type;    //0: MisAligned, 1: Access Fault  
-                      logic [31:0] addr; 
+                      logic exc_type;    //0: MisAligned, 1: Access Fault
+                      logic [31:0] addr;
                       } lsu_error_pkt_t;
 
 typedef struct packed {
@@ -276,7 +276,7 @@ typedef struct packed {
                        logic csr_write;
                        logic csr_imm;
                        logic presync;
-                       logic postsync;                 
+                       logic postsync;
                        logic ebreak;
                        logic ecall;
                        logic mret;
@@ -299,7 +299,7 @@ typedef struct packed {
                        logic rs2_sign;
                        logic low;
                        logic load_mul_rs1_bypass_e1;
-                       logic load_mul_rs2_bypass_e1;                   
+                       logic load_mul_rs2_bypass_e1;
                        } mul_pkt_t;
 
 typedef struct packed {
@@ -316,12 +316,12 @@ typedef struct packed {
                         logic        load;
                         logic        execute;
                         logic        m;
-                        logic [31:0] tdata2;           
+                        logic [31:0] tdata2;
             } trigger_pkt_t;
 
- 
+
 typedef struct packed {
-`ifdef RV_ICACHE_ECC                   
+`ifdef RV_ICACHE_ECC
                         logic [41:0]  icache_wrdata; // {dicad0[31:0], dicad1[1:0]}
 `else
                         logic [33:0]  icache_wrdata; // {dicad0[31:0], dicad1[1:0]}

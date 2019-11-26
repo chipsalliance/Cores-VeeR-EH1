@@ -16,26 +16,26 @@ foreach $line (@in) {
 
     if ($line=~/\#/) { next; }
 
-    if ($line=~/([^=]+)=/) { 
+    if ($line=~/([^=]+)=/) {
 	$sig=$1;
 	$sig=~s/\s+//g;
 	printf("logic $sig;\n");
-    } 
+    }
 }
 
 foreach $line (@in) {
 
     if ($line=~/\#/) { next; }
 
-    if ($line=~/([^=]+)=\s*;/) { 
+    if ($line=~/([^=]+)=\s*;/) {
 	printf("assign ${prefix}$1 = 1'b0;\n");
 	next;
-    } 
+    }
 
-    if ($line=~/([^=]+)=\s*\(\s*\);/) { 
+    if ($line=~/([^=]+)=\s*\(\s*\);/) {
 	printf("assign ${prefix}$1 = 1'b0;\n");
 	next;
-    } 
+    }
 
     if ($line =~ /=/) { printf("assign ${prefix}$line"); }
     else              { printf("$line"); }

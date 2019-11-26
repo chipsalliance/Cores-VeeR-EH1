@@ -1,8 +1,8 @@
 #  NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
 #  This is an automatically generated file by joseph.rahmeh on Tue Oct 15 13:13:16 PDT 2019
-# 
-#  cmd:    swerv -snapshot=default -ahb_lite 
-# 
+#
+#  cmd:    swerv -snapshot=default -ahb_lite
+#
 # To use this in a perf script, use 'require $RV_ROOT/configs/config.pl'
 # Reference the hash via $config{name}..
 

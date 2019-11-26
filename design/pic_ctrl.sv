@@ -16,8 +16,8 @@
 //********************************************************************************
 
 //********************************************************************************
-// Function: Programmable Interrupt Controller 
-// Comments: 
+// Function: Programmable Interrupt Controller
+// Comments:
 //********************************************************************************
 
 module pic_ctrl
@@ -43,10 +43,10 @@ module pic_ctrl
                      output logic [31:0]            picm_rd_data,         // Read data of the register
                      output logic                   mhwakeup,             // Wake-up interrupt request
                      input  logic                   scan_mode             // scan mode
-                                     
+
 );
 `include "global.h"
-   
+
 localparam NUM_LEVELS            = $clog2(TOTAL_INT);
 localparam INTPRIORITY_BASE_ADDR = `RV_PIC_BASE_ADDR ;
 localparam INTPEND_BASE_ADDR     = `RV_PIC_BASE_ADDR + 32'h00001000 ;
@@ -55,21 +55,21 @@ localparam EXT_INTR_PIC_CONFIG   = `RV_PIC_BASE_ADDR + 32'h00003000 ;
 localparam EXT_INTR_GW_CONFIG    = `RV_PIC_BASE_ADDR + 32'h00004000 ;
 localparam EXT_INTR_GW_CLEAR     = `RV_PIC_BASE_ADDR + 32'h00005000 ;
 
-   
-localparam INTPEND_SIZE          = (TOTAL_INT < 32)  ? 32  : 
+
+localparam INTPEND_SIZE          = (TOTAL_INT < 32)  ? 32  :
                                    (TOTAL_INT < 64)  ? 64  :
                                    (TOTAL_INT < 128) ? 128 :
-                                   (TOTAL_INT < 256) ? 256 :  
+                                   (TOTAL_INT < 256) ? 256 :
                                    (TOTAL_INT < 512) ? 512 :  1024 ;
 
 localparam INT_GRPS              =   INTPEND_SIZE / 32 ;
 localparam INTPRIORITY_BITS      =  4 ;
 localparam ID_BITS               =  8 ;
-localparam int GW_CONFIG[TOTAL_INT-1:0] = '{default:0} ;  
+localparam int GW_CONFIG[TOTAL_INT-1:0] = '{default:0} ;
 
-logic  addr_intpend_base_match; 
-logic  addr_intenable_base_match; 
-logic  addr_intpriority_base_match; 
+logic  addr_intpend_base_match;
+logic  addr_intenable_base_match;
+logic  addr_intpriority_base_match;
 logic  addr_config_pic_match ;
 logic  addr_config_gw_base_match ;
 logic  addr_clear_gw_base_match ;
@@ -105,7 +105,7 @@ logic [INT_GRPS-1:0] [31:0]                  intpend_rd_part_out ;
 
 logic                                        config_reg;
 logic                                        intpriord;
-logic                                        config_reg_we ; 
+logic                                        config_reg_we ;
 logic                                        config_reg_re ;
 logic                                        config_reg_in ;
 logic                                        prithresh_reg_write , prithresh_reg_read;
@@ -117,9 +117,9 @@ logic [31:0]                                 picm_addr_ff;
 logic [31:0]                                 picm_wr_data_ff;
 logic [3:0]                                  mask;
 logic                                        picm_mken_ff;
-logic [ID_BITS-1:0]                          claimid_in ; 
-logic [INTPRIORITY_BITS-1:0]                 pl_in ; 
-logic [INTPRIORITY_BITS-1:0]                 pl_in_q ; 
+logic [ID_BITS-1:0]                          claimid_in ;
+logic [INTPRIORITY_BITS-1:0]                 pl_in ;
+logic [INTPRIORITY_BITS-1:0]                 pl_in_q ;
 
 logic [TOTAL_INT-1:0]                        extintsrc_req_sync;
 logic [TOTAL_INT-1:0]                        extintsrc_req_gw;
@@ -130,7 +130,7 @@ logic [TOTAL_INT-1:0]                        extintsrc_req_gw;
    logic                                     pic_pri_c1_clken;
    logic                                     pic_int_c1_clken;
    logic                                     gw_config_c1_clken;
-   
+
 // clocks
    logic                                     pic_addr_c1_clk;
    logic                                     pic_data_c1_clk;
@@ -145,16 +145,16 @@ logic [TOTAL_INT-1:0]                        extintsrc_req_gw;
    assign pic_pri_c1_clken    = (addr_intpriority_base_match & (picm_wren_ff | picm_rden_ff)) | clk_override;
    assign pic_int_c1_clken    = (addr_intenable_base_match & (picm_wren_ff | picm_rden_ff))   | clk_override;
    assign gw_config_c1_clken  = (addr_config_gw_base_match & (picm_wren_ff | picm_rden_ff))   | clk_override;
-   
-   // C1 - 1 clock pulse for data 
+
+   // C1 - 1 clock pulse for data
    rvoclkhdr pic_addr_c1_cgc   ( .en(pic_addr_c1_clken), .l1clk(pic_addr_c1_clk), .* );
    rvoclkhdr pic_data_c1_cgc   ( .en(pic_data_c1_clken), .l1clk(pic_data_c1_clk), .* );
    rvoclkhdr pic_pri_c1_cgc    ( .en(pic_pri_c1_clken),  .l1clk(pic_pri_c1_clk),  .* );
    rvoclkhdr pic_int_c1_cgc    ( .en(pic_int_c1_clken),  .l1clk(pic_int_c1_clk),  .* );
    rvoclkhdr gw_config_c1_cgc  ( .en(gw_config_c1_clken),  .l1clk(gw_config_c1_clk),  .* );
-   
+
 // ------ end clock gating section ------------------------
-   
+
 assign addr_intpend_base_match      = (picm_addr_ff[31:6]            == INTPEND_BASE_ADDR[31:6]) ;
 assign addr_intenable_base_match    = (picm_addr_ff[31:NUM_LEVELS+2] == INTENABLE_BASE_ADDR[31:NUM_LEVELS+2]) ;
 assign addr_intpriority_base_match  = (picm_addr_ff[31:NUM_LEVELS+2] == INTPRIORITY_BASE_ADDR[31:NUM_LEVELS+2]) ;
@@ -170,13 +170,13 @@ rvdff  #(1)                picm_rde_flop   (.*, .din (picm_rden),               
 rvdff  #(1)                picm_mke_flop   (.*, .din (picm_mken),                    .dout(picm_mken_ff),         .clk(active_clk));
 rvdff #(32)                picm_dat_flop   (.*, .din (picm_wr_data[31:0]),           .dout(picm_wr_data_ff[31:0]), .clk(pic_data_c1_clk));
 
-rvsyncss  #(TOTAL_INT-1) sync_inst 
+rvsyncss  #(TOTAL_INT-1) sync_inst
 (
  .clk (free_clk),
  .dout(extintsrc_req_sync[TOTAL_INT-1:1]),
- .din (extintsrc_req[TOTAL_INT-1:1]),        
+ .din (extintsrc_req[TOTAL_INT-1:1]),
  .*) ;
-   
+
 assign extintsrc_req_sync[0] = extintsrc_req[0];
 
 genvar i ;
@@ -206,21 +206,21 @@ for (i=0; i<TOTAL_INT ; i++) begin  : SETREG
                          .meigwctrl_polarity(gw_config_reg[i][0]) ,
                          .meigwctrl_type(gw_config_reg[i][1]) ,
                          .meigwclr(gw_clear_reg_we[i]) ,
-                         .extintsrc_req_config(extintsrc_req_gw[i])  
+                         .extintsrc_req_config(extintsrc_req_gw[i])
                             );
 //    end else begin
 //        assign extintsrc_req_gw[i] = extintsrc_req_sync[i] ;
 //        assign gw_config_reg[i]    = '0 ;
 //    end
-              
-          
+
+
  end else begin : INT_ZERO
      assign intpriority_reg_we[i] =  1'b0 ;
      assign intpriority_reg_re[i] =  1'b0 ;
      assign intenable_reg_we[i]   =  1'b0 ;
      assign intenable_reg_re[i]   =  1'b0 ;
 
-     assign gw_config_reg_we[i]   =  1'b0 ; 
+     assign gw_config_reg_we[i]   =  1'b0 ;
      assign gw_config_reg_re[i]   =  1'b0 ;
      assign gw_clear_reg_we[i]    =  1'b0 ;
 
@@ -230,10 +230,10 @@ for (i=0; i<TOTAL_INT ; i++) begin  : SETREG
      assign intenable_reg[i]   = 1'b0 ;
      assign extintsrc_req_gw[i] = 1'b0 ;
  end
-    
- 
+
+
     assign intpriority_reg_inv[i] =  intpriord ? ~intpriority_reg[i] : intpriority_reg[i] ;
-   
+
     assign intpend_w_prior_en[i]  =  {INTPRIORITY_BITS{(extintsrc_req_gw[i] & intenable_reg[i])}} & intpriority_reg_inv[i] ;
     assign intpend_id[i]          =  i ;
 end
@@ -242,39 +242,39 @@ end
         assign pl_in[INTPRIORITY_BITS-1:0]                  =      selected_int_priority[INTPRIORITY_BITS-1:0] ;
 
 `ifdef RV_PIC_2CYCLE
-        logic [NUM_LEVELS/2:0] [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en;  
-        logic [NUM_LEVELS/2:0] [TOTAL_INT+2:0] [ID_BITS-1:0]          level_intpend_id;  
-        logic [NUM_LEVELS:NUM_LEVELS/2] [(TOTAL_INT/2**(NUM_LEVELS/2))+1:0] [INTPRIORITY_BITS-1:0] levelx_intpend_w_prior_en;  
-        logic [NUM_LEVELS:NUM_LEVELS/2] [(TOTAL_INT/2**(NUM_LEVELS/2))+1:0] [ID_BITS-1:0]          levelx_intpend_id;  
+        logic [NUM_LEVELS/2:0] [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en;
+        logic [NUM_LEVELS/2:0] [TOTAL_INT+2:0] [ID_BITS-1:0]          level_intpend_id;
+        logic [NUM_LEVELS:NUM_LEVELS/2] [(TOTAL_INT/2**(NUM_LEVELS/2))+1:0] [INTPRIORITY_BITS-1:0] levelx_intpend_w_prior_en;
+        logic [NUM_LEVELS:NUM_LEVELS/2] [(TOTAL_INT/2**(NUM_LEVELS/2))+1:0] [ID_BITS-1:0]          levelx_intpend_id;
 
-        assign level_intpend_w_prior_en[0][TOTAL_INT+2:0] = {4'b0,4'b0,4'b0,intpend_w_prior_en[TOTAL_INT-1:0]} ; 
-        assign level_intpend_id[0][TOTAL_INT+2:0]         = {8'b0,8'b0,8'b0,intpend_id[TOTAL_INT-1:0]} ; 
+        assign level_intpend_w_prior_en[0][TOTAL_INT+2:0] = {4'b0,4'b0,4'b0,intpend_w_prior_en[TOTAL_INT-1:0]} ;
+        assign level_intpend_id[0][TOTAL_INT+2:0]         = {8'b0,8'b0,8'b0,intpend_id[TOTAL_INT-1:0]} ;
 
         logic [(TOTAL_INT/2**(NUM_LEVELS/2)):0] [INTPRIORITY_BITS-1:0] l2_intpend_w_prior_en_ff;
         logic [(TOTAL_INT/2**(NUM_LEVELS/2)):0] [ID_BITS-1:0]          l2_intpend_id_ff;
-        
-        assign levelx_intpend_w_prior_en[NUM_LEVELS/2][(TOTAL_INT/2**(NUM_LEVELS/2))+1:0] = {{1*INTPRIORITY_BITS{1'b0}},l2_intpend_w_prior_en_ff[(TOTAL_INT/2**(NUM_LEVELS/2)):0]} ; 
-        assign levelx_intpend_id[NUM_LEVELS/2][(TOTAL_INT/2**(NUM_LEVELS/2))+1:0]         = {{1*ID_BITS{1'b1}},l2_intpend_id_ff[(TOTAL_INT/2**(NUM_LEVELS/2)):0]} ; 
+
+        assign levelx_intpend_w_prior_en[NUM_LEVELS/2][(TOTAL_INT/2**(NUM_LEVELS/2))+1:0] = {{1*INTPRIORITY_BITS{1'b0}},l2_intpend_w_prior_en_ff[(TOTAL_INT/2**(NUM_LEVELS/2)):0]} ;
+        assign levelx_intpend_id[NUM_LEVELS/2][(TOTAL_INT/2**(NUM_LEVELS/2))+1:0]         = {{1*ID_BITS{1'b1}},l2_intpend_id_ff[(TOTAL_INT/2**(NUM_LEVELS/2)):0]} ;
 
 `else
-        logic [NUM_LEVELS:0] [TOTAL_INT+1:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en;  
-        logic [NUM_LEVELS:0] [TOTAL_INT+1:0] [ID_BITS-1:0]          level_intpend_id;  
+        logic [NUM_LEVELS:0] [TOTAL_INT+1:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en;
+        logic [NUM_LEVELS:0] [TOTAL_INT+1:0] [ID_BITS-1:0]          level_intpend_id;
 
-        assign level_intpend_w_prior_en[0][TOTAL_INT+1:0] = {{2*INTPRIORITY_BITS{1'b0}},intpend_w_prior_en[TOTAL_INT-1:0]} ; 
-        assign level_intpend_id[0][TOTAL_INT+1:0] = {{2*ID_BITS{1'b1}},intpend_id[TOTAL_INT-1:0]} ; 
+        assign level_intpend_w_prior_en[0][TOTAL_INT+1:0] = {{2*INTPRIORITY_BITS{1'b0}},intpend_w_prior_en[TOTAL_INT-1:0]} ;
+        assign level_intpend_id[0][TOTAL_INT+1:0] = {{2*ID_BITS{1'b1}},intpend_id[TOTAL_INT-1:0]} ;
 
 `endif
- 
- genvar l, m , j, k; 
 
-// `ifdef VERILATOR 
+ genvar l, m , j, k;
+
+// `ifdef VERILATOR
       `include "pic_ctrl_verilator_unroll.sv"
 // `else
 // `ifdef RV_PIC_2CYCLE
 // ///  Do the prioritization of the interrupts here  ////////////
 //  for (l=0; l<NUM_LEVELS/2 ; l++) begin : TOP_LEVEL
 //     for (m=0; m<=(TOTAL_INT)/(2**(l+1)) ; m++) begin : COMPARE
-//        if ( m == (TOTAL_INT)/(2**(l+1))) begin 
+//        if ( m == (TOTAL_INT)/(2**(l+1))) begin
 //             assign level_intpend_w_prior_en[l+1][m+1] = '0 ;
 //             assign level_intpend_id[l+1][m+1]         = '0 ;
 //        end
@@ -286,23 +286,23 @@ end
 //                       .b_priority(level_intpend_w_prior_en[l][2*m+1]),
 //                       .out_id(level_intpend_id[l+1][m]),
 //                       .out_priority(level_intpend_w_prior_en[l+1][m])) ;
-//         
+//
 //     end
 //  end
-// 
+//
 //         for (i=0; i<=TOTAL_INT/2**(NUM_LEVELS/2) ; i++) begin : MIDDLE_FLOPS
 //           rvdff #(INTPRIORITY_BITS) level2_intpend_prior_reg  (.*, .din (level_intpend_w_prior_en[NUM_LEVELS/2][i]), .dout(l2_intpend_w_prior_en_ff[i]),  .clk(free_clk));
 //           rvdff #(ID_BITS)          level2_intpend_id_reg     (.*, .din (level_intpend_id[NUM_LEVELS/2][i]),         .dout(l2_intpend_id_ff[i]),          .clk(free_clk));
 //         end
-// 
+//
 //  for (j=NUM_LEVELS/2; j<NUM_LEVELS ; j++) begin : BOT_LEVELS
 //     for (k=0; k<=(TOTAL_INT)/(2**(j+1)) ; k++) begin : COMPARE
-//        if ( k == (TOTAL_INT)/(2**(j+1))) begin 
+//        if ( k == (TOTAL_INT)/(2**(j+1))) begin
 //             assign levelx_intpend_w_prior_en[j+1][k+1] = '0 ;
 //             assign levelx_intpend_id[j+1][k+1]         = '0 ;
 //        end
 //             cmp_and_mux  #(.ID_BITS(ID_BITS),
-//                         .INTPRIORITY_BITS(INTPRIORITY_BITS)) 
+//                         .INTPRIORITY_BITS(INTPRIORITY_BITS))
 //                  cmp_l1 (
 //                         .a_id(levelx_intpend_id[j][2*k]),
 //                         .a_priority(levelx_intpend_w_prior_en[j][2*k]),
@@ -314,14 +314,14 @@ end
 //   end
 //         assign claimid_in[ID_BITS-1:0]                      =      levelx_intpend_id[NUM_LEVELS][0] ;   // This is the last level output
 //         assign selected_int_priority[INTPRIORITY_BITS-1:0]  =      levelx_intpend_w_prior_en[NUM_LEVELS][0] ;
-// 
+//
 // `else
-// 
+//
 // ///  Do the prioritization of the interrupts here  ////////////
 // // genvar l, m , j, k;  already declared outside ifdef
 //  for (l=0; l<NUM_LEVELS ; l++) begin : LEVEL
 //     for (m=0; m<=(TOTAL_INT)/(2**(l+1)) ; m++) begin : COMPARE
-//        if ( m == (TOTAL_INT)/(2**(l+1))) begin 
+//        if ( m == (TOTAL_INT)/(2**(l+1))) begin
 //             assign level_intpend_w_prior_en[l+1][m+1] = '0 ;
 //             assign level_intpend_id[l+1][m+1]         = '0 ;
 //        end
@@ -333,36 +333,36 @@ end
 //                       .b_priority(level_intpend_w_prior_en[l][2*m+1]),
 //                       .out_id(level_intpend_id[l+1][m]),
 //                       .out_priority(level_intpend_w_prior_en[l+1][m])) ;
-//         
+//
 //     end
 //  end
 //         assign claimid_in[ID_BITS-1:0]                      =      level_intpend_id[NUM_LEVELS][0] ;   // This is the last level output
 //         assign selected_int_priority[INTPRIORITY_BITS-1:0]  =      level_intpend_w_prior_en[NUM_LEVELS][0] ;
-// 
+//
 // `endif
 // `endif
 
 
 
 ///////////////////////////////////////////////////////////////////////
-// Config Reg` 
+// Config Reg`
 ///////////////////////////////////////////////////////////////////////
-assign config_reg_we               =  addr_config_pic_match & picm_wren_ff; 
-assign config_reg_re               =  addr_config_pic_match & picm_rden_ff; 
+assign config_reg_we               =  addr_config_pic_match & picm_wren_ff;
+assign config_reg_re               =  addr_config_pic_match & picm_rden_ff;
 
-assign config_reg_in  =  picm_wr_data_ff[0] ;   // 
+assign config_reg_in  =  picm_wr_data_ff[0] ;   //
 rvdffs #(1) config_reg_ff  (.*, .clk(free_clk), .en(config_reg_we), .din (config_reg_in), .dout(config_reg));
 
 assign intpriord  = config_reg ;
 
 
 ///////////////////////////////////////////////////////////////////////
-// Thresh-hold Reg` 
+// Thresh-hold Reg`
 ///////////////////////////////////////////////////////////////////////
-//assign prithresh_reg_write              =  addr_prithresh_match & picm_wren_ff; 
-//assign prithresh_reg_read               =  addr_prithresh_match & picm_rden_ff; 
+//assign prithresh_reg_write              =  addr_prithresh_match & picm_wren_ff;
+//assign prithresh_reg_read               =  addr_prithresh_match & picm_rden_ff;
 //
-//assign prithresh_reg_in[INTPRIORITY_BITS-1:0]  =  picm_wr_data_ff[INTPRIORITY_BITS-1:0] ;   // Thresh-hold priority. 
+//assign prithresh_reg_in[INTPRIORITY_BITS-1:0]  =  picm_wr_data_ff[INTPRIORITY_BITS-1:0] ;   // Thresh-hold priority.
 //rvdffs #(INTPRIORITY_BITS) prithresh_reg_ff  (.*, .en(prithresh_reg_write), .din (prithresh_reg_in[INTPRIORITY_BITS-1:0]), .dout(prithresh_reg[INTPRIORITY_BITS-1:0]));
 //
 
@@ -372,10 +372,10 @@ assign intpriord  = config_reg ;
 ///////////////////////////////////////////////////////////
 /// ClaimId  Reg and Corresponding PL
 ///////////////////////////////////////////////////////////
-// logic   atleast_one_int_enabled_in,atleast_one_int_enabled ;  
-// logic   mexintpend_unq ;  
-// logic   mhwakeup_unq ;  
-// 
+// logic   atleast_one_int_enabled_in,atleast_one_int_enabled ;
+// logic   mexintpend_unq ;
+// logic   mhwakeup_unq ;
+//
 assign pl_in_q[INTPRIORITY_BITS-1:0] = intpriord ? ~pl_in : pl_in ;
 rvdff #(ID_BITS)          claimid_ff (.*,  .din (claimid_in[ID_BITS-1:00]),    .dout(claimid[ID_BITS-1:00]),         .clk(free_clk));
 rvdff  #(INTPRIORITY_BITS) pl_ff      (.*, .din (pl_in_q[INTPRIORITY_BITS-1:0]), .dout(pl[INTPRIORITY_BITS-1:0]),         .clk(free_clk));
@@ -383,7 +383,7 @@ rvdff  #(INTPRIORITY_BITS) pl_ff      (.*, .din (pl_in_q[INTPRIORITY_BITS-1:0]),
 logic [INTPRIORITY_BITS-1:0] meipt_inv , meicurpl_inv ;
 assign meipt_inv[INTPRIORITY_BITS-1:0]    = intpriord ? ~meipt[INTPRIORITY_BITS-1:0]    : meipt[INTPRIORITY_BITS-1:0] ;
 assign meicurpl_inv[INTPRIORITY_BITS-1:0] = intpriord ? ~meicurpl[INTPRIORITY_BITS-1:0] : meicurpl[INTPRIORITY_BITS-1:0] ;
-assign mexintpend_in = (( selected_int_priority[INTPRIORITY_BITS-1:0] > meipt_inv[INTPRIORITY_BITS-1:0]) &  
+assign mexintpend_in = (( selected_int_priority[INTPRIORITY_BITS-1:0] > meipt_inv[INTPRIORITY_BITS-1:0]) &
                         ( selected_int_priority[INTPRIORITY_BITS-1:0] > meicurpl_inv[INTPRIORITY_BITS-1:0]) );
 rvdff #(1) mexintpend_ff  (.*, .clk(free_clk), .din (mexintpend_in), .dout(mexintpend));
 
@@ -394,18 +394,18 @@ rvdff #(1) wake_up_ff  (.*, .clk(free_clk), .din (mhwakeup_in), .dout(mhwakeup))
 
 // assign atleast_one_int_enabled_in      =  |intenable_reg[TOTAL_INT-1:0] ;
 // rvdff #(1) one_int_en_ff  (.*, .din (atleast_one_int_enabled_in), .dout(atleast_one_int_enabled));
-// 
+//
 // assign mexintpend  = mexintpend_unq & atleast_one_int_enabled ;
 // assign mhwakeup    = mhwakeup_unq   & atleast_one_int_enabled ;
 
 
 
 //////////////////////////////////////////////////////////////////////////
-//  Reads of register.  
+//  Reads of register.
 //  1- intpending
 //////////////////////////////////////////////////////////////////////////
 
-assign intpend_reg_read     =  addr_intpend_base_match     & picm_rden_ff ; 
+assign intpend_reg_read     =  addr_intpend_base_match     & picm_rden_ff ;
 assign intpriority_reg_read =  addr_intpriority_base_match & picm_rden_ff;
 assign intenable_reg_read   =  addr_intenable_base_match   & picm_rden_ff;
 assign gw_config_reg_read   =  addr_config_gw_base_match   & picm_rden_ff;
@@ -416,14 +416,14 @@ assign intpend_reg_extended[INTPEND_SIZE-1:0]  = {{INTPEND_SIZE-TOTAL_INT{1'b0}}
             assign intpend_rd_part_out[i] =  (({32{intpend_reg_read & picm_addr_ff[5:2] == i}}) & intpend_reg_extended[((32*i)+31):(32*i)]) ;
    end
 
-   always_comb begin : INTPEND_RD 
+   always_comb begin : INTPEND_RD
          intpend_rd_out =  '0 ;
          for (int i=0; i<INT_GRPS; i++) begin
                intpend_rd_out |=  intpend_rd_part_out[i] ;
          end
    end
 
-   always_comb begin : INTEN_RD 
+   always_comb begin : INTEN_RD
          intenable_rd_out =  '0 ;
          intpriority_rd_out =  '0 ;
          gw_config_rd_out =  '0 ;
@@ -439,28 +439,28 @@ assign intpend_reg_extended[INTPEND_SIZE-1:0]  = {{INTPEND_SIZE-TOTAL_INT{1'b0}}
               end
          end
    end
-   
 
- assign picm_rd_data_in[31:0] = ({32{intpend_reg_read      }} &   intpend_rd_out                                                    ) | 
-                                ({32{intpriority_reg_read  }} &  {{32-INTPRIORITY_BITS{1'b0}}, intpriority_rd_out                 } ) | 
+
+ assign picm_rd_data_in[31:0] = ({32{intpend_reg_read      }} &   intpend_rd_out                                                    ) |
+                                ({32{intpriority_reg_read  }} &  {{32-INTPRIORITY_BITS{1'b0}}, intpriority_rd_out                 } ) |
                                 ({32{intenable_reg_read    }} &  {31'b0 , intenable_rd_out                                        } ) |
                                 ({32{gw_config_reg_read    }} &  {30'b0 , gw_config_rd_out                                        } ) |
-                                ({32{config_reg_re         }} &  {31'b0 , config_reg                                              } ) | 
+                                ({32{config_reg_re         }} &  {31'b0 , config_reg                                              } ) |
                                 ({32{picm_mken_ff & mask[3]}} &  {30'b0 , 2'b11                                                   } ) |
                                 ({32{picm_mken_ff & mask[2]}} &  {31'b0 , 1'b1                                                    } ) |
                                 ({32{picm_mken_ff & mask[1]}} &  {28'b0 , 4'b1111                                                 } ) |
-                                ({32{picm_mken_ff & mask[0]}} &   32'b0                                                             ) ; 
+                                ({32{picm_mken_ff & mask[0]}} &   32'b0                                                             ) ;
 
 
 assign picm_rd_data[31:0] = picm_rd_data_in[31:0] ;
 
 logic [14:0] address;
-   
+
 assign address[14:0] = picm_addr_ff[14:0];
 
 `include "pic_map_auto.h"
 
-endmodule 
+endmodule
 
 
 module cmp_and_mux #(parameter ID_BITS=8,
@@ -468,26 +468,26 @@ module cmp_and_mux #(parameter ID_BITS=8,
                     (
                         input  logic [ID_BITS-1:0]       a_id,
                         input  logic [INTPRIORITY_BITS-1:0] a_priority,
-                               
+
                         input  logic [ID_BITS-1:0]       b_id,
                         input  logic [INTPRIORITY_BITS-1:0] b_priority,
-                               
+
                         output logic [ID_BITS-1:0]       out_id,
-                        output logic [INTPRIORITY_BITS-1:0] out_priority 
-                           
+                        output logic [INTPRIORITY_BITS-1:0] out_priority
+
                     );
-    
+
 logic   a_is_lt_b ;
 
 assign  a_is_lt_b  = ( a_priority[INTPRIORITY_BITS-1:0] < b_priority[INTPRIORITY_BITS-1:0] ) ;
 // assign  a_is_eq_b  = ( a_priority[INTPRIORITY_BITS-1:0] == b_priority[INTPRIORITY_BITS-1:0]) ;
 
-assign  out_id[ID_BITS-1:0]                = a_is_lt_b ? b_id[ID_BITS-1:0] : 
+assign  out_id[ID_BITS-1:0]                = a_is_lt_b ? b_id[ID_BITS-1:0] :
                                                          a_id[ID_BITS-1:0] ;
-assign  out_priority[INTPRIORITY_BITS-1:0] = a_is_lt_b ? b_priority[INTPRIORITY_BITS-1:0] : 
+assign  out_priority[INTPRIORITY_BITS-1:0] = a_is_lt_b ? b_priority[INTPRIORITY_BITS-1:0] :
                                                          a_priority[INTPRIORITY_BITS-1:0] ;
 endmodule // cmp_and_mux
-                               
+
 
 module configurable_gw (
                              input logic clk,
@@ -497,10 +497,10 @@ module configurable_gw (
                              input logic meigwctrl_polarity ,
                              input logic meigwctrl_type ,
                              input logic meigwclr ,
-        
-                             output logic extintsrc_req_config  
+
+                             output logic extintsrc_req_config
                             );
-                           
+
 
   logic  gw_int_pending_in , gw_int_pending ;
 

@@ -5,7 +5,7 @@
 logic [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en_1;
 logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_1;
     for (m=0; m<=(TOTAL_INT)/(2**(1)) ; m++) begin : COMPARE0
-       if ( m == (TOTAL_INT)/(2**(1))) begin 
+       if ( m == (TOTAL_INT)/(2**(1))) begin
             assign level_intpend_w_prior_en_1[m+1] = '0 ;
             assign level_intpend_id_1[m+1]         = '0 ;
        end
@@ -18,14 +18,14 @@ logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_1;
                       .b_priority(level_intpend_w_prior_en[0][2*m+1]),
                       .out_id(level_intpend_id_1[m]),
                       .out_priority(level_intpend_w_prior_en_1[m])) ;
-        
+
  end
 
 // LEVEL1
 logic [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en_2;
 logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_2;
     for (m=0; m<=(TOTAL_INT)/(2**(2)) ; m++) begin : COMPARE1
-       if ( m == (TOTAL_INT)/(2**(2))) begin 
+       if ( m == (TOTAL_INT)/(2**(2))) begin
             assign level_intpend_w_prior_en_2[m+1] = '0 ;
             assign level_intpend_id_2[m+1]         = '0 ;
        end
@@ -38,7 +38,7 @@ logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_2;
                       .b_priority(level_intpend_w_prior_en_1[2*m+1]),
                       .out_id(level_intpend_id_2[m]),
                       .out_priority(level_intpend_w_prior_en_2[m])) ;
-        
+
  end
 
 for (i=0; i<=TOTAL_INT/2**(NUM_LEVELS/2) ; i++) begin : MIDDLE_FLOPS
@@ -49,7 +49,7 @@ end
 logic [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] levelx_intpend_w_prior_en_3;
 logic [TOTAL_INT+2:0] [ID_BITS-1:0] levelx_intpend_id_3;
     for (m=0; m<=(TOTAL_INT)/(2**(3)) ; m++) begin : COMPARE2
-       if ( m == (TOTAL_INT)/(2**(3))) begin 
+       if ( m == (TOTAL_INT)/(2**(3))) begin
             assign levelx_intpend_w_prior_en_3[m+1] = '0 ;
             assign levelx_intpend_id_3[m+1]         = '0 ;
        end
@@ -62,14 +62,14 @@ logic [TOTAL_INT+2:0] [ID_BITS-1:0] levelx_intpend_id_3;
                       .b_priority(levelx_intpend_w_prior_en[2][2*m+1]),
                       .out_id(levelx_intpend_id_3[m]),
                       .out_priority(levelx_intpend_w_prior_en_3[m])) ;
-        
+
  end
 
 // LEVEL3
 logic [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] levelx_intpend_w_prior_en_4;
 logic [TOTAL_INT+2:0] [ID_BITS-1:0] levelx_intpend_id_4;
     for (m=0; m<=(TOTAL_INT)/(2**(4)) ; m++) begin : COMPARE3
-       if ( m == (TOTAL_INT)/(2**(4))) begin 
+       if ( m == (TOTAL_INT)/(2**(4))) begin
             assign levelx_intpend_w_prior_en_4[m+1] = '0 ;
             assign levelx_intpend_id_4[m+1]         = '0 ;
        end
@@ -82,7 +82,7 @@ logic [TOTAL_INT+2:0] [ID_BITS-1:0] levelx_intpend_id_4;
                       .b_priority(levelx_intpend_w_prior_en_3[2*m+1]),
                       .out_id(levelx_intpend_id_4[m]),
                       .out_priority(levelx_intpend_w_prior_en_4[m])) ;
-        
+
  end
 
 assign claimid_in[ID_BITS-1:0]                      =      levelx_intpend_id_4[0] ;   // This is the last level output
@@ -92,7 +92,7 @@ assign selected_int_priority[INTPRIORITY_BITS-1:0]  =      levelx_intpend_w_prio
 logic [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en_1;
 logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_1;
     for (m=0; m<=(TOTAL_INT)/(2**(1)) ; m++) begin : COMPARE0
-       if ( m == (TOTAL_INT)/(2**(1))) begin 
+       if ( m == (TOTAL_INT)/(2**(1))) begin
             assign level_intpend_w_prior_en_1[m+1] = '0 ;
             assign level_intpend_id_1[m+1]         = '0 ;
        end
@@ -105,14 +105,14 @@ logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_1;
                       .b_priority(level_intpend_w_prior_en[0][2*m+1]),
                       .out_id(level_intpend_id_1[m]),
                       .out_priority(level_intpend_w_prior_en_1[m])) ;
-        
+
  end
 
 // LEVEL1
 logic [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en_2;
 logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_2;
     for (m=0; m<=(TOTAL_INT)/(2**(2)) ; m++) begin : COMPARE1
-       if ( m == (TOTAL_INT)/(2**(2))) begin 
+       if ( m == (TOTAL_INT)/(2**(2))) begin
             assign level_intpend_w_prior_en_2[m+1] = '0 ;
             assign level_intpend_id_2[m+1]         = '0 ;
        end
@@ -125,14 +125,14 @@ logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_2;
                       .b_priority(level_intpend_w_prior_en_1[2*m+1]),
                       .out_id(level_intpend_id_2[m]),
                       .out_priority(level_intpend_w_prior_en_2[m])) ;
-        
+
  end
 
 // LEVEL2
 logic [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en_3;
 logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_3;
     for (m=0; m<=(TOTAL_INT)/(2**(3)) ; m++) begin : COMPARE2
-       if ( m == (TOTAL_INT)/(2**(3))) begin 
+       if ( m == (TOTAL_INT)/(2**(3))) begin
             assign level_intpend_w_prior_en_3[m+1] = '0 ;
             assign level_intpend_id_3[m+1]         = '0 ;
        end
@@ -145,14 +145,14 @@ logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_3;
                       .b_priority(level_intpend_w_prior_en_2[2*m+1]),
                       .out_id(level_intpend_id_3[m]),
                       .out_priority(level_intpend_w_prior_en_3[m])) ;
-        
+
  end
 
 // LEVEL3
 logic [TOTAL_INT+2:0] [INTPRIORITY_BITS-1:0] level_intpend_w_prior_en_4;
 logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_4;
     for (m=0; m<=(TOTAL_INT)/(2**(4)) ; m++) begin : COMPARE3
-       if ( m == (TOTAL_INT)/(2**(4))) begin 
+       if ( m == (TOTAL_INT)/(2**(4))) begin
             assign level_intpend_w_prior_en_4[m+1] = '0 ;
             assign level_intpend_id_4[m+1]         = '0 ;
        end
@@ -165,7 +165,7 @@ logic [TOTAL_INT+2:0] [ID_BITS-1:0] level_intpend_id_4;
                       .b_priority(level_intpend_w_prior_en_3[2*m+1]),
                       .out_id(level_intpend_id_4[m]),
                       .out_priority(level_intpend_w_prior_en_4[m])) ;
-        
+
  end
 
 assign claimid_in[ID_BITS-1:0]                      =      level_intpend_id_4[0] ;   // This is the last level output

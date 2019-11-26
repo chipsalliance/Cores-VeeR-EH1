@@ -1,7 +1,7 @@
 // NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
 // This is an automatically generated file by joseph.rahmeh on Tue Oct 15 13:13:16 PDT 2019
 //
-// cmd:    swerv -snapshot=default -ahb_lite 
+// cmd:    swerv -snapshot=default -ahb_lite
 //
 `define RV_INST_ACCESS_MASK5 'hffffffff
 `define RV_DATA_ACCESS_ENABLE4 1'h0
@@ -65,7 +65,7 @@
 `define RV_DCCM_RESERVED 'h1000
 `define RV_DCCM_SIZE 64
 `define RV_DCCM_DATA_WIDTH 32
-`define RV_DCCM_NUM_BANKS_8 
+`define RV_DCCM_NUM_BANKS_8
 `define RV_DCCM_FDATA_WIDTH 39
 `define RV_DCCM_BYTE_WIDTH 4
 `define RV_DCCM_DATA_CELL ram_2048x39
@@ -73,7 +73,7 @@
 `define RV_DCCM_BITS 16
 `define RV_DCCM_OFFSET 28'h40000
 `define RV_DCCM_ECC_WIDTH 7
-`define RV_DCCM_SIZE_64 
+`define RV_DCCM_SIZE_64
 `define RV_DCCM_ROWS 2048
 `define RV_DCCM_BANK_BITS 3
 `define RV_DCCM_NUM_BANKS 8
@@ -107,10 +107,10 @@
 `define RV_ICCM_RESERVED 'h1000
 `define RV_ICCM_DATA_CELL ram_16384x39
 `define RV_ICCM_INDEX_BITS 14
-`define RV_ICCM_NUM_BANKS_8 
+`define RV_ICCM_NUM_BANKS_8
 `define RV_ICCM_SIZE 512
 `define RV_ICCM_EADR 32'hee07ffff
-`define RV_ICCM_SIZE_512 
+`define RV_ICCM_SIZE_512
 `define RV_ICACHE_SIZE 16
 `define RV_ICACHE_TAG_HIGH 12
 `define RV_ICACHE_IC_ROWS 256
@@ -164,7 +164,7 @@
 `define RV_EXT_DATAWIDTH 64
 `define SDVT_AHB 1
 `define RV_LDERR_ROLLBACK 1
-`define ASSERT_ON 
+`define ASSERT_ON
 `define TEC_RV_ICG clockhdr
 `define REGWIDTH 32
 `undef ASSERT_ON

@@ -192,7 +192,7 @@ module exu_alu_ctl
    // branch handling
 
    logic                any_jal;
-   
+
    assign any_jal =       ap.jal |
                           pp_ff.pcall |
                           pp_ff.pja   |
@@ -217,7 +217,7 @@ module exu_alu_ctl
    // pred_correct is for the npc logic
    // pred_correct indicates not to use the flush_path
    // for any_jal pred_correct==0
-   
+
    assign pred_correct = ((ap.predict_nt & ~actual_taken) |
                           (ap.predict_t  &  actual_taken)) & ~any_jal;
 
@@ -242,7 +242,7 @@ module exu_alu_ctl
    // .ilb hist[1] hist[0] taken
    // .ob newhist[1] newhist[0]
    // .type fd
-   // 
+   //
    // 00 0 01
    // 01 0 01
    // 10 0 00

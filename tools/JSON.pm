@@ -22,8 +22,8 @@ my $XS_Version = '2.27';
 # XS and PP common methods
 
 my @PublicMethods = qw/
-    ascii latin1 utf8 pretty indent space_before space_after relaxed canonical allow_nonref 
-    allow_blessed convert_blessed filter_json_object filter_json_single_key_object 
+    ascii latin1 utf8 pretty indent space_before space_after relaxed canonical allow_nonref
+    allow_blessed convert_blessed filter_json_object filter_json_single_key_object
     shrink max_depth max_size encode decode decode_prefix allow_unknown
 /;
 
@@ -48,7 +48,7 @@ my $_UNIV_CONV_BLESSED = 0;
 my $_USSING_bpPP       = 0;
 
 
-# Check the environment variable to decide worker module. 
+# Check the environment variable to decide worker module.
 
 unless ($JSON::Backend) {
     $JSON::DEBUG and  Carp::carp("Check used worker module...");
@@ -609,35 +609,35 @@ JSON - JSON (JavaScript Object Notation) encoder/decoder
 =head1 SYNOPSIS
 
  use JSON; # imports encode_json, decode_json, to_json and from_json.
- 
+
  # simple and fast interfaces (expect/generate UTF-8)
- 
+
  $utf8_encoded_json_text = encode_json $perl_hash_or_arrayref;
  $perl_hash_or_arrayref  = decode_json $utf8_encoded_json_text;
- 
+
  # OO-interface
- 
+
  $json = JSON->new->allow_nonref;
- 
+
  $json_text   = $json->encode( $perl_scalar );
  $perl_scalar = $json->decode( $json_text );
- 
+
  $pretty_printed = $json->pretty->encode( $perl_scalar ); # pretty-printing
- 
+
  # If you want to use PP only support features, call with '-support_by_pp'
  # When XS unsupported feature is enable, using PP (de|en)code instead of XS ones.
- 
+
  use JSON -support_by_pp;
- 
+
  # option-acceptable interfaces (expect/generate UNICODE by default)
- 
+
  $json_text   = to_json( $perl_scalar, { ascii => 1, pretty => 1 } );
  $perl_scalar = from_json( $json_text, { utf8  => 1 } );
- 
+
  # Between (en|de)code_json and (to|from)_json, if you want to write
  # a code which communicates to an outer world (encoded in UTF-8),
  # recommend to use (en|de)code_json.
- 
+
 =head1 VERSION
 
     2.53
@@ -866,7 +866,7 @@ with C<utf8> enable. And the decoded result will contain UNICODE characters.
   my $json        = JSON->new->utf8;
   my $json_text   = CGI->new->param( 'json_data' );
   my $perl_scalar = $json->decode( $json_text );
-  
+
   # from file content
   local $/;
   open( my $fh, '<', 'json.data' );
@@ -880,7 +880,7 @@ If an outer data is not encoded in UTF-8, firstly you should C<decode> it.
   open( my $fh, '<', 'json.data' );
   my $encoding = 'cp932';
   my $unicode_json_text = decode( $encoding, <$fh> ); # UNICODE
-  
+
   # or you can write the below code.
   #
   # open( my $fh, "<:encoding($encoding)", 'json.data' );
@@ -918,7 +918,7 @@ Note that the resulted text is a UNICODE string but no problem to print it.
 
   # $perl_scalar contains $encoding encoded string values
   $unicode_json_text = $json->utf8(0)->encode( $perl_scalar );
-  # or 
+  # or
   $unicode_json_text = to_json( $perl_scalar );
   # $unicode_json_text consists of characters less than 0x100
   print $unicode_json_text;
@@ -954,7 +954,7 @@ be chained:
 =head2 ascii
 
     $json = $json->ascii([$enable])
-    
+
     $enabled = $json->get_ascii
 
 If $enable is true (or missing), then the encode method will not generate characters outside
@@ -974,7 +974,7 @@ See to L<JSON::PP/UNICODE HANDLING ON PERLS> if the backend is PP.
 =head2 latin1
 
     $json = $json->latin1([$enable])
-    
+
     $enabled = $json->get_latin1
 
 If $enable is true (or missing), then the encode method will encode the resulting JSON
@@ -989,7 +989,7 @@ unless required by the JSON syntax or other flags.
 =head2 utf8
 
     $json = $json->utf8([$enable])
-    
+
     $enabled = $json->get_utf8
 
 If $enable is true (or missing), then the encode method will encode the JSON result
@@ -1036,7 +1036,7 @@ space length.
 =head2 indent
 
     $json = $json->indent([$enable])
-    
+
     $enabled = $json->get_indent
 
 If C<$enable> is true (or missing), then the C<encode> method will use a multiline
@@ -1055,7 +1055,7 @@ With JSON::PP, you can also access C<indent_length> to change indent space lengt
 =head2 space_before
 
     $json = $json->space_before([$enable])
-    
+
     $enabled = $json->get_space_before
 
 If C<$enable> is true (or missing), then the C<encode> method will add an extra
@@ -1074,7 +1074,7 @@ Example, space_before enabled, space_after and indent disabled:
 =head2 space_after
 
     $json = $json->space_after([$enable])
-    
+
     $enabled = $json->get_space_after
 
 If C<$enable> is true (or missing), then the C<encode> method will add an extra
@@ -1095,7 +1095,7 @@ Example, space_before and indent disabled, space_after enabled:
 =head2 relaxed
 
     $json = $json->relaxed([$enable])
-    
+
     $enabled = $json->get_relaxed
 
 If C<$enable> is true (or missing), then C<decode> will accept some
@@ -1145,7 +1145,7 @@ character, after which more white-space and comments are allowed.
 =head2 canonical
 
     $json = $json->canonical([$enable])
-    
+
     $enabled = $json->get_canonical
 
 If C<$enable> is true (or missing), then the C<encode> method will output JSON objects
@@ -1165,7 +1165,7 @@ This setting has no effect when decoding JSON texts.
 =head2 allow_nonref
 
     $json = $json->allow_nonref([$enable])
-    
+
     $enabled = $json->get_allow_nonref
 
 If C<$enable> is true (or missing), then the C<encode> method can convert a
@@ -1184,7 +1184,7 @@ JSON object or array.
 =head2 allow_unknown
 
     $json = $json->allow_unknown ([$enable])
-    
+
     $enabled = $json->get_allow_unknown
 
 If $enable is true (or missing), then "encode" will *not* throw an
@@ -1203,7 +1203,7 @@ partner.
 =head2 allow_blessed
 
     $json = $json->allow_blessed([$enable])
-    
+
     $enabled = $json->get_allow_blessed
 
 If C<$enable> is true (or missing), then the C<encode> method will not
@@ -1220,7 +1220,7 @@ exception when it encounters a blessed object.
 =head2 convert_blessed
 
     $json = $json->convert_blessed([$enable])
-    
+
     $enabled = $json->get_convert_blessed
 
 If C<$enable> is true (or missing), then C<encode>, upon encountering a
@@ -1353,7 +1353,7 @@ into the corresponding C<< $WIDGET{<id>} >> object:
 =head2 shrink
 
     $json = $json->shrink([$enable])
-    
+
     $enabled = $json->get_shrink
 
 With JSON::XS, this flag resizes strings generated by either
@@ -1373,7 +1373,7 @@ See to L<JSON::XS/OBJECT-ORIENTED INTERFACE> and L<JSON::PP/METHODS>.
 =head2 max_depth
 
     $json = $json->max_depth([$maximum_nesting_depth])
-    
+
     $max_depth = $json->get_max_depth
 
 Sets the maximum nesting level (default C<512>) accepted while encoding
@@ -1402,7 +1402,7 @@ See L<JSON::XS/SECURITY CONSIDERATIONS> for more info on why this is useful.
 =head2 max_size
 
     $json = $json->max_size([$maximum_string_size])
-    
+
     $max_size = $json->get_max_size
 
 Set the maximum length a JSON text may have (in bytes) where decoding is
@@ -1503,9 +1503,9 @@ The following methods implement this incremental parser.
 =head2 incr_parse
 
     $json->incr_parse( [$string] ) # void context
-    
+
     $obj_or_undef = $json->incr_parse( [$string] ) # scalar context
-    
+
     @obj_or_empty = $json->incr_parse( [$string] ) # list context
 
 This is the central parsing function. It can both append new text and
@@ -1596,9 +1596,9 @@ If you use C<JSON> with additonal C<-support_by_pp>, some methods
 are available even with JSON::XS. See to L<USE PP FEATURES EVEN THOUGH XS BACKEND>.
 
    BEING { $ENV{PERL_JSON_BACKEND} = 'JSON::XS' }
-   
+
    use JSON -support_by_pp;
-   
+
    my $json = new JSON;
    $json->allow_nonref->escape_slash->encode("/");
 
@@ -1762,7 +1762,7 @@ represent most decimal fractions exactly, and when converting from and to
 floating point, C<JSON> only guarantees precision up to but not including
 the leats significant bit.
 
-If the backend is JSON::PP and C<allow_bignum> is enable, the big integers 
+If the backend is JSON::PP and C<allow_bignum> is enable, the big integers
 and the numeric can be optionally converted into L<Math::BigInt> and
 L<Math::BigFloat> objects.
 
@@ -1900,7 +1900,7 @@ error to pass those in.
 
 =item Big Number
 
-If the backend is JSON::PP and C<allow_bignum> is enable, 
+If the backend is JSON::PP and C<allow_bignum> is enable,
 C<encode> converts C<Math::BigInt> objects and C<Math::BigFloat>
 objects into JSON numbers.
 
@@ -1935,13 +1935,13 @@ returned objects should not be modified.
 To check the backend module, there are some methods - C<backend>, C<is_pp> and C<is_xs>.
 
   JSON->backend; # 'JSON::XS' or 'JSON::PP'
-  
+
   JSON->backend->is_pp: # 0 or 1
-  
+
   JSON->backend->is_xs: # 1 or 0
-  
+
   $json->is_xs; # 1 or 0
-  
+
   $json->is_pp; # 0 or 1
 
 
@@ -2164,7 +2164,7 @@ If you want to use with your own sort routine, check the C<sort_by> method.
 (Only with JSON::PP, even if C<-support_by_pp> is used currently.)
 
   $json->sort_by($sort_routine_ref)->encode($perl_scalar)
- 
+
   $json->sort_by(sub { $JSON::PP::a <=> $JSON::PP::b })->encode($perl_scalar)
 
 Can't access C<$a> and C<$b> but C<$JSON::PP::a> and C<$JSON::PP::b>.
@@ -2261,7 +2261,7 @@ The relese of this new version owes to the courtesy of Marc Lehmann.
 Copyright 2005-2011 by Makamaka Hannyaharamitu
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+it under the same terms as Perl itself.
 
 =cut
 

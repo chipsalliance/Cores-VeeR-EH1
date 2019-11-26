@@ -5,8 +5,8 @@ use Getopt::Long;
 $helpusage = "placeholder";
 
 GetOptions ('legal'  => \$legal,
-	    'in=s'   => \$in, 
-	    'out=s'  => \$out, 
+	    'in=s'   => \$in,
+	    'out=s'  => \$out,
 	    'view=s' => \$view ) || die("$helpusage");
 
 
@@ -31,7 +31,7 @@ foreach $line (@in) {
 
     #printf("$pstate: $line");
 
-    if ($line=~/^\s*\#/) { #printf("skip $line"); 
+    if ($line=~/^\s*\#/) { #printf("skip $line");
 			   next; }
 
     if ($gather==1) {
@@ -114,11 +114,11 @@ foreach $line (@in) {
 		    $lo++;
 		}
 		if ($i == $TIMEOUT) { die("timeout in decode expansion"); }
-		
+
 	    }
-	    else { 
+	    else {
 		if (!defined($DEFINITION{$inst})) { die("could not find instruction definition for inst $inst"); }
-		$DECODE{$dview}{$inst}=$body; 
+		$DECODE{$dview}{$inst}=$body;
 	    }
 	}
    }
@@ -160,10 +160,10 @@ else {
 $DEFAULT_TEMPLATE='0'x$OUTPUTLEN{$view};
 
 foreach $inst (sort keys %{ $DECODE{$view} }) {
-    
+
     $body=$DECODE{$view}{$inst};
     @sigs=split(' ',$body);
-    
+
     $template=$DEFAULT_TEMPLATE;
     foreach $sig (@sigs) {
 	if (!defined($OUTPUT{$view}{$sig})) { die("could not find output definition for sig $sig in view $view"); }

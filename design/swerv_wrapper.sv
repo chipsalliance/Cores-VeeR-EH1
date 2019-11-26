@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2019 Western Digital Corporation or its affiliates.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,21 +17,21 @@
 // $Id$
 //
 // Function: Top wrapper file with swerv/mem instantiated inside
-// Comments: 
+// Comments:
 //
 //********************************************************************************
 `include "build.h"
 //`include "def.sv"
-module swerv_wrapper  
+module swerv_wrapper
    import swerv_types::*;
 (
    input logic                       clk,
    input logic                       rst_l,
    input logic [31:1]                rst_vec,
    input logic                       nmi_int,
-   input logic [31:1]                nmi_vec,                       
+   input logic [31:1]                nmi_vec,
    input logic [31:1]                jtag_id,
-                       
+
 
    output logic [63:0] trace_rv_i_insn_ip,
    output logic [63:0] trace_rv_i_address_ip,
@@ -58,19 +58,19 @@ module swerv_wrapper
    output logic [3:0]                      lsu_axi_awcache,
    output logic [2:0]                      lsu_axi_awprot,
    output logic [3:0]                      lsu_axi_awqos,
-                                           
-   output logic                            lsu_axi_wvalid,                                       
+
+   output logic                            lsu_axi_wvalid,
    input  logic                            lsu_axi_wready,
    output logic [63:0]                     lsu_axi_wdata,
    output logic [7:0]                      lsu_axi_wstrb,
    output logic                            lsu_axi_wlast,
-                                           
+
    input  logic                            lsu_axi_bvalid,
    output logic                            lsu_axi_bready,
    input  logic [1:0]                      lsu_axi_bresp,
    input  logic [`RV_LSU_BUS_TAG-1:0]      lsu_axi_bid,
-                                           
-   // AXI Read Channels                    
+
+   // AXI Read Channels
    output logic                            lsu_axi_arvalid,
    input  logic                            lsu_axi_arready,
    output logic [`RV_LSU_BUS_TAG-1:0]      lsu_axi_arid,
@@ -83,14 +83,14 @@ module swerv_wrapper
    output logic [3:0]                      lsu_axi_arcache,
    output logic [2:0]                      lsu_axi_arprot,
    output logic [3:0]                      lsu_axi_arqos,
-                                           
+
    input  logic                            lsu_axi_rvalid,
    output logic                            lsu_axi_rready,
    input  logic [`RV_LSU_BUS_TAG-1:0]      lsu_axi_rid,
    input  logic [63:0]                     lsu_axi_rdata,
    input  logic [1:0]                      lsu_axi_rresp,
    input  logic                            lsu_axi_rlast,
-   
+
    //-------------------------- IFU AXI signals--------------------------
    // AXI Write Channels
    output logic                            ifu_axi_awvalid,
@@ -105,19 +105,19 @@ module swerv_wrapper
    output logic [3:0]                      ifu_axi_awcache,
    output logic [2:0]                      ifu_axi_awprot,
    output logic [3:0]                      ifu_axi_awqos,
-                                           
-   output logic                            ifu_axi_wvalid,                                       
+
+   output logic                            ifu_axi_wvalid,
    input  logic                            ifu_axi_wready,
    output logic [63:0]                     ifu_axi_wdata,
    output logic [7:0]                      ifu_axi_wstrb,
    output logic                            ifu_axi_wlast,
-                                           
+
    input  logic                            ifu_axi_bvalid,
    output logic                            ifu_axi_bready,
    input  logic [1:0]                      ifu_axi_bresp,
    input  logic [`RV_IFU_BUS_TAG-1:0]      ifu_axi_bid,
-                                           
-   // AXI Read Channels                    
+
+   // AXI Read Channels
    output logic                            ifu_axi_arvalid,
    input  logic                            ifu_axi_arready,
    output logic [`RV_IFU_BUS_TAG-1:0]      ifu_axi_arid,
@@ -130,7 +130,7 @@ module swerv_wrapper
    output logic [3:0]                      ifu_axi_arcache,
    output logic [2:0]                      ifu_axi_arprot,
    output logic [3:0]                      ifu_axi_arqos,
-                                           
+
    input  logic                            ifu_axi_rvalid,
    output logic                            ifu_axi_rready,
    input  logic [`RV_IFU_BUS_TAG-1:0]      ifu_axi_rid,
@@ -152,19 +152,19 @@ module swerv_wrapper
    output logic [3:0]                      sb_axi_awcache,
    output logic [2:0]                      sb_axi_awprot,
    output logic [3:0]                      sb_axi_awqos,
-                                           
-   output logic                            sb_axi_wvalid,                                       
+
+   output logic                            sb_axi_wvalid,
    input  logic                            sb_axi_wready,
    output logic [63:0]                     sb_axi_wdata,
    output logic [7:0]                      sb_axi_wstrb,
    output logic                            sb_axi_wlast,
-                                           
+
    input  logic                            sb_axi_bvalid,
    output logic                            sb_axi_bready,
    input  logic [1:0]                      sb_axi_bresp,
    input  logic [`RV_SB_BUS_TAG-1:0]       sb_axi_bid,
-                                           
-   // AXI Read Channels                    
+
+   // AXI Read Channels
    output logic                            sb_axi_arvalid,
    input  logic                            sb_axi_arready,
    output logic [`RV_SB_BUS_TAG-1:0]       sb_axi_arid,
@@ -177,7 +177,7 @@ module swerv_wrapper
    output logic [3:0]                      sb_axi_arcache,
    output logic [2:0]                      sb_axi_arprot,
    output logic [3:0]                      sb_axi_arqos,
-                                           
+
    input  logic                            sb_axi_rvalid,
    output logic                            sb_axi_rready,
    input  logic [`RV_SB_BUS_TAG-1:0]       sb_axi_rid,
@@ -197,12 +197,12 @@ module swerv_wrapper
    input  logic [1:0]                   dma_axi_awburst,
 
 
-   input  logic                         dma_axi_wvalid,                                       
+   input  logic                         dma_axi_wvalid,
    output logic                         dma_axi_wready,
    input  logic [63:0]                  dma_axi_wdata,
    input  logic [7:0]                   dma_axi_wstrb,
    input  logic                         dma_axi_wlast,
-                                        
+
    output logic                         dma_axi_bvalid,
    input  logic                         dma_axi_bready,
    output logic [1:0]                   dma_axi_bresp,
@@ -212,7 +212,7 @@ module swerv_wrapper
    input  logic                         dma_axi_arvalid,
    output logic                         dma_axi_arready,
    input  logic [`RV_DMA_BUS_TAG-1:0]   dma_axi_arid,
-   input  logic [31:0]                  dma_axi_araddr,                                     
+   input  logic [31:0]                  dma_axi_araddr,
    input  logic [2:0]                   dma_axi_arsize,
    input  logic [2:0]                   dma_axi_arprot,
    input  logic [7:0]                   dma_axi_arlen,
@@ -223,8 +223,8 @@ module swerv_wrapper
    output logic [`RV_DMA_BUS_TAG-1:0]   dma_axi_rid,
    output logic [63:0]                  dma_axi_rdata,
    output logic [1:0]                   dma_axi_rresp,
-   output logic                         dma_axi_rlast,                 
-                       
+   output logic                         dma_axi_rlast,
+
 `endif
 
 `ifdef RV_BUILD_AHB_LITE
@@ -263,11 +263,11 @@ module swerv_wrapper
    output logic [1:0]                sb_htrans,
    output logic                      sb_hwrite,
    output logic [63:0]               sb_hwdata,
-                                    
+
    input  logic [63:0]               sb_hrdata,
    input  logic                      sb_hready,
    input  logic                      sb_hresp,
-   
+
    // DMA Slave
    input logic [31:0]                dma_haddr,
    input logic [2:0]                 dma_hburst,
@@ -278,8 +278,8 @@ module swerv_wrapper
    input logic                       dma_hwrite,
    input logic [63:0]                dma_hwdata,
    input logic                       dma_hsel,
-   input logic                       dma_hreadyin,                    
- 
+   input logic                       dma_hreadyin,
+
    output logic [63:0]               dma_hrdata,
    output logic                      dma_hreadyout,
    output logic                      dma_hresp,
@@ -291,9 +291,9 @@ module swerv_wrapper
    input logic                       lsu_bus_clk_en, // Clock ratio b/w cpu core clk & AHB master interface
    input logic                       ifu_bus_clk_en, // Clock ratio b/w cpu core clk & AHB master interface
    input logic                       dbg_bus_clk_en, // Clock ratio b/w cpu core clk & AHB master interface
-   input logic                       dma_bus_clk_en, // Clock ratio b/w cpu core clk & AHB slave interface             
+   input logic                       dma_bus_clk_en, // Clock ratio b/w cpu core clk & AHB slave interface
 
-   
+
 //   input logic                   ext_int,
    input logic                       timer_int,
    input logic [`RV_PIC_TOTAL_INT:1] extintsrc_req,
@@ -303,9 +303,9 @@ module swerv_wrapper
    output logic [1:0] dec_tlu_perfcnt2,
    output logic [1:0] dec_tlu_perfcnt3,
 
-   // ports added by the soc team              
+   // ports added by the soc team
    input logic                       jtag_tck, // JTAG clk
-   input logic                       jtag_tms, // JTAG TMS  
+   input logic                       jtag_tms, // JTAG TMS
    input logic                       jtag_tdi, // JTAG tdi
    input logic                       jtag_trst_n, // JTAG Reset
    output logic                      jtag_tdo, // JTAG TDO
@@ -324,10 +324,10 @@ module swerv_wrapper
    input logic                       i_cpu_run_req, // Async restart req to CPU
    output logic                      o_cpu_run_ack, // Core response to run req
    input logic                       scan_mode, // To enable scan mode
-   input logic                       mbist_mode // to enable mbist 
+   input logic                       mbist_mode // to enable mbist
 );
 
-`include "global.h"   
+`include "global.h"
 
    // DCCM ports
    logic         dccm_wren;
@@ -336,7 +336,7 @@ module swerv_wrapper
    logic [DCCM_BITS-1:0]  dccm_rd_addr_lo;
    logic [DCCM_BITS-1:0]  dccm_rd_addr_hi;
    logic [DCCM_FDATA_WIDTH-1:0]  dccm_wr_data;
-                      
+
    logic [DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_lo;
    logic [DCCM_FDATA_WIDTH-1:0]  dccm_rd_data_hi;
 
@@ -345,40 +345,40 @@ module swerv_wrapper
    // PIC ports
 
    // Icache & Itag ports
-   logic [31:3]  ic_rw_addr;   
+   logic [31:3]  ic_rw_addr;
    logic [3:0]   ic_wr_en  ;     // Which way to write
    logic         ic_rd_en ;
 
 
-   logic [3:0]   ic_tag_valid;   // Valid from the I$ tag valid outside (in flops). 
+   logic [3:0]   ic_tag_valid;   // Valid from the I$ tag valid outside (in flops).
 
    logic [3:0]   ic_rd_hit;      // ic_rd_hit[3:0]
    logic         ic_tag_perr;    // Ic tag parity error
 
-   logic [15:2]  ic_debug_addr;      // Read/Write addresss to the Icache.   
+   logic [15:2]  ic_debug_addr;      // Read/Write addresss to the Icache.
    logic         ic_debug_rd_en;     // Icache debug rd
    logic         ic_debug_wr_en;     // Icache debug wr
    logic         ic_debug_tag_array; // Debug tag array
    logic [3:0]   ic_debug_way;       // Debug way. Rd or Wr.
 
 `ifdef RV_ICACHE_ECC
-   logic [24:0]  ictag_debug_rd_data;// Debug icache tag. 
+   logic [24:0]  ictag_debug_rd_data;// Debug icache tag.
    logic [83:0]  ic_wr_data;         // ic_wr_data[135:0]
    logic [167:0] ic_rd_data;         // ic_rd_data[135:0]
-   logic [41:0]  ic_debug_wr_data;   // Debug wr cache. 
+   logic [41:0]  ic_debug_wr_data;   // Debug wr cache.
 `else
-   logic [20:0]  ictag_debug_rd_data;// Debug icache tag. 
+   logic [20:0]  ictag_debug_rd_data;// Debug icache tag.
    logic [67:0]  ic_wr_data;         // ic_wr_data[135:0]
    logic [135:0] ic_rd_data;         // ic_rd_data[135:0]
-   logic [33:0]  ic_debug_wr_data;   // Debug wr cache. 
+   logic [33:0]  ic_debug_wr_data;   // Debug wr cache.
 `endif
 
    logic [127:0] ic_premux_data;
    logic         ic_sel_premux_data;
 
-`ifdef RV_ICCM_ENABLE  
+`ifdef RV_ICCM_ENABLE
    // ICCM ports
-   logic [`RV_ICCM_BITS-1:2]    iccm_rw_addr;   
+   logic [`RV_ICCM_BITS-1:2]    iccm_rw_addr;
    logic           iccm_wren;
    logic           iccm_rden;
    logic [2:0]     iccm_wr_size;
@@ -386,13 +386,13 @@ module swerv_wrapper
    logic [155:0]   iccm_rd_data;
 `endif
 
-   logic        core_rst_l;     // Core reset including rst_l and dbg_rst_l  
+   logic        core_rst_l;     // Core reset including rst_l and dbg_rst_l
    logic        jtag_tdoEn;
-   
+
    logic        dccm_clk_override;
    logic        icm_clk_override;
    logic        dec_tlu_core_ecc_disable;
-  
+
    logic        dmi_reg_en;
    logic [6:0]  dmi_reg_addr;
    logic        dmi_reg_wr_en;
@@ -404,7 +404,7 @@ module swerv_wrapper
    swerv swerv (
           .*
           );
-   
+
    // Instantiate the mem
    mem  mem (
         .rst_l(core_rst_l),
@@ -436,4 +436,4 @@ module swerv_wrapper
 );
 
 endmodule
-   
+

@@ -17,23 +17,23 @@
 ////////////////////////////////////////////////////
 //   ICACHE DATA & TAG MODULE WRAPPER              //
 /////////////////////////////////////////////////////
-module ifu_ic_mem  
+module ifu_ic_mem
   (
       input logic clk,
       input logic rst_l,
       input logic clk_override,
-      input logic dec_tlu_core_ecc_disable, 
+      input logic dec_tlu_core_ecc_disable,
 
-      input logic [31:3]  ic_rw_addr,   
+      input logic [31:3]  ic_rw_addr,
       input logic [3:0]   ic_wr_en  ,  // Which way to write
       input logic         ic_rd_en  ,  // Read enable
 
-      input logic [15:2]               ic_debug_addr,      // Read/Write addresss to the Icache.   
+      input logic [15:2]               ic_debug_addr,      // Read/Write addresss to the Icache.
       input logic                      ic_debug_rd_en,     // Icache debug rd
       input logic                      ic_debug_wr_en,     // Icache debug wr
       input logic                      ic_debug_tag_array, // Debug tag array
       input logic [3:0]                ic_debug_way,       // Debug way. Rd or Wr.
-      input logic [127:0]              ic_premux_data,     // Premux data to be muxed with each way of the Icache. 
+      input logic [127:0]              ic_premux_data,     // Premux data to be muxed with each way of the Icache.
       input logic                      ic_sel_premux_data, // Select the pre_muxed data
 
 
@@ -41,47 +41,47 @@ module ifu_ic_mem
 `ifdef RV_ICACHE_ECC
       input  logic [83:0]               ic_wr_data,         // Data to fill to the Icache. With ECC
       output logic [167:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With ECC
-      output logic [24:0]               ictag_debug_rd_data,// Debug icache tag. 
-      input logic  [41:0]               ic_debug_wr_data,   // Debug wr cache. 
-`else 
+      output logic [24:0]               ictag_debug_rd_data,// Debug icache tag.
+      input logic  [41:0]               ic_debug_wr_data,   // Debug wr cache.
+`else
       input  logic [67:0]               ic_wr_data,         // Data to fill to the Icache. With Parity
       output logic [135:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With Parity
-      output logic [20:0]               ictag_debug_rd_data,// Debug icache tag. 
-      input logic  [33:0]               ic_debug_wr_data,   // Debug wr cache. 
+      output logic [20:0]               ictag_debug_rd_data,// Debug icache tag.
+      input logic  [33:0]               ic_debug_wr_data,   // Debug wr cache.
 `endif
 
 
-      input logic [3:0]   ic_tag_valid,  // Valid from the I$ tag valid outside (in flops). 
-      
+      input logic [3:0]   ic_tag_valid,  // Valid from the I$ tag valid outside (in flops).
+
       output logic [3:0]   ic_rd_hit,   // ic_rd_hit[3:0]
       output logic         ic_tag_perr, // Tag Parity error
-      input  logic         scan_mode 
+      input  logic         scan_mode
       ) ;
 
-`include "global.h"   
-   
+`include "global.h"
+
    IC_TAG #( .ICACHE_TAG_HIGH(ICACHE_TAG_HIGH) ,
-             .ICACHE_TAG_LOW(ICACHE_TAG_LOW) , 
-             .ICACHE_TAG_DEPTH(ICACHE_TAG_DEPTH)  
+             .ICACHE_TAG_LOW(ICACHE_TAG_LOW) ,
+             .ICACHE_TAG_DEPTH(ICACHE_TAG_DEPTH)
              ) ic_tag_inst
           (
            .*,
-           .ic_wr_en     (ic_wr_en[3:0]), 
+           .ic_wr_en     (ic_wr_en[3:0]),
            .ic_debug_addr(ic_debug_addr[ICACHE_TAG_HIGH-1:2]),
            .ic_rw_addr   (ic_rw_addr[31:3])
            ) ;
-   
+
    IC_DATA #( .ICACHE_TAG_HIGH(ICACHE_TAG_HIGH) ,
-              .ICACHE_TAG_LOW(ICACHE_TAG_LOW) , 
-              .ICACHE_IC_DEPTH(ICACHE_IC_DEPTH)  
+              .ICACHE_TAG_LOW(ICACHE_TAG_LOW) ,
+              .ICACHE_IC_DEPTH(ICACHE_IC_DEPTH)
              ) ic_data_inst
           (
            .*,
-           .ic_wr_en     (ic_wr_en[3:0]), 
+           .ic_wr_en     (ic_wr_en[3:0]),
            .ic_debug_addr(ic_debug_addr[ICACHE_TAG_HIGH-1:2]),
            .ic_rw_addr   (ic_rw_addr[ICACHE_TAG_HIGH-1:3])
            ) ;
-   
+
  endmodule
 
 
@@ -89,9 +89,9 @@ module ifu_ic_mem
 ////// ICACHE DATA MODULE    ////////////////////
 /////////////////////////////////////////////////
 module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
-                           ICACHE_TAG_LOW=6 , 
-                           ICACHE_IC_DEPTH=1024   
-                                        ) 
+                           ICACHE_TAG_LOW=6 ,
+                           ICACHE_IC_DEPTH=1024
+                                        )
      (
       input logic clk,
       input logic rst_l,
@@ -103,28 +103,28 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
 `ifdef RV_ICACHE_ECC
       input  logic [83:0]               ic_wr_data,         // Data to fill to the Icache. With ECC
       output logic [167:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With ECC
-      input  logic [41:0]               ic_debug_wr_data,   // Debug wr cache. 
-`else 
+      input  logic [41:0]               ic_debug_wr_data,   // Debug wr cache.
+`else
       input  logic [67:0]               ic_wr_data,         // Data to fill to the Icache. With Parity
       output logic [135:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With Parity
-      input  logic [33:0]               ic_debug_wr_data,   // Debug wr cache. 
+      input  logic [33:0]               ic_debug_wr_data,   // Debug wr cache.
 `endif
 
 
-      input logic [ICACHE_TAG_HIGH-1:2]  ic_debug_addr,      // Read/Write addresss to the Icache.   
+      input logic [ICACHE_TAG_HIGH-1:2]  ic_debug_addr,      // Read/Write addresss to the Icache.
       input logic                        ic_debug_rd_en,     // Icache debug rd
       input logic                        ic_debug_wr_en,     // Icache debug wr
       input logic                        ic_debug_tag_array, // Debug tag array
       input logic [3:0]                  ic_debug_way,       // Debug way. Rd or Wr.
-      input logic [127:0]                ic_premux_data,     // Premux data to be muxed with each way of the Icache. 
+      input logic [127:0]                ic_premux_data,     // Premux data to be muxed with each way of the Icache.
       input logic                        ic_sel_premux_data, // Select the pre_muxed data
 
       input logic [3:0]          ic_rd_hit,
-      
+
       input  logic               scan_mode
 
       ) ;
-   
+
    logic [5:4]             ic_rw_addr_ff;
 
 
@@ -135,17 +135,17 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
    logic                   ic_debug_sel_sb2 ;
    logic                   ic_debug_sel_sb3 ;
 
-                           
+
 `ifdef RV_ICACHE_ECC
    logic [3:0] [167:0]     bank_set_dout;
    logic [3:0][167:0]      wb_dout ; //
    logic [3:0][41:0]       ic_sb_wr_data;
 `else
    logic [3:0] [135:0]     bank_set_dout;
-   logic [3:0] [135:0]     wb_dout ; // bank , way , size 
+   logic [3:0] [135:0]     wb_dout ; // bank , way , size
    logic [3:0] [33:0]      ic_sb_wr_data;
 `endif
-                           
+
    logic [3:0]              ic_bank_way_clken;    // bank , way
    logic [3:0]             ic_bank_way_clk  ;    // bank , way
    logic                   ic_b_rden;
@@ -153,74 +153,74 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
    logic [3:0]             ic_debug_rd_way_en_ff;   // debug wr_way
    logic [3:0]             ic_debug_wr_way_en;   // debug wr_way
    logic [ICACHE_TAG_HIGH-1:4]  ic_rw_addr_q;
-   
+
    assign  ic_debug_rd_way_en[3:0] =  {4{ic_debug_rd_en & ~ic_debug_tag_array}} & ic_debug_way[3:0] ;
    assign  ic_debug_wr_way_en[3:0] =  {4{ic_debug_wr_en & ~ic_debug_tag_array}} & ic_debug_way[3:0] ;
 
-   assign  ic_b_sb_wren[0][3:0]  = (ic_wr_en[3:0]           & {4{~ic_rw_addr[3]}} ) |           
-                                   (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b00}}) ;           
-   assign  ic_b_sb_wren[1][3:0]  = (ic_wr_en[3:0]           & {4{~ic_rw_addr[3]}} ) |           
-                                   (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b01}}) ;           
-   assign  ic_b_sb_wren[2][3:0]  = (ic_wr_en[3:0]           & {4{ic_rw_addr[3]}} ) |           
-                                   (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b10}}) ;           
-   assign  ic_b_sb_wren[3][3:0]  = (ic_wr_en[3:0]           & {4{ic_rw_addr[3]}} ) |           
-                                   (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b11}}) ;           
+   assign  ic_b_sb_wren[0][3:0]  = (ic_wr_en[3:0]           & {4{~ic_rw_addr[3]}} ) |
+                                   (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b00}}) ;
+   assign  ic_b_sb_wren[1][3:0]  = (ic_wr_en[3:0]           & {4{~ic_rw_addr[3]}} ) |
+                                   (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b01}}) ;
+   assign  ic_b_sb_wren[2][3:0]  = (ic_wr_en[3:0]           & {4{ic_rw_addr[3]}} ) |
+                                   (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b10}}) ;
+   assign  ic_b_sb_wren[3][3:0]  = (ic_wr_en[3:0]           & {4{ic_rw_addr[3]}} ) |
+                                   (ic_debug_wr_way_en[3:0] & {4{ic_debug_addr[3:2] == 2'b11}}) ;
 
-   assign  ic_debug_sel_sb0       =  (ic_debug_addr[3:2] == 2'b00 ) ; 
-   assign  ic_debug_sel_sb1       =  (ic_debug_addr[3:2] == 2'b01 ) ; 
-   assign  ic_debug_sel_sb2       =  (ic_debug_addr[3:2] == 2'b10 ) ; 
-   assign  ic_debug_sel_sb3       =  (ic_debug_addr[3:2] == 2'b11 ) ; 
+   assign  ic_debug_sel_sb0       =  (ic_debug_addr[3:2] == 2'b00 ) ;
+   assign  ic_debug_sel_sb1       =  (ic_debug_addr[3:2] == 2'b01 ) ;
+   assign  ic_debug_sel_sb2       =  (ic_debug_addr[3:2] == 2'b10 ) ;
+   assign  ic_debug_sel_sb3       =  (ic_debug_addr[3:2] == 2'b11 ) ;
 
 `ifdef RV_ICACHE_ECC
 
-   assign  ic_sb_wr_data[0][41:0]   =  (ic_debug_sel_sb0 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} : 
+   assign  ic_sb_wr_data[0][41:0]   =  (ic_debug_sel_sb0 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} :
                                                                              ic_wr_data[41:0] ;
-   assign  ic_sb_wr_data[1][41:0]   =  (ic_debug_sel_sb1 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} : 
+   assign  ic_sb_wr_data[1][41:0]   =  (ic_debug_sel_sb1 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} :
                                                                              ic_wr_data[83:42] ;
-   assign  ic_sb_wr_data[2][41:0]   =  (ic_debug_sel_sb2 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} : 
+   assign  ic_sb_wr_data[2][41:0]   =  (ic_debug_sel_sb2 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} :
                                                                              ic_wr_data[41:0] ;
-   assign  ic_sb_wr_data[3][41:0]   =  (ic_debug_sel_sb3 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} : 
+   assign  ic_sb_wr_data[3][41:0]   =  (ic_debug_sel_sb3 & ic_debug_wr_en) ? {ic_debug_wr_data[41:0]} :
                                                                              ic_wr_data[83:42] ;
-`else 
-   assign  ic_sb_wr_data[0][33:0]   =  (ic_debug_sel_sb0 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] : 
+`else
+   assign  ic_sb_wr_data[0][33:0]   =  (ic_debug_sel_sb0 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] :
                                                                              ic_wr_data[33:0] ;
-   assign  ic_sb_wr_data[1][33:0]   =  (ic_debug_sel_sb1 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] : 
+   assign  ic_sb_wr_data[1][33:0]   =  (ic_debug_sel_sb1 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] :
                                                                              ic_wr_data[67:34] ;
-   assign  ic_sb_wr_data[2][33:0]   =  (ic_debug_sel_sb2 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] : 
+   assign  ic_sb_wr_data[2][33:0]   =  (ic_debug_sel_sb2 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] :
                                                                              ic_wr_data[33:0] ;
-   assign  ic_sb_wr_data[3][33:0]   =  (ic_debug_sel_sb3 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] : 
+   assign  ic_sb_wr_data[3][33:0]   =  (ic_debug_sel_sb3 & ic_debug_wr_en) ? ic_debug_wr_data[33:0] :
                                                                              ic_wr_data[67:34] ;
 `endif
 
 
 // bank read enables
 
-   assign  ic_b_rden       = (ic_rd_en   | ic_debug_rd_en );           
-         
-   assign  ic_bank_way_clken[3:0]   = ({4{ic_b_rden | clk_override }}) | 
+   assign  ic_b_rden       = (ic_rd_en   | ic_debug_rd_en );
+
+   assign  ic_bank_way_clken[3:0]   = ({4{ic_b_rden | clk_override }}) |
                                       ic_b_sb_wren[0][3:0] |
                                       ic_b_sb_wren[1][3:0] |
                                       ic_b_sb_wren[2][3:0] |
                                       ic_b_sb_wren[3][3:0] ;
 
 
- 
+
     assign ic_rw_addr_q[ICACHE_TAG_HIGH-1:4] = (ic_debug_rd_en | ic_debug_wr_en) ?
-                                                ic_debug_addr[ICACHE_TAG_HIGH-1:4] : 
+                                                ic_debug_addr[ICACHE_TAG_HIGH-1:4] :
                                                 ic_rw_addr[ICACHE_TAG_HIGH-1:4] ;
 
    logic ic_debug_rd_en_ff;
 
-   rvdff #(2) adr_ff (.*, 
-                    .din ({ic_rw_addr_q[5:4]}), 
+   rvdff #(2) adr_ff (.*,
+                    .din ({ic_rw_addr_q[5:4]}),
                     .dout({ic_rw_addr_ff[5:4]}));
 
-   rvdff #(5) debug_rd_wy_ff (.*, 
-                    .din ({ic_debug_rd_way_en[3:0], ic_debug_rd_en}), 
+   rvdff #(5) debug_rd_wy_ff (.*,
+                    .din ({ic_debug_rd_way_en[3:0], ic_debug_rd_en}),
                     .dout({ic_debug_rd_way_en_ff[3:0], ic_debug_rd_en_ff}));
 
 localparam NUM_WAYS=4 ;
-localparam NUM_SUBBANKS=4 ;   
+localparam NUM_SUBBANKS=4 ;
 
 
      for (genvar i=0; i<NUM_WAYS; i++) begin: WAYS
@@ -230,7 +230,7 @@ localparam NUM_SUBBANKS=4 ;
         for (genvar k=0; k<NUM_SUBBANKS; k++) begin: SUBBANKS   // 16B subbank
 
         `ifdef RV_ICACHE_ECC
-         `RV_ICACHE_DATA_CELL  ic_bank_sb_way_data (                                 
+         `RV_ICACHE_DATA_CELL  ic_bank_sb_way_data (
                                      .CLK(ic_bank_way_clk[i]),
                                      .WE (ic_b_sb_wren[k][i]),
                                      .D  (ic_sb_wr_data[k][41:0]),
@@ -238,7 +238,7 @@ localparam NUM_SUBBANKS=4 ;
                                      .Q  (wb_dout[i][(k+1)*42-1:k*42])
                                     );
         `else
-         `RV_ICACHE_DATA_CELL  ic_bank_sb_way_data (                                 
+         `RV_ICACHE_DATA_CELL  ic_bank_sb_way_data (
                                      .CLK(ic_bank_way_clk[i]),
                                      .WE (ic_b_sb_wren[k][i]),
                                      .D  (ic_sb_wr_data[k][33:0]),
@@ -247,16 +247,16 @@ localparam NUM_SUBBANKS=4 ;
                                     );
         `endif
         end // block: SUBBANKS
-        
-      end  
- 
+
+      end
+
 
    logic [3:0] ic_rd_hit_q;
    assign ic_rd_hit_q[3:0] = ic_debug_rd_en_ff ? ic_debug_rd_way_en_ff[3:0] : ic_rd_hit[3:0] ;
 
    // set mux
 `ifdef RV_ICACHE_ECC
-   logic [167:0] ic_premux_data_ext; 
+   logic [167:0] ic_premux_data_ext;
    logic [3:0] [167:0] wb_dout_way;
    logic [3:0] [167:0] wb_dout_way_with_premux;
 
@@ -278,7 +278,7 @@ localparam NUM_SUBBANKS=4 ;
                                     ({168{ic_rd_hit_q[3] | ic_sel_premux_data}} &  wb_dout_way_with_premux[3][167:0]) ;
 
 `else
-   logic       [135:0] ic_premux_data_ext; 
+   logic       [135:0] ic_premux_data_ext;
    logic [3:0] [135:0] wb_dout_way;
    logic [3:0] [135:0] wb_dout_way_with_premux;
 
@@ -287,7 +287,7 @@ localparam NUM_SUBBANKS=4 ;
    assign wb_dout_way[1][135:0]       = wb_dout[1][135:0];
    assign wb_dout_way[2][135:0]       = wb_dout[2][135:0];
    assign wb_dout_way[3][135:0]       = wb_dout[3][135:0];
-   
+
    assign wb_dout_way_with_premux[0][135:0]  =  ic_sel_premux_data ? ic_premux_data_ext[135:0] : wb_dout_way[0][135:0] ;
    assign wb_dout_way_with_premux[1][135:0]  =  ic_sel_premux_data ? ic_premux_data_ext[135:0] : wb_dout_way[1][135:0] ;
    assign wb_dout_way_with_premux[2][135:0]  =  ic_sel_premux_data ? ic_premux_data_ext[135:0] : wb_dout_way[2][135:0] ;
@@ -299,7 +299,7 @@ localparam NUM_SUBBANKS=4 ;
                                     ({136{ic_rd_hit_q[3] | ic_sel_premux_data}} &  wb_dout_way_with_premux[3][135:0]) ;
 
 `endif
-   
+
  endmodule
 
 
@@ -307,22 +307,22 @@ localparam NUM_SUBBANKS=4 ;
 ////// ICACHE TAG MODULE     ////////////////////
 /////////////////////////////////////////////////
 module IC_TAG #(parameter ICACHE_TAG_HIGH = 16 ,
-                          ICACHE_TAG_LOW=6 , 
-                          ICACHE_TAG_DEPTH=1024  
-                                        ) 
+                          ICACHE_TAG_LOW=6 ,
+                          ICACHE_TAG_DEPTH=1024
+                                        )
      (
       input logic clk,
       input logic rst_l,
       input logic clk_override,
-      input logic dec_tlu_core_ecc_disable, 
+      input logic dec_tlu_core_ecc_disable,
 
       input logic [31:3]  ic_rw_addr,
 
       input logic [3:0]   ic_wr_en,  // way
       input logic [3:0]   ic_tag_valid,
       input logic         ic_rd_en,
-      
-      input logic [ICACHE_TAG_HIGH-1:2]  ic_debug_addr,      // Read/Write addresss to the Icache.   
+
+      input logic [ICACHE_TAG_HIGH-1:2]  ic_debug_addr,      // Read/Write addresss to the Icache.
       input logic                        ic_debug_rd_en,     // Icache debug rd
       input logic                        ic_debug_wr_en,     // Icache debug wr
       input logic                        ic_debug_tag_array, // Debug tag array
@@ -330,20 +330,20 @@ module IC_TAG #(parameter ICACHE_TAG_HIGH = 16 ,
 
 
 
-      
+
 `ifdef RV_ICACHE_ECC
       output logic [24:0]  ictag_debug_rd_data,
-      input  logic [41:0]  ic_debug_wr_data,   // Debug wr cache. 
+      input  logic [41:0]  ic_debug_wr_data,   // Debug wr cache.
 `else
       output logic [20:0]  ictag_debug_rd_data,
-      input  logic [33:0]  ic_debug_wr_data,   // Debug wr cache. 
+      input  logic [33:0]  ic_debug_wr_data,   // Debug wr cache.
 `endif
       output logic [3:0]   ic_rd_hit,
-      output logic         ic_tag_perr, 
-      input  logic         scan_mode 
+      output logic         ic_tag_perr,
+      input  logic         scan_mode
 
       ) ;
-   
+
 `ifdef RV_ICACHE_ECC
    logic [3:0] [24:0] ic_tag_data_raw;
    logic [3:0] [37:ICACHE_TAG_HIGH] w_tout;
@@ -370,78 +370,78 @@ module IC_TAG #(parameter ICACHE_TAG_HIGH = 16 ,
    logic [3:0]          ic_tag_clken ;
    logic [3:0]          ic_debug_wr_way_en;   // debug wr_way
 
-   assign  ic_tag_wren [3:0]  = ic_wr_en[3:0] & {4{ic_rw_addr[5:3] == 3'b111}} ;           
+   assign  ic_tag_wren [3:0]  = ic_wr_en[3:0] & {4{ic_rw_addr[5:3] == 3'b111}} ;
    assign  ic_tag_clken[3:0]  = {4{ic_rd_en | clk_override}} | ic_wr_en[3:0] | ic_debug_wr_way_en[3:0] | ic_debug_rd_way_en[3:0];
 
-   rvdff #(32-ICACHE_TAG_HIGH) adr_ff (.*, 
-                    .din ({ic_rw_addr[31:ICACHE_TAG_HIGH]}), 
+   rvdff #(32-ICACHE_TAG_HIGH) adr_ff (.*,
+                    .din ({ic_rw_addr[31:ICACHE_TAG_HIGH]}),
                     .dout({ic_rw_addr_ff[31:ICACHE_TAG_HIGH]}));
 
-   
+
    localparam TOP_BITS = 21+ICACHE_TAG_HIGH-33 ;
    localparam NUM_WAYS=4 ;
-   // tags 
- 
+   // tags
+
 
 
    assign  ic_debug_rd_way_en[3:0] =  {4{ic_debug_rd_en & ic_debug_tag_array}} & ic_debug_way[3:0] ;
    assign  ic_debug_wr_way_en[3:0] =  {4{ic_debug_wr_en & ic_debug_tag_array}} & ic_debug_way[3:0] ;
 
-   assign  ic_tag_wren_q[3:0]  =  ic_tag_wren[3:0]          |           
+   assign  ic_tag_wren_q[3:0]  =  ic_tag_wren[3:0]          |
                                   ic_debug_wr_way_en[3:0]   ;
 
 if (ICACHE_TAG_HIGH == 12) begin: SMALLEST
  `ifdef RV_ICACHE_ECC
      logic [6:0] ic_tag_ecc;
            rvecc_encode  tag_ecc_encode (
-                                  .din    ({{ICACHE_TAG_HIGH{1'b0}}, ic_rw_addr[31:ICACHE_TAG_HIGH]}), 
-                                  .ecc_out({ ic_tag_ecc[6:0]})); 
+                                  .din    ({{ICACHE_TAG_HIGH{1'b0}}, ic_rw_addr[31:ICACHE_TAG_HIGH]}),
+                                  .ecc_out({ ic_tag_ecc[6:0]}));
 
-   assign  ic_tag_wr_data[24:0] = (ic_debug_wr_en & ic_debug_tag_array) ? 
-                                  {ic_debug_wr_data[36:32], ic_debug_wr_data[31:12]} : 
+   assign  ic_tag_wr_data[24:0] = (ic_debug_wr_en & ic_debug_tag_array) ?
+                                  {ic_debug_wr_data[36:32], ic_debug_wr_data[31:12]} :
                                   {ic_tag_ecc[4:0], ic_rw_addr[31:ICACHE_TAG_HIGH]} ;
  `else
-   logic   ic_tag_parity ; 
-           rveven_paritygen #(32-ICACHE_TAG_HIGH) pargen  (.data_in   (ic_rw_addr[31:ICACHE_TAG_HIGH]), 
-                                                 .parity_out(ic_tag_parity)); 
+   logic   ic_tag_parity ;
+           rveven_paritygen #(32-ICACHE_TAG_HIGH) pargen  (.data_in   (ic_rw_addr[31:ICACHE_TAG_HIGH]),
+                                                 .parity_out(ic_tag_parity));
 
-   assign  ic_tag_wr_data[20:0] = (ic_debug_wr_en & ic_debug_tag_array) ? 
-                                  {ic_debug_wr_data[32], ic_debug_wr_data[31:12]} : 
+   assign  ic_tag_wr_data[20:0] = (ic_debug_wr_en & ic_debug_tag_array) ?
+                                  {ic_debug_wr_data[32], ic_debug_wr_data[31:12]} :
                                   {ic_tag_parity, ic_rw_addr[31:ICACHE_TAG_HIGH]} ;
  `endif
 end else begin: OTHERS
  `ifdef RV_ICACHE_ECC
    logic [6:0] ic_tag_ecc;
            rvecc_encode  tag_ecc_encode (
-                                  .din    ({{ICACHE_TAG_HIGH{1'b0}}, ic_rw_addr[31:ICACHE_TAG_HIGH]}), 
-                                  .ecc_out({ ic_tag_ecc[6:0]})); 
+                                  .din    ({{ICACHE_TAG_HIGH{1'b0}}, ic_rw_addr[31:ICACHE_TAG_HIGH]}),
+                                  .ecc_out({ ic_tag_ecc[6:0]}));
 
-   assign  ic_tag_wr_data[24:0] = (ic_debug_wr_en & ic_debug_tag_array) ? 
-                                  {ic_debug_wr_data[36:32], ic_debug_wr_data[31:12]} : 
+   assign  ic_tag_wr_data[24:0] = (ic_debug_wr_en & ic_debug_tag_array) ?
+                                  {ic_debug_wr_data[36:32], ic_debug_wr_data[31:12]} :
                                   {ic_tag_ecc[4:0], {TOP_BITS{1'b0}},ic_rw_addr[31:ICACHE_TAG_HIGH]} ;
 
  `else
-   logic   ic_tag_parity ; 
-           rveven_paritygen #(32-ICACHE_TAG_HIGH) pargen  (.data_in   (ic_rw_addr[31:ICACHE_TAG_HIGH]), 
-                                                 .parity_out(ic_tag_parity)); 
-   assign  ic_tag_wr_data[20:0] = (ic_debug_wr_en & ic_debug_tag_array) ? 
-                                  {ic_debug_wr_data[32], ic_debug_wr_data[31:12]} : 
+   logic   ic_tag_parity ;
+           rveven_paritygen #(32-ICACHE_TAG_HIGH) pargen  (.data_in   (ic_rw_addr[31:ICACHE_TAG_HIGH]),
+                                                 .parity_out(ic_tag_parity));
+   assign  ic_tag_wr_data[20:0] = (ic_debug_wr_en & ic_debug_tag_array) ?
+                                  {ic_debug_wr_data[32], ic_debug_wr_data[31:12]} :
                                   {ic_tag_parity, {TOP_BITS{1'b0}},ic_rw_addr[31:ICACHE_TAG_HIGH]} ;
  `endif
 end
 
     assign ic_rw_addr_q[ICACHE_TAG_HIGH-1:6] = (ic_debug_rd_en | ic_debug_wr_en) ?
-                                                ic_debug_addr[ICACHE_TAG_HIGH-1:6] : 
+                                                ic_debug_addr[ICACHE_TAG_HIGH-1:6] :
                                                 ic_rw_addr[ICACHE_TAG_HIGH-1:6] ;
 
 
-   rvdff #(4) tag_rd_wy_ff (.*, 
-                    .din ({ic_debug_rd_way_en[3:0]}), 
+   rvdff #(4) tag_rd_wy_ff (.*,
+                    .din ({ic_debug_rd_way_en[3:0]}),
                     .dout({ic_debug_rd_way_en_ff[3:0]}));
 
 
 
-     
+
    for (genvar i=0; i<NUM_WAYS; i++) begin: WAYS
    rvclkhdr ic_tag_c1_cgc  ( .en(ic_tag_clken[i]), .l1clk(ic_tag_clk[i]), .* );
      if (ICACHE_TAG_DEPTH == 64 ) begin : ICACHE_SZ_16
@@ -453,13 +453,13 @@ end
                                      .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW]),
                                      .Q  (ic_tag_data_raw[i][24:0])
                                     );
-          
+
 
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
          assign w_tout[i][36:32]              = ic_tag_data_raw[i][24:20] ;
 
          rvecc_decode  ecc_decode (
-                           .en(~dec_tlu_core_ecc_disable), 
+                           .en(~dec_tlu_core_ecc_disable),
                            .sed_ded ( 1'b1 ),    // 1 : means only detection
                            .din({12'b0,ic_tag_data_raw[i][19:0]}),
                            .ecc_in({2'b0, ic_tag_data_raw[i][24:20]}),
@@ -481,14 +481,14 @@ end
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
          assign w_tout[i][32]                 = ic_tag_data_raw[i][20] ;
 
-         rveven_paritycheck #(32-ICACHE_TAG_HIGH) parcheck(.data_in   (w_tout[i][31:ICACHE_TAG_HIGH]), 
+         rveven_paritycheck #(32-ICACHE_TAG_HIGH) parcheck(.data_in   (w_tout[i][31:ICACHE_TAG_HIGH]),
                                                    .parity_in (w_tout[i][32]),
-                                                   .parity_err(ic_tag_way_perr[i])); 
+                                                   .parity_err(ic_tag_way_perr[i]));
       `endif
 
    end // block: ICACHE_SZ_16
-   
-   else begin : tag_not_64    
+
+   else begin : tag_not_64
     `ifdef RV_ICACHE_ECC
      `RV_ICACHE_TAG_CELL  ic_way_tag (
                                      .CLK(ic_tag_clk[i]),
@@ -503,7 +503,7 @@ end
 
          rvecc_decode  ecc_decode (
                            .en(~dec_tlu_core_ecc_disable),
-                           .sed_ded ( 1'b1 ), // 1 : if only need detection  
+                           .sed_ded ( 1'b1 ), // 1 : if only need detection
                            .din({12'b0,ic_tag_data_raw[i][19:0]}),
                            .ecc_in({2'b0, ic_tag_data_raw[i][24:20]}),
                            .dout(ic_tag_corrected_data_unc[i][31:0]),
@@ -525,27 +525,27 @@ end
          assign w_tout[i][31:ICACHE_TAG_HIGH] = ic_tag_data_raw[i][31-ICACHE_TAG_HIGH:0] ;
          assign w_tout[i][32]                 = ic_tag_data_raw[i][20] ;
 
-       rveven_paritycheck #(32-ICACHE_TAG_HIGH) parcheck(.data_in   (w_tout[i][31:ICACHE_TAG_HIGH]), 
+       rveven_paritycheck #(32-ICACHE_TAG_HIGH) parcheck(.data_in   (w_tout[i][31:ICACHE_TAG_HIGH]),
                                                    .parity_in (w_tout[i][32]),
-                                                   .parity_err(ic_tag_way_perr[i])); 
+                                                   .parity_err(ic_tag_way_perr[i]));
 
       `endif
    end // block: tag_not_64
 end // block: WAYS
-   
+
 
 `ifdef RV_ICACHE_ECC
    assign ictag_debug_rd_data[24:0] =  ({25{ic_debug_rd_way_en_ff[0]}} &  ic_tag_data_raw[0] ) |
                                        ({25{ic_debug_rd_way_en_ff[1]}} &  ic_tag_data_raw[1] ) |
                                        ({25{ic_debug_rd_way_en_ff[2]}} &  ic_tag_data_raw[2] ) |
                                        ({25{ic_debug_rd_way_en_ff[3]}} &  ic_tag_data_raw[3] ) ;
-                                                                          
-`else                                                                     
+
+`else
    assign ictag_debug_rd_data[20:0] =  ({21{ic_debug_rd_way_en_ff[0]}} &  ic_tag_data_raw[0] ) |
                                        ({21{ic_debug_rd_way_en_ff[1]}} &  ic_tag_data_raw[1] ) |
                                        ({21{ic_debug_rd_way_en_ff[2]}} &  ic_tag_data_raw[2] ) |
                                        ({21{ic_debug_rd_way_en_ff[3]}} &  ic_tag_data_raw[3] ) ;
-             
+
 `endif
    assign ic_rd_hit[0] = (w_tout[0][31:ICACHE_TAG_HIGH] == ic_rw_addr_ff[31:ICACHE_TAG_HIGH]) & ic_tag_valid[0];
    assign ic_rd_hit[1] = (w_tout[1][31:ICACHE_TAG_HIGH] == ic_rw_addr_ff[31:ICACHE_TAG_HIGH]) & ic_tag_valid[1];

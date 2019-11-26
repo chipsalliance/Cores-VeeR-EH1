@@ -35,9 +35,9 @@ printf("end\n");
 
 sub b2d {
     my ($v) = @_;
-    
+
     $v = oct("0b" . $v);
-    
+
     return($v);
 }
 

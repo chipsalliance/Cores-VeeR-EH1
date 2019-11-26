@@ -1,7 +1,7 @@
 // NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
 // This is an automatically generated file by joseph.rahmeh on Tue Oct 15 13:13:16 PDT 2019
 //
-// cmd:    swerv -snapshot=default -ahb_lite 
+// cmd:    swerv -snapshot=default -ahb_lite
 //
 #define RV_INST_ACCESS_MASK5 0xffffffff
 #define RV_DATA_ACCESS_ENABLE4 0x0
@@ -60,7 +60,7 @@
 #define RV_DCCM_RESERVED 0x1000
 #define RV_DCCM_SIZE 64
 #define RV_DCCM_DATA_WIDTH 32
-#define RV_DCCM_NUM_BANKS_8 
+#define RV_DCCM_NUM_BANKS_8
 #define RV_DCCM_FDATA_WIDTH 39
 #define RV_DCCM_BYTE_WIDTH 4
 #define RV_DCCM_DATA_CELL ram_2048x39
@@ -68,7 +68,7 @@
 #define RV_DCCM_BITS 16
 #define RV_DCCM_OFFSET 0x40000
 #define RV_DCCM_ECC_WIDTH 7
-#define RV_DCCM_SIZE_64 
+#define RV_DCCM_SIZE_64
 #define RV_DCCM_ROWS 2048
 #define RV_DCCM_BANK_BITS 3
 #define RV_DCCM_NUM_BANKS 8
@@ -91,10 +91,10 @@
 #define RV_ICCM_RESERVED 0x1000
 #define RV_ICCM_DATA_CELL ram_16384x39
 #define RV_ICCM_INDEX_BITS 14
-#define RV_ICCM_NUM_BANKS_8 
+#define RV_ICCM_NUM_BANKS_8
 #define RV_ICCM_SIZE 512
 #define RV_ICCM_EADR 0xee07ffff
-#define RV_ICCM_SIZE_512 
+#define RV_ICCM_SIZE_512
 #define RV_EXTERNAL_PROG 0xb0000000
 #define RV_EXTERNAL_DATA_1 0x00000000
 #define RV_DEBUG_SB_MEM 0xb0580000
@@ -129,4 +129,4 @@
 #define RV_EXT_DATAWIDTH 64
 #define SDVT_AHB 1
 #define RV_LDERR_ROLLBACK 1
-#define ASSERT_ON 
+#define ASSERT_ON
