@@ -29,6 +29,7 @@ SWERV_CONFIG = ${RV_ROOT}/configs/swerv.config
 IRUN = irun
 VCS = vcs
 VERILATOR = verilator
+RIVIERA = riviera
 GCC_PREFIX = riscv64-unknown-elf
 
 # Define test name
@@ -54,7 +55,7 @@ VERILATOR_MAKE_FLAGS = OPT_FAST=""
 all: clean verilator
 
 clean:
-	rm -rf obj_dir *.hex build ${RV_ROOT}/configs/snapshots/$(snapshot)
+	rm -rf obj_dir *.hex build ${RV_ROOT}/configs/snapshots/$(snapshot) work dataset.asdb  library.cfg
 
 verilator: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
 	echo '`undef ASSERT_ON' >> ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
@@ -75,6 +76,15 @@ irun: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
 
 ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh:
 	$(SWERV_CONFIG) -snapshot=$(snapshot)
+
+riviera:
+	vlib work
+	vlog -work work +define+RV_OPENSOURCE \
+		+incdir+${RV_ROOT}/design/lib/ +incdir+${RV_ROOT}/design/include/ +incdir+${RV_ROOT}/design/dmi/ +incdir+${RV_ROOT}/configs/snapshots/default/ +incdir+${RV_ROOT}/testbench/ \
+		+libext+.v ${RV_ROOT}/configs/snapshots/default/common_defines.vh ${RV_ROOT}/design/include/build.h ${RV_ROOT}/design/include/global.h ${RV_ROOT}/design/include/swerv_types.sv		\
+		 -f ${RV_ROOT}/testbench/flist.riviera \
+		 ${RV_ROOT}/testbench/tb_top.sv	 ${RV_ROOT}/testbench/ahb_sif.sv \
+		 -err VCP2694 W1 
 
 verilator-run: program.hex
 	snapshot=ahb_lite
@@ -105,6 +115,10 @@ vcs-run: program.hex
 		$(defines) -f ${RV_ROOT}/testbench/flist.vcs ${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench ${RV_ROOT}/testbench/ahb_sif.sv -l vcs.log
 	./simv
 
+riviera-run: program.hex
+	snapshot=ahb_lite
+	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
+	vsim -lib work -c +access +r tb_top -do "run -all; exit"
 program.hex: $(ASM_TEST_DIR)/$(ASM_TEST).s ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
 	@echo Building $(ASM_TEST)
 ifeq ($(shell which $(GCC_PREFIX)-as),)
@@ -126,4 +140,4 @@ help:
 	@echo Make sure the environment variable RV_ROOT is set.
 	@echo Possible targets: verilator vcs irun help clean all verilator-run irun-run vcs-run program.hex
 
-.PHONY: help clean verilator vcs irun verilator-run irun-run  vcs-run
+.PHONY: help clean verilator vcs irun riviera verilator-run irun-run  vcs-run riviera-run
