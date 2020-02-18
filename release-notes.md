@@ -6,63 +6,63 @@ This is a bug-fix and performance-improvement release.  No new functionality
 is added to the SweRV core.
 
 
-## Bug fixes:
+1. Bug fixes:
 
-1. Hart incorrectly cleared dmcontrol.dmactive on reset (reported by
-   Codasip).
-2. Hart never asserted the dmstatus.allrunning signal on reset which
-   caused a timeout in OpenOCD (reported by Codasip).
-3. Debug module failed to auto-increment register on system-bus access
-   of size 64-bit (reported by Codasip).
-4. The core_rst_n signal was incorrectly connected (reported by Codasip).
-5. Moudule/instance renamed for tool compatibility.
-6. The program counter was getting corrupted when the load/store unit
-   indicated both a single-bit and a double-bit error in the same
-   cycle.
-7. The MSTATUS control register was not being updated as expected when
-   both a non-maskable-interrupt and an MSTATUS-write happened in the
-   same cycle.
-8. Write to SBDATA0 was not starting an system-bus write access when
-   sbreadonaddr/sbreadondata is set.
-9. Minstret was incorrectly counting ecall/ebreak instructions
-10. The dec_tlu_mpc_halted_only signal was not set for MPC halt after
-    reset.
-11. The MEPC control register was not being updated when a
-    firmware-halt request was followed by a timer interrupt.
-12. The MINSTRETH control register was being incremented when
-    performance counters were disabled.
-13. Bus driver contained combinational logic from multiple clock
-    domains that sometimes caused a glitch.
-14. System bus reads were always being made with 64-bit size for the
-    AXI bus which is incorrect for IO access.
-15. DCCM single bit errors were counted for instruction that did not
-    commit.
-16. ICCM Single Bit Errors were double counted.
-17. Load/store unit was not detecting access faults when DCCM and PIC
-    memories are next to each other.
-18. Single bit ECC errors on data load were not always corrected in
-    the DCCM.
-19. ECC single bit error were not always corrected in the DCCM for DMA
-    access.
-20. Single bit Errors detected while reading ICCM through DMA were not
-    being corrected in memory.
-
-
-## Improvements:
-
-1. Improved performance by removing redundant term in decode stall
-   logic.
-2. Reduced power used by the ICCM memory arrays.
+* Hart incorrectly cleared dmcontrol.dmactive on reset (reported by
+  Codasip).
+* Hart never asserted the dmstatus.allrunning signal on reset which
+  caused a timeout in OpenOCD (reported by Codasip).
+* Debug module failed to auto-increment register on system-bus access
+  of size 64-bit (reported by Codasip).
+* The core_rst_n signal was incorrectly connected (reported by Codasip).
+* Moudule/instance renamed for tool compatibility.
+* The program counter was getting corrupted when the load/store unit
+  indicated both a single-bit and a double-bit error in the same
+  cycle.
+* The MSTATUS control register was not being updated as expected when
+  both a non-maskable-interrupt and an MSTATUS-write happened in the
+  same cycle.
+* Write to SBDATA0 was not starting an system-bus write access when
+  sbreadonaddr/sbreadondata is set.
+* Minstret was incorrectly counting ecall/ebreak instructions
+* The dec_tlu_mpc_halted_only signal was not set for MPC halt after
+  reset.
+* The MEPC control register was not being updated when a
+  firmware-halt request was followed by a timer interrupt.
+* The MINSTRETH control register was being incremented when
+  performance counters were disabled.
+* Bus driver contained combinational logic from multiple clock
+  domains that sometimes caused a glitch.
+* System bus reads were always being made with 64-bit size for the
+  AXI bus which is incorrect for IO access.
+* DCCM single bit errors were counted for instruction that did not
+  commit.
+* ICCM Single Bit Errors were double counted.
+* Load/store unit was not detecting access faults when DCCM and PIC
+  memories are next to each other.
+* Single bit ECC errors on data load were not always corrected in
+  the DCCM.
+* ECC single bit error were not always corrected in the DCCM for DMA
+  access.
+* Single bit Errors detected while reading ICCM through DMA were not
+  being corrected in memory.
 
 
-## Testbench Improvements:
+2. Improvements:
 
-1. AXI4 and AHB-Lite support.
-2. Updated bus memory to be persistent and handle larger programs.
-3. Makefile supports ability to run with source or pre-generated hex
-   files.
-4. Makefile supports targets for coremarks benchmark (issue #25).
-5. Questa support in Makefile (Issue #19).
+* Improved performance by removing redundant term in decode stall
+  logic.
+* Reduced power used by the ICCM memory arrays.
+
+
+3. Testbench Improvements:
+
+* AXI4 and AHB-Lite support.
+* Updated bus memory to be persistent and handle larger programs.
+* Makefile supports ability to run with source or pre-generated hex
+  files.
+* Makefile supports targets for coremarks benchmark (issue #25).
+* Questa support in Makefile (Issue #19).
 
 
 
