@@ -9,7 +9,8 @@ is added to the SweRV core.
 1. Bug fixes:
 
 * Hart incorrectly cleared dmcontrol.dmactive on reset (reported by
-  Codasip).
+  Codasip).  Note that a separate system power-on-reset signal `dbg_rst_l`
+  was added to differentiate power-on-reset vs core reset. 
 * Hart never asserted the dmstatus.allrunning signal on reset which
   caused a timeout in OpenOCD (reported by Codasip).
 * Debug module failed to auto-increment register on system-bus access
