@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2019 Western Digital Corporation or its affiliates.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,8 @@
 //********************************************************************************
 // $Id$
 //
-// 
-// Owner: 
+//
+// Owner:
 // Function: lsu interface with interface queue
 // Comments:
 //
@@ -30,13 +30,13 @@ function automatic logic [2:0] f_Enc8to3;
    logic [2:0]       Enc_value;
    Enc_value[0] = Dec_value[1] | Dec_value[3] | Dec_value[5] | Dec_value[7];
    Enc_value[1] = Dec_value[2] | Dec_value[3] | Dec_value[6] | Dec_value[7];
-   Enc_value[2] = Dec_value[4] | Dec_value[5] | Dec_value[6] | Dec_value[7];   
+   Enc_value[2] = Dec_value[4] | Dec_value[5] | Dec_value[6] | Dec_value[7];
 
    return Enc_value[2:0];
 endfunction // f_Enc8to3
 
 
-module lsu_bus_buffer 
+module lsu_bus_buffer
    import swerv_types::*;
 (
    input logic                          clk,
@@ -46,9 +46,9 @@ module lsu_bus_buffer
    input logic                          dec_tlu_wb_coalescing_disable,    // disable write buffer coalescing
    input logic                          dec_tlu_ld_miss_byp_wb_disable,   // disable ld miss bypass of the write buffer
    input logic                          dec_tlu_sideeffect_posted_disable,  // disable posted writes to sideeffect addr to the bus
-   
+
    // various clocks needed for the bus reads and writes
-   input logic                          lsu_c1_dc3_clk,       
+   input logic                          lsu_c1_dc3_clk,
    input logic                          lsu_c1_dc4_clk,
    input logic                          lsu_c1_dc5_clk,
    input logic                          lsu_c2_dc3_clk,
@@ -63,8 +63,8 @@ module lsu_bus_buffer
    input logic                          lsu_bus_buf_c1_clk,
    input logic                          lsu_free_c2_clk,
    input logic                          lsu_busm_clk,
-                     
- 
+
+
    input                                lsu_pkt_t lsu_pkt_dc1,            // lsu packet flowing down the pipe
    input                                lsu_pkt_t lsu_pkt_dc2,            // lsu packet flowing down the pipe
    input                                lsu_pkt_t lsu_pkt_dc3,            // lsu packet flowing down the pipe
@@ -84,7 +84,7 @@ module lsu_bus_buffer
    output logic                         lsu_busreq_dc4,                   // bus request is in dc4
    output logic                         lsu_busreq_dc5,                   // bus request is in dc5
    input logic                          ld_full_hit_dc2,                  // load can get all its byte from a write buffer entry
-   input logic                          flush_dc2_up,                     // flush 
+   input logic                          flush_dc2_up,                     // flush
    input logic                          flush_dc3,                        // flush
    input logic                          flush_dc4,                        // flush
    input logic                          flush_dc5,                        // flush
@@ -98,16 +98,16 @@ module lsu_bus_buffer
    input logic                          ldst_dual_dc3,                    // load/store is unaligned at 32 bit boundary
    input logic                          ldst_dual_dc4,                    // load/store is unaligned at 32 bit boundary
    input logic                          ldst_dual_dc5,                    // load/store is unaligned at 32 bit boundary
-                       
+
    input logic [7:0]                   ldst_byteen_ext_dc2,
- 
+
    output logic                         ld_freeze_dc3,                    // load goes to external and asserts freeze
    output logic                         lsu_bus_buffer_pend_any,          // bus buffer has a pending bus entry
    output logic                         lsu_bus_buffer_full_any,          // bus buffer is full
    output logic                         lsu_bus_buffer_empty_any,         // bus buffer is empty
 
    output logic                         ld_bus_error_dc3,                 // bus error in dc3
-   output logic [31:0]                  ld_bus_error_addr_dc3,            // address of the bus error 
+   output logic [31:0]                  ld_bus_error_addr_dc3,            // address of the bus error
    output logic [31:0]                  ld_bus_data_dc3,                 // the Dc3 load data from bus
 
    output logic [3:0]                   ld_byte_hit_buf_lo, ld_byte_hit_buf_hi,    // Byte enables for forwarding data
@@ -123,17 +123,17 @@ module lsu_bus_buffer
    output logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_tag_dc3,       // the tag of the external non block load
    output logic                                lsu_nonblock_load_inv_dc5,       // invalidate signal for the cam entry for non block loads
    output logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_inv_tag_dc5,   // tag of the enrty which needs to be invalidated
-   output logic                                lsu_nonblock_load_data_valid,    // the non block is valid - sending information back to the cam                                               
-   output logic                                lsu_nonblock_load_data_error,    // non block load has an error                 
-   output logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_data_tag,      // the tag of the non block load sending the data/error                                             
-   output logic [31:0]                         lsu_nonblock_load_data,          // Data of the non block load   
+   output logic                                lsu_nonblock_load_data_valid,    // the non block is valid - sending information back to the cam
+   output logic                                lsu_nonblock_load_data_error,    // non block load has an error
+   output logic [`RV_LSU_NUM_NBLOAD_WIDTH-1:0] lsu_nonblock_load_data_tag,      // the tag of the non block load sending the data/error
+   output logic [31:0]                         lsu_nonblock_load_data,          // Data of the non block load
 
    // PMU events
    output logic                         lsu_pmu_bus_trxn,
    output logic                         lsu_pmu_bus_misaligned,
    output logic                         lsu_pmu_bus_error,
    output logic                         lsu_pmu_bus_busy,
-                     
+
    // AXI Write Channels
    output logic                            lsu_axi_awvalid,
    input  logic                            lsu_axi_awready,
@@ -147,19 +147,19 @@ module lsu_bus_buffer
    output logic [3:0]                      lsu_axi_awcache,
    output logic [2:0]                      lsu_axi_awprot,
    output logic [3:0]                      lsu_axi_awqos,
-                                           
-   output logic                            lsu_axi_wvalid,                                       
+
+   output logic                            lsu_axi_wvalid,
    input  logic                            lsu_axi_wready,
    output logic [63:0]                     lsu_axi_wdata,
    output logic [7:0]                      lsu_axi_wstrb,
    output logic                            lsu_axi_wlast,
-                                           
+
    input  logic                            lsu_axi_bvalid,
    output logic                            lsu_axi_bready,
    input  logic [1:0]                      lsu_axi_bresp,
    input  logic [`RV_LSU_BUS_TAG-1:0]      lsu_axi_bid,
-                                           
-   // AXI Read Channels                    
+
+   // AXI Read Channels
    output logic                            lsu_axi_arvalid,
    input  logic                            lsu_axi_arready,
    output logic [`RV_LSU_BUS_TAG-1:0]      lsu_axi_arid,
@@ -172,7 +172,7 @@ module lsu_bus_buffer
    output logic [3:0]                      lsu_axi_arcache,
    output logic [2:0]                      lsu_axi_arprot,
    output logic [3:0]                      lsu_axi_arqos,
-                                           
+
    input  logic                            lsu_axi_rvalid,
    output logic                            lsu_axi_rready,
    input  logic [`RV_LSU_BUS_TAG-1:0]      lsu_axi_rid,
@@ -196,7 +196,7 @@ module lsu_bus_buffer
    localparam TIMER     = 8;   // This can be only power of 2
    localparam TIMER_LOG2 = (TIMER < 2) ? 1 : $clog2(TIMER);
    localparam TIMER_MAX = (TIMER == 0) ? TIMER_LOG2'(0) : TIMER_LOG2'(TIMER - 1);  // Maximum value of timer
-   
+
    logic [3:0]                          ldst_byteen_hi_dc2, ldst_byteen_lo_dc2;
    logic [DEPTH-1:0]                    ld_addr_hitvec_lo, ld_addr_hitvec_hi;
    logic [3:0][DEPTH-1:0]               ld_byte_hitvec_lo, ld_byte_hitvec_hi;
@@ -210,7 +210,7 @@ module lsu_bus_buffer
    logic [3:0]                          ldst_byteen_hi_dc5, ldst_byteen_lo_dc5;
    logic [31:0]                         store_data_hi_dc5, store_data_lo_dc5;
    logic                                ldst_samedw_dc5;
-   
+
    logic                                lsu_nonblock_load_valid_dc4,lsu_nonblock_load_valid_dc5;
    logic [31:0]                         lsu_nonblock_load_data_hi, lsu_nonblock_load_data_lo, lsu_nonblock_data_unalgn;
    logic [1:0]                          lsu_nonblock_addr_offset;
@@ -222,7 +222,7 @@ module lsu_bus_buffer
    logic                                ld_precise_bus_error;
    logic [DEPTH_LOG2-1:0]               lsu_imprecise_error_load_tag;
    logic [31:0]                         ld_block_bus_data;
-   
+
    logic [DEPTH-1:0]                    CmdPtr0Dec, CmdPtr1Dec;
    logic [DEPTH_LOG2-1:0]               CmdPtr0, CmdPtr1;
    logic [DEPTH_LOG2-1:0]               WrPtr0_dc3, WrPtr0_dc4, WrPtr0_dc5;
@@ -231,19 +231,19 @@ module lsu_bus_buffer
    logic [3:0]                          buf_numvld_any, buf_numvld_wrcmd_any, buf_numvld_pend_any, buf_numvld_cmd_any;
    logic                                bus_sideeffect_pend;
    logic                                bus_coalescing_disable;
-  
+
    logic                                ld_freeze_en, ld_freeze_rst;
    logic                                FreezePtrEn;
    logic [DEPTH_LOG2-1:0]               FreezePtr;
 
-   logic                                bus_addr_match_pending;  
+   logic                                bus_addr_match_pending;
    logic                                bus_cmd_sent, bus_cmd_ready;
    logic                                bus_wcmd_sent, bus_wdata_sent;
    logic                                bus_rsp_read, bus_rsp_write;
    logic [LSU_BUS_TAG-1:0]              bus_rsp_read_tag, bus_rsp_write_tag;
    logic                                bus_rsp_read_error, bus_rsp_write_error;
    logic [63:0]                         bus_rsp_rdata;
-   
+
    // Bus buffer signals
    state_t [DEPTH-1:0]                  buf_state;
    logic   [DEPTH-1:0][2:0]             buf_state_out;
@@ -262,7 +262,7 @@ module lsu_bus_buffer
    logic   [DEPTH-1:0]                  buf_error;
    logic   [DEPTH-1:0][31:0]            buf_data;
    logic   [DEPTH-1:0][DEPTH-1:0]       buf_age, buf_age_younger, buf_age_temp;
-  
+
    state_t [DEPTH-1:0]                  buf_nxtstate;
    logic   [DEPTH-1:0]                  buf_rst;
    logic   [DEPTH-1:0]                  buf_state_en;
@@ -350,7 +350,7 @@ module lsu_bus_buffer
    logic                               obuf_cmd_done_in, obuf_data_done_in;
    logic [LSU_BUS_TAG-1:0]             obuf_tag0_in;
    logic [LSU_BUS_TAG-1:0]             obuf_tag1_in;
-                                      
+
    logic                               obuf_merge_en;
    logic [TIMER_LOG2-1:0]              obuf_wr_timer, obuf_wr_timer_in;
    logic [7:0]                         obuf_byteen0_in, obuf_byteen1_in;
@@ -363,8 +363,8 @@ module lsu_bus_buffer
    logic                   lsu_axi_rvalid_q, lsu_axi_rready_q;
    logic [LSU_BUS_TAG-1:0] lsu_axi_bid_q, lsu_axi_rid_q;
    logic [1:0]             lsu_axi_bresp_q, lsu_axi_rresp_q;
-   logic [63:0]            lsu_axi_rdata_q;   
-   
+   logic [63:0]            lsu_axi_rdata_q;
+
    //------------------------------------------------------------------------------
    // Load forwarding logic start
    //------------------------------------------------------------------------------
@@ -379,8 +379,8 @@ module lsu_bus_buffer
    end
 
    for (genvar j=0; j<4; j++) begin
-     assign ld_byte_hit_buf_lo[j] = |(ld_byte_hitvecfn_lo[j]) | ld_byte_ibuf_hit_lo[j]; 
-     assign ld_byte_hit_buf_hi[j] = |(ld_byte_hitvecfn_hi[j]) | ld_byte_ibuf_hit_hi[j]; 
+     assign ld_byte_hit_buf_lo[j] = |(ld_byte_hitvecfn_lo[j]) | ld_byte_ibuf_hit_lo[j];
+     assign ld_byte_hit_buf_hi[j] = |(ld_byte_hitvecfn_hi[j]) | ld_byte_ibuf_hit_hi[j];
      for (genvar i=0; i<DEPTH; i++) begin
          assign ld_byte_hitvec_lo[j][i] = ld_addr_hitvec_lo[i] & buf_byteen[i][j] & ldst_byteen_lo_dc2[j];
          assign ld_byte_hitvec_hi[j][i] = ld_addr_hitvec_hi[i] & buf_byteen[i][j] & ldst_byteen_hi_dc2[j];
@@ -393,7 +393,7 @@ module lsu_bus_buffer
    // Hit in the ibuf
    assign ld_addr_ibuf_hit_lo = (lsu_addr_dc2[31:2] == ibuf_addr[31:2]) & ibuf_write & ibuf_valid & lsu_busreq_dc2;
    assign ld_addr_ibuf_hit_hi = (end_addr_dc2[31:2] == ibuf_addr[31:2]) & ibuf_write & ibuf_valid & lsu_busreq_dc2;
-   
+
    for (genvar i=0; i<4; i++) begin
       assign ld_byte_ibuf_hit_lo[i] = ld_addr_ibuf_hit_lo & ibuf_byteen[i] & ldst_byteen_lo_dc2[i];
       assign ld_byte_ibuf_hit_hi[i] = ld_addr_ibuf_hit_hi & ibuf_byteen[i] & ldst_byteen_hi_dc2[i];
@@ -414,7 +414,7 @@ module lsu_bus_buffer
          ld_fwddata_buf_hi[31:24] |= {8{ld_byte_hitvecfn_hi[3][i]}} & buf_data[i][31:24];
       end
    end
-   
+
    //------------------------------------------------------------------------------
    // Load forwarding logic end
    //------------------------------------------------------------------------------
@@ -424,16 +424,16 @@ module lsu_bus_buffer
 `else
    assign bus_coalescing_disable = dec_tlu_wb_coalescing_disable;
 `endif
-   
+
    // Get the hi/lo byte enable
    assign ldst_byteen_dc5[3:0] = ({4{lsu_pkt_dc5.by}}   & 4'b0001) |
                                  ({4{lsu_pkt_dc5.half}} & 4'b0011) |
                                  ({4{lsu_pkt_dc5.word}} & 4'b1111);
-  
-   assign {ldst_byteen_hi_dc5[3:0], ldst_byteen_lo_dc5[3:0]} = {4'b0,ldst_byteen_dc5[3:0]} << lsu_addr_dc5[1:0]; 
+
+   assign {ldst_byteen_hi_dc5[3:0], ldst_byteen_lo_dc5[3:0]} = {4'b0,ldst_byteen_dc5[3:0]} << lsu_addr_dc5[1:0];
    assign {store_data_hi_dc5[31:0], store_data_lo_dc5[31:0]} = {32'b0,store_data_dc5[31:0]} << {lsu_addr_dc5[1:0],3'b0};
    assign ldst_samedw_dc5 = (lsu_addr_dc5[3] == end_addr_dc5[3]);
-   
+
    //------------------------------------------------------------------------------
    // Input buffer logic starts here
    //------------------------------------------------------------------------------
@@ -442,8 +442,8 @@ module lsu_bus_buffer
    assign ibuf_wr_en = lsu_busreq_dc5 & (lsu_commit_dc5 | lsu_freeze_dc3) & ~ibuf_byp;
    assign ibuf_rst   = ibuf_drain_vld & ~ibuf_wr_en;
    assign ibuf_force_drain = lsu_busreq_dc2 & ~lsu_busreq_dc3 & ~lsu_busreq_dc4 & ~lsu_busreq_dc5 & ibuf_valid & (lsu_pkt_dc2.load | (ibuf_addr[31:2] != lsu_addr_dc2[31:2]));  // Move the ibuf to buf if there is a non-colaescable ld/st in dc2 but nothing in dc3/dc4/dc5
-   assign ibuf_drain_vld = ibuf_valid & (((ibuf_wr_en | (ibuf_timer == TIMER_MAX)) & ~(ibuf_merge_en & ibuf_merge_in)) | ibuf_byp | ibuf_force_drain | ibuf_sideeffect | ~ibuf_write | bus_coalescing_disable); 
-   assign ibuf_tag_in[DEPTH_LOG2-1:0] = (ibuf_merge_en & ibuf_merge_in) ? ibuf_tag[DEPTH_LOG2-1:0] : (ldst_dual_dc5 ? WrPtr1_dc5 : WrPtr0_dc5);    
+   assign ibuf_drain_vld = ibuf_valid & (((ibuf_wr_en | (ibuf_timer == TIMER_MAX)) & ~(ibuf_merge_en & ibuf_merge_in)) | ibuf_byp | ibuf_force_drain | ibuf_sideeffect | ~ibuf_write | bus_coalescing_disable);
+   assign ibuf_tag_in[DEPTH_LOG2-1:0] = (ibuf_merge_en & ibuf_merge_in) ? ibuf_tag[DEPTH_LOG2-1:0] : (ldst_dual_dc5 ? WrPtr1_dc5 : WrPtr0_dc5);
    assign ibuf_dualtag_in[DEPTH_LOG2-1:0] = WrPtr0_dc5;
    assign ibuf_sz_in[1:0]   = {lsu_pkt_dc5.word, lsu_pkt_dc5.half}; // NOTE: Make sure lsu_pkt_dc3/dc4 are flopped in case of freeze (except the valid)
    assign ibuf_addr_in[31:0] = ldst_dual_dc5 ? end_addr_dc5[31:0] : lsu_addr_dc5[31:0];
@@ -454,9 +454,9 @@ module lsu_bus_buffer
    end
    assign ibuf_timer_in = ibuf_wr_en ? '0 : (ibuf_timer < TIMER_MAX) ? (ibuf_timer + 1'b1) : ibuf_timer;
 
-   assign ibuf_merge_en = lsu_busreq_dc5 & lsu_commit_dc5 & lsu_pkt_dc5.store & ibuf_valid & ibuf_write & (lsu_addr_dc5[31:2] == ibuf_addr[31:2]) & ~is_sideeffects_dc5 & ~bus_coalescing_disable; 
+   assign ibuf_merge_en = lsu_busreq_dc5 & lsu_commit_dc5 & lsu_pkt_dc5.store & ibuf_valid & ibuf_write & (lsu_addr_dc5[31:2] == ibuf_addr[31:2]) & ~is_sideeffects_dc5 & ~bus_coalescing_disable;
    assign ibuf_merge_in = ~ldst_dual_dc5;   // If it's a unaligned store, merge needs to happen on the way out of ibuf
-   
+
    // ibuf signals going to bus buffer after merging
    for (genvar i=0; i<4; i++) begin
       assign ibuf_byteen_out[i] = (ibuf_merge_en & ~ibuf_merge_in) ? (ibuf_byteen[i] | ldst_byteen_lo_dc5[i]) : ibuf_byteen[i];
@@ -492,11 +492,11 @@ module lsu_bus_buffer
    assign obuf_wr_wait = (buf_numvld_wrcmd_any[3:0] == 4'b1) & (buf_numvld_cmd_any[3:0] == 4'b1) & (obuf_wr_timer != TIMER_MAX) & ~bus_coalescing_disable & ~buf_nomerge[CmdPtr0] & ~obuf_force_wr_en;
    assign obuf_wr_timer_in = obuf_wr_en ? 3'b0: (((buf_numvld_cmd_any > 4'b0) & (obuf_wr_timer < TIMER_MAX)) ? (obuf_wr_timer + 1'b1) : obuf_wr_timer);
    assign obuf_force_wr_en = lsu_busreq_dc2 & ~lsu_busreq_dc3 & ~lsu_busreq_dc4 & ~lsu_busreq_dc5 & ~ibuf_valid & (buf_numvld_cmd_any[3:0] == 4'b1) & (lsu_addr_dc2[31:2] != buf_addr[CmdPtr0][31:2]);   // Entry in dc2 can't merge with entry going to obuf and there is no entry in between
-   assign ibuf_buf_byp = ibuf_byp & (buf_numvld_pend_any[3:0] == 4'b0) & ~ldst_dual_dc5 & lsu_pkt_dc5.store; 
-   
-   assign obuf_wr_en = (lsu_bus_clk_en & ((ibuf_buf_byp & lsu_commit_dc5) | 
-                                          ((buf_state[CmdPtr0] == CMD) & found_cmdptr0 & ~buf_cmd_state_bus_en[CmdPtr0] & 
-                                          (~(buf_dual[CmdPtr0] & buf_samedw[CmdPtr0] & ~buf_write[CmdPtr0]) | found_cmdptr1 | buf_nomerge[CmdPtr0] | obuf_force_wr_en)))) & 
+   assign ibuf_buf_byp = ibuf_byp & (buf_numvld_pend_any[3:0] == 4'b0) & ~ldst_dual_dc5 & lsu_pkt_dc5.store;
+
+   assign obuf_wr_en = (lsu_bus_clk_en & ((ibuf_buf_byp & lsu_commit_dc5) |
+                                          ((buf_state[CmdPtr0] == CMD) & found_cmdptr0 & ~buf_cmd_state_bus_en[CmdPtr0] &
+                                          (~(buf_dual[CmdPtr0] & buf_samedw[CmdPtr0] & ~buf_write[CmdPtr0]) | found_cmdptr1 | buf_nomerge[CmdPtr0] | obuf_force_wr_en)))) &
                        (bus_cmd_ready | ~obuf_valid) & ~obuf_wr_wait & ~bus_sideeffect_pend & ~bus_addr_match_pending;
    assign obuf_rst   = bus_cmd_sent & ~obuf_wr_en;
    assign obuf_write_in = ibuf_buf_byp ? lsu_pkt_dc5.store : buf_write[CmdPtr0];
@@ -513,18 +513,18 @@ module lsu_bus_buffer
    assign obuf_byteen0_in[7:0] = ibuf_buf_byp ? (lsu_addr_dc5[2] ? {ldst_byteen_lo_dc5[3:0],4'b0} : {4'b0,ldst_byteen_lo_dc5[3:0]}) :
                                                 (buf_addr[CmdPtr0][2] ? {buf_byteen[CmdPtr0],4'b0} : {4'b0,buf_byteen[CmdPtr0]});
    assign obuf_byteen1_in[7:0] = buf_addr[CmdPtr1][2] ? {buf_byteen[CmdPtr1],4'b0} : {4'b0,buf_byteen[CmdPtr1]};
-   assign obuf_data0_in[63:0]  = ibuf_buf_byp ? (lsu_addr_dc5[2] ? {store_data_lo_dc5[31:0],32'b0} : {32'b0,store_data_lo_dc5[31:0]}) : 
+   assign obuf_data0_in[63:0]  = ibuf_buf_byp ? (lsu_addr_dc5[2] ? {store_data_lo_dc5[31:0],32'b0} : {32'b0,store_data_lo_dc5[31:0]}) :
                                                 (buf_addr[CmdPtr0][2] ? {buf_data[CmdPtr0],32'b0} : {32'b0,buf_data[CmdPtr0]});
    assign obuf_data1_in[63:0]  = buf_addr[CmdPtr1][2] ? {buf_data[CmdPtr1],32'b0} : {32'b0,buf_data[CmdPtr1]};
    for (genvar i=0 ;i<8; i++) begin
       assign obuf_byteen_in[i] = obuf_byteen0_in[i] | (obuf_merge_en & obuf_byteen1_in[i]);
       assign obuf_data_in[(8*i)+7:(8*i)] = (obuf_merge_en & obuf_byteen1_in[i]) ? obuf_data1_in[(8*i)+7:(8*i)] : obuf_data0_in[(8*i)+7:(8*i)];
    end
-      
+
    // No store obuf merging for AXI since all stores are sent non-posted. Can't track the second id right now
-   assign obuf_merge_en = (CmdPtr0 != CmdPtr1) & found_cmdptr0 & found_cmdptr1 & (buf_state[CmdPtr0] == CMD) & (buf_state[CmdPtr1] == CMD) & ~buf_cmd_state_bus_en[CmdPtr0] & ~buf_sideeffect[CmdPtr0] & 
+   assign obuf_merge_en = (CmdPtr0 != CmdPtr1) & found_cmdptr0 & found_cmdptr1 & (buf_state[CmdPtr0] == CMD) & (buf_state[CmdPtr1] == CMD) & ~buf_cmd_state_bus_en[CmdPtr0] & ~buf_sideeffect[CmdPtr0] &
                           (~buf_write[CmdPtr0] & buf_dual[CmdPtr0] & ~buf_dualhi[CmdPtr0] & buf_samedw[CmdPtr0]);  // CmdPtr0/CmdPtr1 are for same load which is within a DW
-   
+
    rvdff   #(.WIDTH(1))              obuf_wren_ff      (.din(obuf_wr_en),                  .dout(obuf_wr_enQ),                                        .clk(lsu_busm_clk), .*);
    rvdff   #(.WIDTH(1))              obuf_cmd_done_ff  (.din(obuf_cmd_done_in),            .dout(obuf_cmd_done),                                      .clk(lsu_busm_clk), .*);
    rvdff   #(.WIDTH(1))              obuf_data_done_ff (.din(obuf_data_done_in),           .dout(obuf_data_done),                                     .clk(lsu_busm_clk), .*);
@@ -539,7 +539,7 @@ module lsu_bus_buffer
    rvdffs  #(.WIDTH(8))              obuf_byteenff     (.din(obuf_byteen_in[7:0]),         .dout(obuf_byteen),     .en(obuf_wr_en),                   .clk(lsu_bus_obuf_c1_clk), .*);
    rvdffe  #(.WIDTH(64))             obuf_dataff       (.din(obuf_data_in[63:0]),          .dout(obuf_data),       .en(obuf_wr_en),                                              .*);
    rvdff   #(.WIDTH(TIMER_LOG2))     obuf_timerff      (.din(obuf_wr_timer_in),            .dout(obuf_wr_timer),                                      .clk(lsu_busm_clk), .*);
-  
+
    //------------------------------------------------------------------------------
    // Output buffer logic ends here
    //------------------------------------------------------------------------------
@@ -556,7 +556,7 @@ module lsu_bus_buffer
          if (~found_wrptr0) begin
             WrPtr0_dc3[DEPTH_LOG2-1:0] = DEPTH_LOG2'(i);
             found_wrptr0 = (buf_state[i] == IDLE) & ~((ibuf_valid & (ibuf_tag == DEPTH_LOG2'(i)))                                               |
-                                                      (lsu_busreq_dc4 & ((WrPtr0_dc4 == DEPTH_LOG2'(i)) | (ldst_dual_dc4 & (WrPtr1_dc4 == DEPTH_LOG2'(i))))) | 
+                                                      (lsu_busreq_dc4 & ((WrPtr0_dc4 == DEPTH_LOG2'(i)) | (ldst_dual_dc4 & (WrPtr1_dc4 == DEPTH_LOG2'(i))))) |
                                                       (lsu_busreq_dc5 & ((WrPtr0_dc5 == DEPTH_LOG2'(i)) | (ldst_dual_dc5 & (WrPtr1_dc5 == DEPTH_LOG2'(i))))));
             //found_wrptr = (buf_state[i] == IDLE);
          end
@@ -568,7 +568,7 @@ module lsu_bus_buffer
             WrPtr1_dc3[DEPTH_LOG2-1:0] = DEPTH_LOG2'(i);
             found_wrptr1 = (buf_state[i] == IDLE) & ~((ibuf_valid & (ibuf_tag == DEPTH_LOG2'(i)))                                               |
                                                       (lsu_busreq_dc3 & (WrPtr0_dc3 == DEPTH_LOG2'(i)))                                         |
-                                                      (lsu_busreq_dc4 & ((WrPtr0_dc4 == DEPTH_LOG2'(i)) | (ldst_dual_dc4 & (WrPtr1_dc4 == DEPTH_LOG2'(i))))) | 
+                                                      (lsu_busreq_dc4 & ((WrPtr0_dc4 == DEPTH_LOG2'(i)) | (ldst_dual_dc4 & (WrPtr1_dc4 == DEPTH_LOG2'(i))))) |
                                                       (lsu_busreq_dc5 & ((WrPtr0_dc5 == DEPTH_LOG2'(i)) | (ldst_dual_dc5 & (WrPtr1_dc5 == DEPTH_LOG2'(i))))));
             //found_wrptr = (buf_state[i] == IDLE);
          end
@@ -590,14 +590,14 @@ module lsu_bus_buffer
    // Age vector
    for (genvar i=0; i<DEPTH; i++) begin: GenAgeVec
       for (genvar j=0; j<DEPTH; j++) begin
-         assign buf_age_in[i][j] = (((buf_state[i] == IDLE) & buf_state_en[i]) & 
+         assign buf_age_in[i][j] = (((buf_state[i] == IDLE) & buf_state_en[i]) &
                                            (((buf_state[j] == WAIT) | ((buf_state[j] == CMD) & ~buf_cmd_state_bus_en[j]))            |       // Set age bit for older entries
                                             (ibuf_drain_vld & lsu_busreq_dc5 & (ibuf_byp | ldst_dual_dc5) & (DEPTH_LOG2'(i) == WrPtr0_dc5) & (DEPTH_LOG2'(j) == ibuf_tag))  |       // Set case for dual lo
                                             (ibuf_byp & lsu_busreq_dc5 & ldst_dual_dc5 & (DEPTH_LOG2'(i) == WrPtr1_dc5) & (DEPTH_LOG2'(j) == WrPtr0_dc5))))      |     // ibuf bypass case
                                    buf_age[i][j];
          assign buf_age[i][j]    = buf_ageQ[i][j] & ~((buf_state[j] == CMD) & buf_cmd_state_bus_en[j]);  // Reset case
 
-         assign buf_age_younger[i][j] = (i == j) ? 1'b0: (~buf_age[i][j] & (buf_state[j] != IDLE));   // Younger entries 
+         assign buf_age_younger[i][j] = (i == j) ? 1'b0: (~buf_age[i][j] & (buf_state[j] != IDLE));   // Younger entries
          assign buf_age_temp[i][j] = buf_age[i][j] & ~(CmdPtr0 == DEPTH_LOG2'(j));   // Used to determine CmdPtr1
       end
    end
@@ -634,7 +634,7 @@ module lsu_bus_buffer
          buf_data_in[i]           = '0;
          buf_data_en[i]           = '0;
          buf_error_en[i]          = '0;
-         buf_rst[i]               = '0;         
+         buf_rst[i]               = '0;
 
          case (buf_state[i])
             IDLE: begin
@@ -671,7 +671,7 @@ module lsu_bus_buffer
                      buf_nxtstate[i]           = IDLE;
                      buf_rst[i]                = lsu_bus_clk_en_q & (buf_write[i] | ~buf_dual[i] | (buf_state[buf_dualtag[i]] == DONE));
                      buf_state_en[i]           = buf_rst[i];
-            end 
+            end
             default : begin
                      buf_nxtstate[i]          = IDLE;
                      buf_state_en[i]          = '0;
@@ -682,7 +682,7 @@ module lsu_bus_buffer
                      buf_data_in[i]           = '0;
                      buf_data_en[i]           = '0;
                      buf_error_en[i]          = '0;
-                     buf_rst[i]               = '0;         
+                     buf_rst[i]               = '0;
             end
          endcase
       end
@@ -706,13 +706,13 @@ module lsu_bus_buffer
       rvdffsc #(.WIDTH(1))              buf_errorff      (.din(1'b1),                        .dout(buf_error[i]),      .en(buf_error_en[i]),                    .clear(buf_rst[i]), .clk(lsu_bus_buf_c1_clk), .*);
 
    end
-  
+
    // buffer full logic
    always_comb begin
-      buf_numvld_any[3:0] =  ({3'b0,(lsu_pkt_dc1.valid & ~lsu_pkt_dc1.dma)} << (lsu_pkt_dc1.valid & ldst_dual_dc1)) + 
-                             ({3'b0,lsu_busreq_dc2} << ldst_dual_dc2) + 
-                             ({3'b0,lsu_busreq_dc3} << ldst_dual_dc3) + 
-                             ({3'b0,lsu_busreq_dc4} << ldst_dual_dc4) + 
+      buf_numvld_any[3:0] =  ({3'b0,(lsu_pkt_dc1.valid & ~lsu_pkt_dc1.dma)} << (lsu_pkt_dc1.valid & ldst_dual_dc1)) +
+                             ({3'b0,lsu_busreq_dc2} << ldst_dual_dc2) +
+                             ({3'b0,lsu_busreq_dc3} << ldst_dual_dc3) +
+                             ({3'b0,lsu_busreq_dc4} << ldst_dual_dc4) +
                              ({3'b0,lsu_busreq_dc5} << ldst_dual_dc5) +
                              {3'b0,ibuf_valid};
       buf_numvld_wrcmd_any[3:0] = 4'b0;
@@ -728,11 +728,11 @@ module lsu_bus_buffer
 
    assign lsu_bus_buffer_pend_any = (buf_numvld_pend_any != 0);
    assign lsu_bus_buffer_full_any = (buf_numvld_any[3:0] >= (DEPTH-1));
-   assign lsu_bus_buffer_empty_any = ~(|buf_state[DEPTH-1:0]) & ~ibuf_valid & ~obuf_valid;  
+   assign lsu_bus_buffer_empty_any = ~(|buf_state[DEPTH-1:0]) & ~ibuf_valid & ~obuf_valid;
 
    // Freeze logic
    assign FreezePtrEn  = lsu_busreq_dc3 & lsu_pkt_dc3.load & ld_freeze_dc3;
-   assign ld_freeze_en = (is_sideeffects_dc2 | dec_nonblock_load_freeze_dc2 | dec_tlu_non_blocking_disable) & lsu_busreq_dc2 & lsu_pkt_dc2.load & ~lsu_freeze_dc3 & ~flush_dc2_up & ~ld_full_hit_dc2;  
+   assign ld_freeze_en = (is_sideeffects_dc2 | dec_nonblock_load_freeze_dc2 | dec_tlu_non_blocking_disable) & lsu_busreq_dc2 & lsu_pkt_dc2.load & ~lsu_freeze_dc3 & ~flush_dc2_up & ~ld_full_hit_dc2;
    always_comb begin
       ld_freeze_rst = flush_dc3 | (dec_tlu_cancel_e4 & ld_freeze_dc3);
       for (int i=0; i<DEPTH; i++) begin
@@ -794,7 +794,7 @@ module lsu_bus_buffer
    end
 
 
-   // Imprecise bus errors 
+   // Imprecise bus errors
    assign lsu_imprecise_error_load_any       = lsu_nonblock_load_data_error;   // This is to make sure we send only one imprecise error for loads
 
 
@@ -802,7 +802,7 @@ module lsu_bus_buffer
    always_comb begin
       bus_addr_match_pending = '0;
       for (int i=0; i<DEPTH; i++) begin
-         bus_addr_match_pending |= (obuf_valid & (obuf_addr[31:3] == buf_addr[i][31:3]) & (buf_state[i] == RESP) & ~((obuf_tag0 == LSU_BUS_TAG'(i)) | (obuf_merge & (obuf_tag1 == LSU_BUS_TAG'(i))))); 
+         bus_addr_match_pending |= (obuf_valid & (obuf_addr[31:3] == buf_addr[i][31:3]) & (buf_state[i] == RESP) & ~((obuf_tag0 == LSU_BUS_TAG'(i)) | (obuf_merge & (obuf_tag1 == LSU_BUS_TAG'(i)))));
       end
    end
 
@@ -817,17 +817,17 @@ module lsu_bus_buffer
       end
    end
    assign lsu_imprecise_error_addr_any[31:0] = lsu_imprecise_error_load_any ? buf_addr[lsu_nonblock_load_data_tag] : buf_addr[lsu_imprecise_error_store_tag];
-   
+
    // Generic bus signals
    assign bus_cmd_ready                      = obuf_write ? ((obuf_cmd_done | obuf_data_done) ? (obuf_cmd_done ? lsu_axi_wready : lsu_axi_awready) : (lsu_axi_awready & lsu_axi_wready)) : lsu_axi_arready;
    assign bus_wcmd_sent                      = lsu_axi_awvalid & lsu_axi_awready;
    assign bus_wdata_sent                     = lsu_axi_wvalid & lsu_axi_wready;
    assign bus_cmd_sent                       = ((obuf_cmd_done | bus_wcmd_sent) & (obuf_data_done | bus_wdata_sent)) | (lsu_axi_arvalid & lsu_axi_arready);
-                                        
+
    assign bus_rsp_read                       = lsu_axi_rvalid_q & lsu_axi_rready_q;
-   assign bus_rsp_write                      = lsu_axi_bvalid_q & lsu_axi_bready_q; 
-   assign bus_rsp_read_tag[LSU_BUS_TAG-1:0]  = lsu_axi_rid_q[LSU_BUS_TAG-1:0];   
-   assign bus_rsp_write_tag[LSU_BUS_TAG-1:0] = lsu_axi_bid_q[LSU_BUS_TAG-1:0];   
+   assign bus_rsp_write                      = lsu_axi_bvalid_q & lsu_axi_bready_q;
+   assign bus_rsp_read_tag[LSU_BUS_TAG-1:0]  = lsu_axi_rid_q[LSU_BUS_TAG-1:0];
+   assign bus_rsp_write_tag[LSU_BUS_TAG-1:0] = lsu_axi_bid_q[LSU_BUS_TAG-1:0];
    assign bus_rsp_write_error                = bus_rsp_write & (lsu_axi_bresp_q[1:0] != 2'b0);
    assign bus_rsp_read_error                 = bus_rsp_read  & (lsu_axi_rresp_q[1:0] != 2'b0);
    assign bus_rsp_rdata[63:0]                = lsu_axi_rdata_q[63:0];
@@ -838,7 +838,7 @@ module lsu_bus_buffer
    assign lsu_axi_awaddr[31:0]          = obuf_sideeffect ? obuf_addr[31:0] : {obuf_addr[31:3],3'b0};
    assign lsu_axi_awsize[2:0]           = obuf_sideeffect ? {1'b0, obuf_sz[1:0]} : 3'b011;
    assign lsu_axi_awprot[2:0]           = '0;
-   assign lsu_axi_awcache[3:0]          = obuf_sideeffect ? 4'b0 : 4'b1111; 
+   assign lsu_axi_awcache[3:0]          = obuf_sideeffect ? 4'b0 : 4'b1111;
    assign lsu_axi_awregion[3:0]         = obuf_addr[31:28];
    assign lsu_axi_awlen[7:0]            = '0;
    assign lsu_axi_awburst[1:0]          = 2'b01;
@@ -855,13 +855,13 @@ module lsu_bus_buffer
    assign lsu_axi_araddr[31:0]          = obuf_sideeffect ? obuf_addr[31:0] : {obuf_addr[31:3],3'b0};
    assign lsu_axi_arsize[2:0]           = obuf_sideeffect ? {1'b0, obuf_sz[1:0]} : 3'b011;
    assign lsu_axi_arprot[2:0]           = '0;
-   assign lsu_axi_arcache[3:0]          = obuf_sideeffect ? 4'b0 : 4'b1111; 
+   assign lsu_axi_arcache[3:0]          = obuf_sideeffect ? 4'b0 : 4'b1111;
    assign lsu_axi_arregion[3:0]         = obuf_addr[31:28];
    assign lsu_axi_arlen[7:0]            = '0;
    assign lsu_axi_arburst[1:0]          = 2'b01;
    assign lsu_axi_arqos[3:0]            = '0;
    assign lsu_axi_arlock                = '0;
-   
+
    assign lsu_axi_bready = 1;
    assign lsu_axi_rready = 1;
 
@@ -870,7 +870,7 @@ module lsu_bus_buffer
    assign lsu_pmu_bus_misaligned = lsu_busreq_dc2 & ldst_dual_dc2;
    assign lsu_pmu_bus_error = ld_bus_error_dc3 | lsu_imprecise_error_load_any | lsu_imprecise_error_store_any;
    assign lsu_pmu_bus_busy  = (lsu_axi_awvalid_q & ~lsu_axi_awready_q) | (lsu_axi_wvalid_q & ~lsu_axi_wready_q) | (lsu_axi_arvalid_q & ~lsu_axi_arready_q);
-   
+
    rvdff #(.WIDTH(1))            lsu_axi_awvalid_ff (.din(lsu_axi_awvalid),                .dout(lsu_axi_awvalid_q),                .clk(lsu_busm_clk), .*);
    rvdff #(.WIDTH(1))            lsu_axi_awready_ff (.din(lsu_axi_awready),                .dout(lsu_axi_awready_q),                .clk(lsu_busm_clk), .*);
    rvdff #(.WIDTH(1))            lsu_axi_wvalid_ff  (.din(lsu_axi_wvalid),                 .dout(lsu_axi_wvalid_q),                 .clk(lsu_busm_clk), .*);
@@ -888,7 +888,7 @@ module lsu_bus_buffer
    rvdff  #(.WIDTH(1))           lsu_axi_rready_ff  (.din(lsu_axi_rready),                 .dout(lsu_axi_rready_q),                 .clk(lsu_busm_clk), .*);
    rvdff  #(.WIDTH(2))           lsu_axi_rresp_ff   (.din(lsu_axi_rresp[1:0]),             .dout(lsu_axi_rresp_q[1:0]),             .clk(lsu_busm_clk), .*);
    rvdff  #(.WIDTH(LSU_BUS_TAG)) lsu_axi_rid_ff     (.din(lsu_axi_rid[LSU_BUS_TAG-1:0]),   .dout(lsu_axi_rid_q[LSU_BUS_TAG-1:0]),   .clk(lsu_busm_clk), .*);
-   
+
    // General flops
    rvdffsc #(.WIDTH(1))          ld_freezeff            (.din(1'b1),                    .dout(ld_freeze_dc3),       .en(ld_freeze_en), .clear(ld_freeze_rst), .clk(lsu_free_c2_clk), .*);
    rvdffs  #(.WIDTH(DEPTH_LOG2)) lsu_FreezePtrff        (.din(WrPtr0_dc3),              .dout(FreezePtr),           .en(FreezePtrEn),                         .clk(lsu_free_c2_clk), .*);
@@ -914,10 +914,10 @@ module lsu_bus_buffer
       assert_ld_byte_hitvecfn_lo_onehot: assert #0 ($onehot0(ld_byte_hitvecfn_lo[i][DEPTH-1:0]));
       assert_ld_byte_hitvecfn_hi_onehot: assert #0 ($onehot0(ld_byte_hitvecfn_hi[i][DEPTH-1:0]));
    end
-   
+
    assert_CmdPtr0Dec_onehot: assert #0 ($onehot0(CmdPtr0Dec[DEPTH-1:0]));
    assert_CmdPtr1Dec_onehot: assert #0 ($onehot0(CmdPtr1Dec[DEPTH-1:0]));
 
 `endif
-   
+
 endmodule // lsu_bus_buffer

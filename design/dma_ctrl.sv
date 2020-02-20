@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2019 Western Digital Corporation or its affiliates.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,7 @@
 // $Id$
 //
 // Function: Top level SWERV core file
-// Comments: 
+// Comments:
 //
 //********************************************************************************
 
@@ -28,7 +28,7 @@ module dma_ctrl (
    input logic         dma_bus_clk_en, // slave bus clock enable
    input logic         clk_override,
 
-   // AXI signals               
+   // AXI signals
    // AXI Write Channels
    input  logic                         dma_axi_awvalid,
    output logic                         dma_axi_awready,
@@ -39,12 +39,12 @@ module dma_ctrl (
    input  logic [7:0]                   dma_axi_awlen,
    input  logic [1:0]                   dma_axi_awburst,
 
-   input  logic                         dma_axi_wvalid,                                       
+   input  logic                         dma_axi_wvalid,
    output logic                         dma_axi_wready,
    input  logic [63:0]                  dma_axi_wdata,
    input  logic [7:0]                   dma_axi_wstrb,
    input  logic                         dma_axi_wlast,
-                                        
+
    output logic                         dma_axi_bvalid,
    input  logic                         dma_axi_bready,
    output logic [1:0]                   dma_axi_bresp,
@@ -54,7 +54,7 @@ module dma_ctrl (
    input  logic                         dma_axi_arvalid,
    output logic                         dma_axi_arready,
    input  logic [`RV_DMA_BUS_TAG-1:0]   dma_axi_arid,
-   input  logic [31:0]                  dma_axi_araddr,                                     
+   input  logic [31:0]                  dma_axi_araddr,
    input  logic [2:0]                   dma_axi_arsize,
    input  logic [2:0]                   dma_axi_arprot,
    input  logic [7:0]                   dma_axi_arlen,
@@ -67,13 +67,13 @@ module dma_ctrl (
    output logic [1:0]                   dma_axi_rresp,
    output logic                         dma_axi_rlast,
 
-   output logic                        dma_slv_algn_err,                 
+   output logic                        dma_slv_algn_err,
    // Debug signals
    input logic [31:0]  dbg_cmd_addr,
    input logic [31:0]  dbg_cmd_wrdata,
-   input logic         dbg_cmd_valid, 
+   input logic         dbg_cmd_valid,
    input logic         dbg_cmd_write, // 1: write command, 0: read_command
-   input logic [1:0]   dbg_cmd_type, // 0:gpr 1:csr 2: memory 
+   input logic [1:0]   dbg_cmd_type, // 0:gpr 1:csr 2: memory
    input logic [1:0]   dbg_cmd_size, // size of the abstract mem access debug command
 
    input  logic        dbg_dma_bubble,   // Debug needs a bubble to send a valid
@@ -82,7 +82,7 @@ module dma_ctrl (
    output logic        dma_dbg_cmd_done,
    output logic        dma_dbg_cmd_fail,
    output logic [31:0] dma_dbg_rddata,
-                 
+
    // Core side signals
    output logic        dma_dccm_req, // DMA dccm request (only one of dccm/iccm will be set)
    output logic        dma_iccm_req, // DMA iccm request
@@ -104,16 +104,16 @@ module dma_ctrl (
    input logic         iccm_ready, // iccm ready to accept DMA request
    input logic         dec_tlu_stall_dma, // stall dma accesses, tlu is attempting to enter halt/debug mode
    input logic [2:0]   dec_tlu_dma_qos_prty,    // DMA QoS priority coming from MFDC [18:15]
-                 
-   input logic         scan_mode                 
+
+   input logic         scan_mode
 );
 
 `include "global.h"
-   
+
    localparam DEPTH = DMA_BUF_DEPTH;
    localparam DEPTH_PTR = $clog2(DEPTH);
    localparam NACK_COUNT = 7;
-   
+
    logic [DEPTH-1:0]        fifo_valid;
    logic [DEPTH-1:0][1:0]   fifo_error;
    logic [DEPTH-1:0]        fifo_dccm_valid;
@@ -132,7 +132,7 @@ module dma_ctrl (
    logic [DEPTH-1:0]        fifo_dbg;
    logic [DEPTH-1:0][63:0]  fifo_data;
    logic [DEPTH-1:0][DMA_BUS_TAG-1:0]  fifo_tag;
-   
+
    logic [DEPTH-1:0]        fifo_cmd_en;
    logic [DEPTH-1:0]        fifo_valid_en;
    logic [DEPTH-1:0]        fifo_data_en;
@@ -152,7 +152,7 @@ module dma_ctrl (
    logic                    fifo_dbg_in;
    logic [31:0]             fifo_addr_in;
    logic [2:0]              fifo_sz_in;
-   
+
    logic [DEPTH_PTR-1:0]    RspPtr, PrevRspPtr, NxtRspPtr;
    logic [DEPTH_PTR-1:0]    WrPtr, NxtWrPtr;
    logic [DEPTH_PTR-1:0]    RdPtr, NxtRdPtr;
@@ -164,7 +164,7 @@ module dma_ctrl (
 
    logic                    fifo_full, fifo_full_spec, fifo_empty;
    logic                    dma_address_error, dma_alignment_error;
-   logic [3:0]              num_fifo_vld;   
+   logic [3:0]              num_fifo_vld;
    logic                    dma_mem_req;
    logic                    dma_addr_in_dccm;
    logic                    dma_addr_in_iccm;
@@ -172,7 +172,7 @@ module dma_ctrl (
    logic                    dma_addr_in_pic_region_nc;
    logic                    dma_addr_in_dccm_region_nc;
    logic                    dma_addr_in_iccm_region_nc;
-   
+
    logic [2:0]              dma_nack_count_csr;
    logic [2:0]              dma_nack_count, dma_nack_count_d;
 
@@ -181,7 +181,7 @@ module dma_ctrl (
    logic                    dma_buffer_c1_clk;
    logic                    dma_free_clk;
    logic                    dma_bus_clk;
-   
+
 
    logic                    wrbuf_en, wrbuf_data_en;
    logic                    wrbuf_cmd_sent, wrbuf_rst, wrbuf_data_rst;
@@ -193,7 +193,7 @@ module dma_ctrl (
    logic [31:0]             wrbuf_addr;
    logic [63:0]             wrbuf_data;
    logic [7:0]              wrbuf_byteen;
-   
+
    logic                    rdbuf_en;
    logic                    rdbuf_cmd_sent, rdbuf_rst;
    logic                    rdbuf_vld;
@@ -210,7 +210,7 @@ module dma_ctrl (
    logic [2:0]              axi_mstr_size;
    logic [63:0]             axi_mstr_wdata;
    logic [7:0]              axi_mstr_wstrb;
- 
+
    logic                    axi_mstr_prty_in, axi_mstr_prty_en;
    logic                    axi_mstr_priority;
    logic                    axi_mstr_sel;
@@ -222,7 +222,7 @@ module dma_ctrl (
    logic [DMA_BUS_TAG-1:0]  axi_slv_tag;
    logic [1:0]              axi_slv_error;
    logic [63:0]             axi_slv_rdata;
-   
+
    logic                    dma_bus_clk_en_q;
    logic                    fifo_full_spec_bus;
    logic                    dbg_dma_bubble_bus;
@@ -238,14 +238,14 @@ module dma_ctrl (
    assign fifo_posted_write_in  = axi_mstr_valid & axi_mstr_posted_write;
    assign fifo_dbg_in           = dbg_cmd_valid;
    //assign fifo_error_in[1:0]    = dccm_dma_rvalid ? {1'b0,dccm_dma_ecc_error} : iccm_dma_rvalid ? {1'b0,iccm_dma_ecc_error} : {(dma_address_error | dma_alignment_error | dma_dbg_cmd_error_in), dma_alignment_error};
-   //assign fifo_data_in[63:0]    = dccm_dma_rvalid ? dccm_dma_rdata[63:0] : (iccm_dma_rvalid ? iccm_dma_rdata[63:0] : 
+   //assign fifo_data_in[63:0]    = dccm_dma_rvalid ? dccm_dma_rdata[63:0] : (iccm_dma_rvalid ? iccm_dma_rdata[63:0] :
    //                                                                                     (dbg_cmd_valid ? {2{dbg_cmd_wrdata[31:0]}} : axi_mstr_wdata[63:0]));
 
    for (genvar i=0 ;i<DEPTH; i++) begin: GenFifo
       assign fifo_valid_en[i] = axi_mstr_valid & (i == WrPtr[DEPTH_PTR-1:0]);
-      assign fifo_cmd_en[i]   = ((axi_mstr_valid & dma_bus_clk_en) | (dbg_cmd_valid & dbg_cmd_type[1])) & 
+      assign fifo_cmd_en[i]   = ((axi_mstr_valid & dma_bus_clk_en) | (dbg_cmd_valid & dbg_cmd_type[1])) &
                                 (i == WrPtr[DEPTH_PTR-1:0]);
-      assign fifo_data_en[i] = (((axi_mstr_valid & (axi_mstr_write | dma_address_error | dma_alignment_error) & dma_bus_clk_en) | 
+      assign fifo_data_en[i] = (((axi_mstr_valid & (axi_mstr_write | dma_address_error | dma_alignment_error) & dma_bus_clk_en) |
                                  (dbg_cmd_valid & dbg_cmd_type[1] & dbg_cmd_write))  & (i == WrPtr[DEPTH_PTR-1:0])) |
                                ((dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0]))| (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])));
       assign fifo_data_bus_en[i] = (fifo_data_en[i] | fifo_data_valid[i]) & dma_bus_clk_en;
@@ -256,14 +256,14 @@ module dma_ctrl (
                                ((dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0])) | (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])));
       assign fifo_done_bus_en[i] = (fifo_done_en[i] | fifo_done[i]) & dma_bus_clk_en;
       //assign fifo_rsp_done_en[i] = fifo_valid[i] & ((axi_slv_sent & dma_bus_clk_en) | dma_dbg_cmd_done) & (i == RspPtr[DEPTH_PTR-1:0]);
-      //assign fifo_reset[i]   = (fifo_done[i] | fifo_done_en[i]) & (fifo_rsp_done[i] | fifo_rsp_done_en[i]);  
-      assign fifo_reset[i]   = ((axi_slv_sent & dma_bus_clk_en) | dma_dbg_cmd_done) & (i == RspPtr[DEPTH_PTR-1:0]);  
+      //assign fifo_reset[i]   = (fifo_done[i] | fifo_done_en[i]) & (fifo_rsp_done[i] | fifo_rsp_done_en[i]);
+      assign fifo_reset[i]   = ((axi_slv_sent & dma_bus_clk_en) | dma_dbg_cmd_done) & (i == RspPtr[DEPTH_PTR-1:0]);
       assign fifo_error_in[i]  = (dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0])) ? {1'b0,dccm_dma_ecc_error} : (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])) ? {1'b0,iccm_dma_ecc_error}  :
                                                                                                                                                 {(dma_address_error | dma_alignment_error | dma_dbg_cmd_error_in), dma_alignment_error};
-      assign fifo_data_in[i]   = (fifo_error_en[i] & (|fifo_error_in[i])) ? (fifo_cmd_en[i] ? {32'b0,axi_mstr_addr[31:0]} : {32'b0,fifo_addr[i]}) : 
-                                                                            ((dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0]))  ? dccm_dma_rdata[63:0] : (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])) ? iccm_dma_rdata[63:0] : 
+      assign fifo_data_in[i]   = (fifo_error_en[i] & (|fifo_error_in[i])) ? (fifo_cmd_en[i] ? {32'b0,axi_mstr_addr[31:0]} : {32'b0,fifo_addr[i]}) :
+                                                                            ((dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0]))  ? dccm_dma_rdata[63:0] : (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])) ? iccm_dma_rdata[63:0] :
                                                                                                                                                        (dbg_cmd_valid ? {2{dbg_cmd_wrdata[31:0]}} : axi_mstr_wdata[63:0]));
-  
+
       rvdffsc #(1) fifo_valid_dff (.din(1'b1), .dout(fifo_valid[i]), .en(fifo_cmd_en[i]), .clear(fifo_reset[i]), .clk(dma_free_clk), .*);
       rvdffsc #(2) fifo_error_dff (.din(fifo_error_in[i]), .dout(fifo_error[i]), .en(fifo_error_en[i]), .clear(fifo_reset[i]), .clk(dma_free_clk), .*);
       rvdffsc #(1) fifo_error_bus_dff (.din(1'b1), .dout(fifo_error_bus[i]), .en(fifo_error_bus_en[i]), .clear(fifo_reset[i]), .clk(dma_free_clk), .*);
@@ -288,18 +288,18 @@ module dma_ctrl (
    assign NxtWrPtr[DEPTH_PTR-1:0] = WrPtr[DEPTH_PTR-1:0] + 1'b1;
    assign NxtRdPtr[DEPTH_PTR-1:0] = RdPtr[DEPTH_PTR-1:0] + 1'b1;
    assign NxtRspPtr[DEPTH_PTR-1:0] = RspPtr[DEPTH_PTR-1:0] + 1'b1;
-   
+
    // Don't increment the ptr for posted writes if 1)fifo error (it will increment only with response) 2) response done (this is the full case)
    //assign RspPtr[DEPTH_PTR-1:0]   = (dma_dbg_cmd_done_q | axi_slv_sent_q) ? (PrevRspPtr[DEPTH_PTR-1:0] + 1'b1) : PrevRspPtr[DEPTH_PTR-1:0];
-   //assign RspPtr[DEPTH_PTR-1:0]   = (dma_dbg_cmd_done_q | axi_slv_sent_q | 
+   //assign RspPtr[DEPTH_PTR-1:0]   = (dma_dbg_cmd_done_q | axi_slv_sent_q |
    //                                  (fifo_valid[PrevRspPtr] & fifo_write[PrevRspPtr] & fifo_posted_write[PrevRspPtr] & ~(|fifo_error[PrevRspPtr]) & ~fifo_rsp_done[PrevRspPtr])) ? (PrevRspPtr[DEPTH_PTR-1:0] + 1'b1) : PrevRspPtr[DEPTH_PTR-1:0];
-   
+
    assign WrPtrEn = |fifo_cmd_en[DEPTH-1:0];
    assign RdPtrEn = (dma_dccm_req | dma_iccm_req) | ((|fifo_error[RdPtr]) & ~fifo_done[RdPtr]);
    //assign RdPtrEn = |(fifo_done_en[DEPTH-1:0] & ~fifo_done[DEPTH-1:0]);
    assign RspPtrEn = (dma_dbg_cmd_done | (axi_slv_sent & dma_bus_clk_en));
    //assign RspPtrEn = dma_bus_clk_en | dma_dbg_cmd_done_q;
-   
+
    rvdffs #(DEPTH_PTR) WrPtr_dff(.din(NxtWrPtr[DEPTH_PTR-1:0]), .dout(WrPtr[DEPTH_PTR-1:0]), .en(WrPtrEn), .clk(dma_free_clk), .*);
    rvdffs #(DEPTH_PTR) RdPtr_dff(.din(NxtRdPtr[DEPTH_PTR-1:0]), .dout(RdPtr[DEPTH_PTR-1:0]), .en(RdPtrEn), .clk(dma_free_clk), .*);
    rvdffs #(DEPTH_PTR) RspPtr_dff(.din(NxtRspPtr[DEPTH_PTR-1:0]), .dout(RspPtr[DEPTH_PTR-1:0]), .en(RspPtrEn), .clk(dma_free_clk), .*);
@@ -311,7 +311,7 @@ module dma_ctrl (
 
    // Miscellaneous signals
    assign fifo_full = fifo_full_spec_bus;
- 
+
    always_comb begin
       num_fifo_vld[3:0] = 4'b0;
       for (int i=0; i<DEPTH; i++) begin
@@ -319,12 +319,12 @@ module dma_ctrl (
       end
    end
    assign fifo_full_spec = ((num_fifo_vld[3:0] == DEPTH) & ~(|fifo_reset[DEPTH-1:0]));
-   
+
    assign dma_fifo_ready = ~(fifo_full | dbg_dma_bubble_bus | dec_tlu_stall_dma_bus);
 
    // Error logic
    assign dma_address_error = axi_mstr_valid & (~(dma_addr_in_dccm | dma_addr_in_iccm));    // request not for ICCM or DCCM
-   assign dma_alignment_error = axi_mstr_valid & ~dma_address_error & 
+   assign dma_alignment_error = axi_mstr_valid & ~dma_address_error &
                                 (((axi_mstr_size[2:0] == 3'h1) & (axi_mstr_addr[0]      | (axi_mstr_write & (axi_mstr_wstrb[axi_mstr_addr[2:0]+:2] != 2'b11))))  |    // HW size but unaligned
                                  ((axi_mstr_size[2:0] == 3'h2) & ((|axi_mstr_addr[1:0]) | (axi_mstr_write & (axi_mstr_wstrb[axi_mstr_addr[2:0]+:4] != 4'hf))))   |    // W size but unaligned
                                  ((axi_mstr_size[2:0] == 3'h3) & ((|axi_mstr_addr[2:0]) | (axi_mstr_write & (axi_mstr_wstrb[7:0] != 8'hff))))                    |    // DW size but unaligned
@@ -337,23 +337,23 @@ module dma_ctrl (
    assign dma_dbg_rddata[31:0] = fifo_addr[RspPtr][2] ? fifo_data[RspPtr][63:32] : fifo_data[RspPtr][31:0];
    assign dma_dbg_cmd_fail     = |fifo_error[RspPtr];
 
-   assign dma_dbg_cmd_error_in = dbg_cmd_valid & (dbg_cmd_type[1:0] == 2'b10) & 
-                                 ((~(dma_addr_in_dccm | dma_addr_in_iccm | dma_addr_in_pic)) | (dbg_cmd_size[1:0] != 2'b10));  // Only word accesses allowed 
+   assign dma_dbg_cmd_error_in = dbg_cmd_valid & (dbg_cmd_type[1:0] == 2'b10) &
+                                 ((~(dma_addr_in_dccm | dma_addr_in_iccm | dma_addr_in_pic)) | (dbg_cmd_size[1:0] != 2'b10));  // Only word accesses allowed
                                   //(dma_addr_in_iccm & ~((dbg_cmd_size[1:0] == 2'b10) | (dbg_cmd_size[1:0] == 2'b11))));
 
-   
+
    // Block the decode if fifo full
    assign dma_dccm_stall_any = dma_mem_req & fifo_dccm_valid[RdPtr] & (dma_nack_count >= dma_nack_count_csr);
    assign dma_iccm_stall_any = dma_mem_req & fifo_iccm_valid[RdPtr] & (dma_nack_count >= dma_nack_count_csr);
 
    // Used to indicate ready to debug
    assign fifo_empty     = ~(|(fifo_valid_en[DEPTH-1:0] | fifo_valid[DEPTH-1:0]) | axi_mstr_valid | axi_slv_sent_q);  // We want RspPtr to settle before accepting debug command
-   
+
    // Nack counter, stall the lsu pipe if 7 nacks
    assign dma_nack_count_csr[2:0] = dec_tlu_dma_qos_prty[2:0];
-   assign dma_nack_count_d[2:0] = (dma_nack_count[2:0] >= dma_nack_count_csr[2:0]) ? ({3{~(dma_dccm_req | dma_iccm_req)}} & dma_nack_count[2:0]) :  
+   assign dma_nack_count_d[2:0] = (dma_nack_count[2:0] >= dma_nack_count_csr[2:0]) ? ({3{~(dma_dccm_req | dma_iccm_req)}} & dma_nack_count[2:0]) :
                                                                                     (dma_mem_req & ~(dma_dccm_req | dma_iccm_req)) ? (dma_nack_count[2:0] + 1'b1) : 3'b0;
-   
+
    rvdffs #(3) nack_count_dff(.din(dma_nack_count_d[2:0]), .dout(dma_nack_count[2:0]), .en(dma_mem_req), .clk(dma_free_clk), .*);
 
    // Core outputs
@@ -372,7 +372,7 @@ module dma_ctrl (
       .in_range(dma_addr_in_dccm),
       .in_region(dma_addr_in_dccm_region_nc)
    );
-   
+
    // Address check  iccm
 `ifdef RV_ICCM_ENABLE
    rvrangecheck #(.CCM_SADR(`RV_ICCM_SADR),
@@ -385,7 +385,7 @@ module dma_ctrl (
    assign dma_addr_in_iccm = '0;
    assign dma_addr_in_iccm_region_nc = '0;
 `endif
-  
+
    // PIC memory address check
    rvrangecheck #(.CCM_SADR(`RV_PIC_BASE_ADDR),
                   .CCM_SIZE(`RV_PIC_SIZE)) addr_pic_rangecheck (
@@ -408,14 +408,14 @@ module dma_ctrl (
    rvoclkhdr dma_buffer_c1cgc ( .en(dma_buffer_c1_clken), .l1clk(dma_buffer_c1_clk), .* );
    rvoclkhdr dma_free_cgc (.en(dma_free_clken), .l1clk(dma_free_clk), .*);
    rvclkhdr dma_bus_cgc (.en(dma_bus_clk_en), .l1clk(dma_bus_clk), .*);
-   
+
    // Write channel buffer
    assign wrbuf_en       = dma_axi_awvalid & dma_axi_awready;
    assign wrbuf_data_en  = dma_axi_wvalid & dma_axi_wready;
    assign wrbuf_cmd_sent = axi_mstr_valid & axi_mstr_write;
    assign wrbuf_rst      = wrbuf_cmd_sent & ~wrbuf_en;
    assign wrbuf_data_rst = wrbuf_cmd_sent & ~wrbuf_data_en;
-   
+
    rvdffsc  #(.WIDTH(1))  wrbuf_vldff(.din(1'b1), .dout(wrbuf_vld), .en(wrbuf_en), .clear(wrbuf_rst), .clk(dma_bus_clk), .*);
    rvdffsc  #(.WIDTH(1))  wrbuf_data_vldff(.din(1'b1), .dout(wrbuf_data_vld), .en(wrbuf_data_en), .clear(wrbuf_data_rst), .clk(dma_bus_clk), .*);
    rvdffs   #(.WIDTH(1)) wrbuf_postedff(.din(1'b0), .dout(wrbuf_posted), .en(wrbuf_en), .clk(dma_bus_clk), .*);
@@ -428,16 +428,16 @@ module dma_ctrl (
    assign rdbuf_en    = dma_axi_arvalid & dma_axi_arready;
    assign rdbuf_cmd_sent = axi_mstr_valid & ~axi_mstr_write & dma_fifo_ready;
    assign rdbuf_rst   = rdbuf_cmd_sent & ~rdbuf_en;
-   
+
    rvdffsc  #(.WIDTH(1))  rdbuf_vldff(.din(1'b1), .dout(rdbuf_vld), .en(rdbuf_en), .clear(rdbuf_rst), .clk(dma_bus_clk), .*);
    rvdffs   #(.WIDTH(DMA_BUS_TAG)) rdbuf_tagff(.din(dma_axi_arid[DMA_BUS_TAG-1:0]), .dout(rdbuf_tag[DMA_BUS_TAG-1:0]), .en(rdbuf_en), .clk(dma_bus_clk), .*);
    rvdffs   #(.WIDTH(3)) rdbuf_sizeff(.din(dma_axi_arsize[2:0]), .dout(rdbuf_size[2:0]), .en(rdbuf_en), .clk(dma_bus_clk), .*);
    rvdffe   #(.WIDTH(32)) rdbuf_addrff(.din(dma_axi_araddr[31:0]), .dout(rdbuf_addr[31:0]), .en(rdbuf_en & dma_bus_clk_en), .*);
-   
+
    assign dma_axi_awready = ~(wrbuf_vld & ~wrbuf_cmd_sent);
    assign dma_axi_wready  = ~(wrbuf_data_vld & ~wrbuf_cmd_sent);
-   assign dma_axi_arready = ~(rdbuf_vld & ~rdbuf_cmd_sent);   
-   
+   assign dma_axi_arready = ~(rdbuf_vld & ~rdbuf_cmd_sent);
+
    //Generate a single request from read/write channel
    assign axi_mstr_valid                  = ((wrbuf_vld & wrbuf_data_vld) | rdbuf_vld) & dma_fifo_ready;
    assign axi_mstr_tag[DMA_BUS_TAG-1:0]   = axi_mstr_sel ? wrbuf_tag[DMA_BUS_TAG-1:0] : rdbuf_tag[DMA_BUS_TAG-1:0];
@@ -446,7 +446,7 @@ module dma_ctrl (
    assign axi_mstr_addr[31:0]             = axi_mstr_sel ? wrbuf_addr[31:0] : rdbuf_addr[31:0];
    assign axi_mstr_size[2:0]              = axi_mstr_sel ? wrbuf_size[2:0] : rdbuf_size[2:0];
    assign axi_mstr_wdata[63:0]            = wrbuf_data[63:0];
-   assign axi_mstr_wstrb[7:0]             = wrbuf_byteen[7:0]; 
+   assign axi_mstr_wstrb[7:0]             = wrbuf_byteen[7:0];
 
    // Sel=1 -> write has higher priority
    assign axi_mstr_sel     = (wrbuf_vld & wrbuf_data_vld & rdbuf_vld) ? axi_mstr_priority : (wrbuf_vld & wrbuf_data_vld);
@@ -457,33 +457,33 @@ module dma_ctrl (
    rvdff #(.WIDTH(1)) axi_mstr_validff (.din(axi_mstr_valid), .dout(axi_mstr_valid_q), .clk(dma_bus_clk), .*);
    rvdff #(.WIDTH(1)) axi_slv_sentff (.din(axi_slv_sent), .dout(axi_slv_sent_q), .clk(dma_bus_clk), .*);
 
-   //assign axi_slv_valid                  = fifo_valid[RspPtr] & ~fifo_rsp_done[RspPtr] & ~fifo_dbg[RspPtr] & 
+   //assign axi_slv_valid                  = fifo_valid[RspPtr] & ~fifo_rsp_done[RspPtr] & ~fifo_dbg[RspPtr] &
    //                                        ((fifo_write[RspPtr] & fifo_done_bus[RspPtr]) | (~fifo_write[RspPtr] & fifo_data_bus_valid[RspPtr]) | fifo_error_bus[RspPtr]);
    assign axi_slv_valid                  = fifo_valid[RspPtr] & ~fifo_dbg[RspPtr] & fifo_done_bus[RspPtr];
-   assign axi_slv_tag[DMA_BUS_TAG-1:0]   = fifo_tag[RspPtr]; 
+   assign axi_slv_tag[DMA_BUS_TAG-1:0]   = fifo_tag[RspPtr];
    //assign axi_slv_rdata[63:0]            = (|fifo_error[RspPtr]) ? {32'b0,fifo_addr[RspPtr]} : fifo_data[RspPtr];
    assign axi_slv_rdata[63:0]            = fifo_data[RspPtr];
    assign axi_slv_write                  = fifo_write[RspPtr];
    assign axi_slv_posted_write           = axi_slv_write & fifo_posted_write[RspPtr];
    assign axi_slv_error[1:0]             = fifo_error[RspPtr][0] ? 2'b10 : (fifo_error[RspPtr][1] ? 2'b11 : 2'b0);
-   
-   
+
+
    // AXI response channel signals
    assign dma_axi_bvalid                  = axi_slv_valid & axi_slv_write;
    assign dma_axi_bresp[1:0]              = axi_slv_error[1:0];
    assign dma_axi_bid[DMA_BUS_TAG-1:0]    = axi_slv_tag[DMA_BUS_TAG-1:0];
- 
+
    assign dma_axi_rvalid                  = axi_slv_valid & ~axi_slv_write;
-   assign dma_axi_rresp[1:0]              = axi_slv_error; 
+   assign dma_axi_rresp[1:0]              = axi_slv_error;
    assign dma_axi_rid[DMA_BUS_TAG-1:0]    = axi_slv_tag[DMA_BUS_TAG-1:0];
    assign dma_axi_rdata[63:0]             = axi_slv_rdata[63:0];
    assign dma_axi_rlast                   = 1'b1;
-   
+
    assign axi_slv_sent       = (dma_axi_bvalid & dma_axi_bready) | (dma_axi_rvalid & dma_axi_rready);
    assign dma_slv_algn_err   = fifo_error[RspPtr][1];
 `ifdef ASSERT_ON
 
-   //assert_nack_count:   assert #0 (dma_nack_count[2:0] < 3'h4);  
+   //assert_nack_count:   assert #0 (dma_nack_count[2:0] < 3'h4);
 
    for (genvar i=0; i<DEPTH; i++) begin
       //assert_picm_rspdone_and_novalid: assert #0 (~fifo_rsp_done[i] | fifo_valid[i]);
@@ -497,9 +497,9 @@ module dma_ctrl (
                                                   ((dma_axi_awsize[2:0] == 3'h2) & (dma_axi_awaddr[1:0] == 2'b0)) |
                                                   ((dma_axi_awsize[2:0] == 3'h3) & (dma_axi_awaddr[2:0] == 3'b0)));
    endproperty
-  // assert_dma_write_trxn_aligned: assert property (dma_axi_write_trxn_aligned) else 
+  // assert_dma_write_trxn_aligned: assert property (dma_axi_write_trxn_aligned) else
   //   $display("Assertion dma_axi_write_trxn_aligned failed: dma_axi_awvalid=1'b%b, dma_axi_awsize=3'h%h, dma_axi_awaddr=32'h%h",dma_axi_awvalid, dma_axi_awsize[2:0], dma_axi_awaddr[31:0]);
-   
+
    // Assertion to check AXI read address is aligned to size
    property dma_axi_read_trxn_aligned;
      @(posedge dma_bus_clk) dma_axi_arvalid  |-> ((dma_axi_arsize[2:0] == 3'h0)                                  |
@@ -507,37 +507,37 @@ module dma_ctrl (
                                                   ((dma_axi_arsize[2:0] == 3'h2) & (dma_axi_araddr[1:0] == 2'b0)) |
                                                   ((dma_axi_arsize[2:0] == 3'h3) & (dma_axi_araddr[2:0] == 3'b0)));
    endproperty
-  // assert_dma_read_trxn_aligned: assert property (dma_axi_read_trxn_aligned) else 
+  // assert_dma_read_trxn_aligned: assert property (dma_axi_read_trxn_aligned) else
   //   $display("Assertion dma_axi_read_trxn_aligned failed: dma_axi_arvalid=1'b%b, dma_axi_arsize=3'h%h, dma_axi_araddr=32'h%h",dma_axi_arvalid, dma_axi_arsize[2:0], dma_axi_araddr[31:0]);
-   
+
    // Assertion to check write size is 8 byte or less
    property dma_axi_awsize_check;
      @(posedge dma_bus_clk) disable iff(~rst_l) (dma_axi_awvalid & dma_axi_awready) |-> (dma_axi_awsize[2] == 1'b0);
    endproperty
    assert_dma_axi_awsize_check: assert property (dma_axi_awsize_check) else
       $display("DMA AXI awsize is illegal. Size greater than 8B not supported");
-   
+
    // Assertion to check there are no burst commands
    property dma_axi_awlen_check;
      @(posedge dma_bus_clk) disable iff(~rst_l) (dma_axi_awvalid & dma_axi_awready) |-> (dma_axi_awlen[7:0] == 8'b0);
    endproperty
    assert_dma_axi_awlen_check: assert property (dma_axi_awlen_check) else
       $display("DMA AXI awlen is illegal. Length greater than 0 not supported");
-   
+
    // Assertion to check write size is 8 byte or less
    property dma_axi_arsize_check;
      @(posedge dma_bus_clk) disable iff(~rst_l) (dma_axi_arvalid & dma_axi_arready) |-> (dma_axi_arsize[2] == 1'b0);
    endproperty
    assert_dma_axi_arsize_check: assert property (dma_axi_arsize_check) else
       $display("DMA AXI arsize is illegal, Size bigger than 8B not supported");
-   
+
    // Assertion to check there are no burst commands
    property dma_axi_arlen_check;
      @(posedge dma_bus_clk) disable iff(~rst_l) (dma_axi_arvalid & dma_axi_arready) |-> (dma_axi_arlen[7:0] == 8'b0);
    endproperty
    assert_dma_axi_arlen_check: assert property (dma_axi_arlen_check) else
       $display("DMA AXI arlen greater than 0 not supported.");
-   
+
    // Assertion to check cmd valid stays stable during entire bus clock
    property dma_axi_awvalid_stable;
       @(posedge clk) disable iff(~rst_l) (dma_axi_awvalid != $past(dma_axi_awvalid)) |-> $past(dma_bus_clk_en);
@@ -692,6 +692,6 @@ module dma_ctrl (
    assert_dma_axi_rid_stable: assert property (dma_axi_rid_stable) else
       $display("DMA AXI bid changed in middle of bus clock");
 
-`endif   
-   
+`endif
+
 endmodule // dma_ctrl

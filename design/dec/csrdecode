@@ -67,7 +67,7 @@ csr_perfvg =        [001100100111]
 csr_perfvh =        [001100101...]
 csr_perfvi =        [00110011....]
 
-.input 
+.input
 
 csr = {
         dec_csr_rdaddr_d[11]
@@ -87,23 +87,23 @@ csr = {
 .output
 
 csr = {
-     csr_misa   
-     csr_mvendorid      
-     csr_marchid        
-     csr_mimpid         
-     csr_mhartid        
-     csr_mstatus        
-     csr_mtvec  
-     csr_mip    
-     csr_mie    
-     csr_mcyclel        
-     csr_mcycleh        
-     csr_minstretl      
-     csr_minstreth      
-     csr_mscratch       
-     csr_mepc   
-     csr_mcause         
-     csr_mtval      
+     csr_misa
+     csr_mvendorid
+     csr_marchid
+     csr_mimpid
+     csr_mhartid
+     csr_mstatus
+     csr_mtvec
+     csr_mip
+     csr_mie
+     csr_mcyclel
+     csr_mcycleh
+     csr_minstretl
+     csr_minstreth
+     csr_mscratch
+     csr_mepc
+     csr_mcause
+     csr_mtval
      csr_mrac
      csr_dmst
      csr_mdeau
@@ -120,8 +120,8 @@ csr = {
      csr_mcpc
      csr_mfdc
      csr_dpc
-     csr_mtsel	
-     csr_mtdata1	
+     csr_mtsel
+     csr_mtdata1
      csr_mtdata2
      csr_mhpmc3
      csr_mhpmc4
@@ -211,19 +211,19 @@ csr[ csr_mhpme6    ] = {  csr_mhpme6    }
 csr[ csr_micect    ] = {  csr_micect    }
 csr[ csr_miccmect  ] = {  csr_miccmect  }
 csr[ csr_mdccmect  ] = {  csr_mdccmect  }
-csr[ csr_dicawics  ] = {  csr_dicawics  }  
-csr[ csr_dicad0    ] = {  csr_dicad0    }  
-csr[ csr_dicad1    ] = {  csr_dicad1    }  
-csr[ csr_dicago    ] = {  csr_dicago    }  
+csr[ csr_dicawics  ] = {  csr_dicawics  }
+csr[ csr_dicad0    ] = {  csr_dicad0    }
+csr[ csr_dicad1    ] = {  csr_dicad1    }
+csr[ csr_dicago    ] = {  csr_dicago    }
 
 csr[ csr_perfva    ] = { valid_only }
-csr[ csr_perfvb	   ] = { valid_only }
-csr[ csr_perfvc	   ] = { valid_only }
-csr[ csr_perfvd	   ] = { valid_only }
-csr[ csr_perfve	   ] = { valid_only }
-csr[ csr_perfvf	   ] = { valid_only }
-csr[ csr_perfvg	   ] = { valid_only }
-csr[ csr_perfvh	   ] = { valid_only }
+csr[ csr_perfvb    ] = { valid_only }
+csr[ csr_perfvc    ] = { valid_only }
+csr[ csr_perfvd    ] = { valid_only }
+csr[ csr_perfve    ] = { valid_only }
+csr[ csr_perfvf    ] = { valid_only }
+csr[ csr_perfvg    ] = { valid_only }
+csr[ csr_perfvh    ] = { valid_only }
 csr[ csr_perfvi    ] = { valid_only }
 
 .end

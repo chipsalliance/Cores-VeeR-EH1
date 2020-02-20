@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2019 Western Digital Corporation or its affiliates.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,8 @@
 //********************************************************************************
 // $Id$
 //
-// Owner: 
-// Function: AXI4 -> AHB Bridge 
+// Owner:
+// Function: AXI4 -> AHB Bridge
 // Comments:
 //
 //********************************************************************************
@@ -25,11 +25,11 @@ module axi4_to_ahb #(parameter TAG  = 1) (
 
    input                   clk,
    input                   rst_l,
-   input                   scan_mode, 
-   input                   bus_clk_en,                              
+   input                   scan_mode,
+   input                   bus_clk_en,
    input                   clk_override,
-   
-   // AXI signals               
+
+   // AXI signals
    // AXI Write Channels
    input  logic            axi_awvalid,
    output logic            axi_awready,
@@ -38,7 +38,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    input  logic [2:0]      axi_awsize,
    input  logic [2:0]      axi_awprot,
 
-   input  logic            axi_wvalid,                                       
+   input  logic            axi_wvalid,
    output logic            axi_wready,
    input  logic [63:0]     axi_wdata,
    input  logic [7:0]      axi_wstrb,
@@ -53,7 +53,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    input  logic            axi_arvalid,
    output logic            axi_arready,
    input  logic [TAG-1:0]  axi_arid,
-   input  logic [31:0]     axi_araddr,                                     
+   input  logic [31:0]     axi_araddr,
    input  logic [2:0]      axi_arsize,
    input  logic [2:0]      axi_arprot,
 
@@ -62,9 +62,9 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    output logic [TAG-1:0]  axi_rid,
    output logic [63:0]     axi_rdata,
    output logic [1:0]      axi_rresp,
-   output logic            axi_rlast,                                     
+   output logic            axi_rlast,
 
-   // AHB-Lite signals               
+   // AHB-Lite signals
    output logic [31:0]     ahb_haddr,       // ahb bus address
    output logic [2:0]      ahb_hburst,      // tied to 0
    output logic            ahb_hmastlock,   // tied to 0
@@ -74,7 +74,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    output logic            ahb_hwrite,      // ahb bus write
    output logic [63:0]     ahb_hwdata,      // ahb bus write data
 
-   input logic [63:0]      ahb_hrdata,      // ahb bus read data 
+   input logic [63:0]      ahb_hrdata,      // ahb bus read data
    input logic             ahb_hready,      // slave ready to accept transaction
    input logic             ahb_hresp        // slave response (high indicates erro)
 
@@ -100,25 +100,25 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    logic [31:0]      wrbuf_addr;
    logic [63:0]      wrbuf_data;
    logic [7:0]       wrbuf_byteen;
-   
+
    logic             bus_write_clk_en;
    logic             bus_clk, bus_write_clk;
-  
+
    logic             master_valid;
    logic             master_ready;
    logic [TAG-1:0]   master_tag;
-   logic [31:0]      master_addr; 
+   logic [31:0]      master_addr;
    logic [63:0]      master_wdata;
    logic [2:0]       master_size;
    logic [2:0]       master_opc;
-   
+
    // Buffer signals (one entry buffer)
    logic [31:0]                buf_addr;
    logic [1:0]                 buf_size;
    logic                       buf_write;
    logic [7:0]                 buf_byteen;
    logic                       buf_aligned;
-   logic [63:0]                buf_data;    
+   logic [63:0]                buf_data;
    logic [TAG-1:0]             buf_tag;
 
    //Miscellaneous signals
@@ -130,19 +130,19 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    logic                       buf_write_in;
    logic                       buf_aligned_in;
    logic [2:0]                 buf_size_in;
-   
+
    logic                       buf_state_en;
    logic                       buf_wr_en;
    logic                       buf_data_wr_en;
    logic                       slvbuf_error_en;
    logic                       wr_cmd_vld;
-   
+
    logic                       cmd_done_rst, cmd_done, cmd_doneQ;
    logic                       trxn_done;
    logic [2:0]                 buf_cmd_byte_ptr, buf_cmd_byte_ptrQ, buf_cmd_nxtbyte_ptr;
    logic                       buf_cmd_byte_ptr_en;
    logic                       found;
-   
+
    logic                       slave_valid_pre;
    logic                       ahb_hready_q;
    logic                       ahb_hresp_q;
@@ -157,9 +157,9 @@ module axi4_to_ahb #(parameter TAG  = 1) (
 
    logic                       slvbuf_error_in;
    logic                       slvbuf_wr_en;
-   logic                       bypass_en;     
+   logic                       bypass_en;
    logic                       rd_bypass_idle;
-   
+
    logic                       last_addr_en;
    logic [31:0]                last_bus_addr;
 
@@ -172,32 +172,32 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    logic                       ahbm_clk;
    logic                       ahbm_addr_clk;
    logic                       ahbm_data_clk;
- 
+
    // Function to get the length from byte enable
    function automatic logic [1:0] get_write_size;
       input logic [7:0] byteen;
-   
+
       logic [1:0]       size;
-   
+
       size[1:0] = (2'b11 & {2{(byteen[7:0] == 8'hff)}}) |
-                  (2'b10 & {2{((byteen[7:0] == 8'hf0) | (byteen[7:0] == 8'h0f))}}) | 
+                  (2'b10 & {2{((byteen[7:0] == 8'hf0) | (byteen[7:0] == 8'h0f))}}) |
                   (2'b01 & {2{((byteen[7:0] == 8'hc0) | (byteen[7:0] == 8'h30) | (byteen[7:0] == 8'h0c) | (byteen[7:0] == 8'h03))}});
-   
-      return size[1:0];   
+
+      return size[1:0];
    endfunction // get_write_size
-   
+
    // Function to get the length from byte enable
    function automatic logic [2:0] get_write_addr;
       input logic [7:0] byteen;
-   
+
       logic [2:0]       addr;
-   
+
       addr[2:0] = (3'h0 & {3{((byteen[7:0] == 8'hff) | (byteen[7:0] == 8'h0f) | (byteen[7:0] == 8'h03))}}) |
                   (3'h2 & {3{(byteen[7:0] == 8'h0c)}})                                                     |
                   (3'h4 & {3{((byteen[7:0] == 8'hf0) | (byteen[7:0] == 8'h03))}})                          |
                   (3'h6 & {3{(byteen[7:0] == 8'hc0)}});
-   
-      return addr[2:0];   
+
+      return addr[2:0];
    endfunction // get_write_size
 
    // Function to get the next byte pointer
@@ -211,22 +211,22 @@ module axi4_to_ahb #(parameter TAG  = 1) (
          if (~found) begin
             get_nxtbyte_ptr[2:0] = 3'(j);
             found |= (byteen[j] & (3'(j) >= start_ptr[2:0])) ;
-         end          
+         end
       end
    endfunction // get_nextbyte_ptr
 
-    
+
    // Write buffer
    assign wrbuf_en       = axi_awvalid & axi_awready & master_ready;
    assign wrbuf_data_en  = axi_wvalid & axi_wready & master_ready;
    assign wrbuf_cmd_sent = master_valid & master_ready & (master_opc[2:1] == 2'b01);
    assign wrbuf_rst      = wrbuf_cmd_sent & ~wrbuf_en;
-  
+
    assign axi_awready = ~(wrbuf_vld & ~wrbuf_cmd_sent) & master_ready;
    assign axi_wready  = ~(wrbuf_data_vld & ~wrbuf_cmd_sent) & master_ready;
-   assign axi_arready = ~(wrbuf_vld & wrbuf_data_vld) & master_ready;   
+   assign axi_arready = ~(wrbuf_vld & wrbuf_data_vld) & master_ready;
    assign axi_rlast   = 1'b1;
-   
+
    assign wr_cmd_vld          = (wrbuf_vld & wrbuf_data_vld);
    assign master_valid          = wr_cmd_vld | axi_arvalid;
    assign master_tag[TAG-1:0]   = wr_cmd_vld ? wrbuf_tag[TAG-1:0] : axi_arid[TAG-1:0];
@@ -234,21 +234,21 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    assign master_addr[31:0]     = wr_cmd_vld ? wrbuf_addr[31:0] : axi_araddr[31:0];
    assign master_size[2:0]    = wr_cmd_vld ? wrbuf_size[2:0] : axi_arsize[2:0];
    assign master_wdata[63:0]    = wrbuf_data[63:0];
- 
+
    // AXI response channel signals
    assign axi_bvalid       = slave_valid & slave_ready & slave_opc[3];
-   assign axi_bresp[1:0]   = slave_opc[0] ? 2'b10 : (slave_opc[1] ? 2'b11 : 2'b0); 
+   assign axi_bresp[1:0]   = slave_opc[0] ? 2'b10 : (slave_opc[1] ? 2'b11 : 2'b0);
    assign axi_bid[TAG-1:0] = slave_tag[TAG-1:0];
-   
-   assign axi_rvalid       = slave_valid & slave_ready & (slave_opc[3:2] == 2'b0); 
-   assign axi_rresp[1:0]   = slave_opc[0] ? 2'b10 : (slave_opc[1] ? 2'b11 : 2'b0); 
+
+   assign axi_rvalid       = slave_valid & slave_ready & (slave_opc[3:2] == 2'b0);
+   assign axi_rresp[1:0]   = slave_opc[0] ? 2'b10 : (slave_opc[1] ? 2'b11 : 2'b0);
    assign axi_rid[TAG-1:0] = slave_tag[TAG-1:0];
-   assign axi_rdata[63:0]  = slave_rdata[63:0];   
+   assign axi_rdata[63:0]  = slave_rdata[63:0];
    assign slave_ready        = axi_bready & axi_rready;
-   
+
    // Clock header logic
    assign bus_write_clk_en = bus_clk_en & ((axi_awvalid & axi_awready) | (axi_wvalid & axi_wready));
-   
+
    rvclkhdr bus_cgc        (.en(bus_clk_en),       .l1clk(bus_clk),       .*);
    rvclkhdr bus_write_cgc  (.en(bus_write_clk_en), .l1clk(bus_write_clk),  .*);
 
@@ -265,14 +265,14 @@ module axi4_to_ahb #(parameter TAG  = 1) (
       cmd_done       = 1'b0;
       trxn_done      = 1'b0;
       buf_cmd_byte_ptr_en = 1'b0;
-      buf_cmd_byte_ptr[2:0] = '0; 
-      slave_valid_pre   = 1'b0;  
+      buf_cmd_byte_ptr[2:0] = '0;
+      slave_valid_pre   = 1'b0;
       master_ready   = 1'b0;
       ahb_htrans[1:0]  = 2'b0;
       slvbuf_wr_en     = 1'b0;
       bypass_en        = 1'b0;
       rd_bypass_idle   = 1'b0;
-      
+
       case (buf_state)
          IDLE: begin
                   master_ready   = 1'b1;
@@ -288,11 +288,11 @@ module axi4_to_ahb #(parameter TAG  = 1) (
                   ahb_htrans[1:0] = {2{bypass_en}} & 2'b10;
           end
          CMD_RD: begin
-                  buf_nxtstate    = (master_valid & (master_opc[2:0] == 3'b000))? STREAM_RD : DATA_RD;  
+                  buf_nxtstate    = (master_valid & (master_opc[2:0] == 3'b000))? STREAM_RD : DATA_RD;
                   buf_state_en    = ahb_hready_q & (ahb_htrans_q[1:0] != 2'b0) & ~ahb_hwrite_q;
-                  cmd_done        = buf_state_en & ~master_valid;                                
+                  cmd_done        = buf_state_en & ~master_valid;
                   slvbuf_wr_en    = buf_state_en;
-                  master_ready  = buf_state_en & (buf_nxtstate == STREAM_RD);    
+                  master_ready  = buf_state_en & (buf_nxtstate == STREAM_RD);
                   buf_wr_en       = master_ready;
                   bypass_en       = master_ready & master_valid;
                   buf_cmd_byte_ptr[2:0] = bypass_en ? master_addr[2:0] : buf_addr[2:0];
@@ -301,7 +301,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
          STREAM_RD: begin
                   master_ready  =  (ahb_hready_q & ~ahb_hresp_q) & ~(master_valid & master_opc[2:1] == 2'b01);
                   buf_wr_en       = (master_valid & master_ready & (master_opc[2:0] == 3'b000)); // update the fifo if we are streaming the read commands
-                  buf_nxtstate    = ahb_hresp_q ? STREAM_ERR_RD : (buf_wr_en ? STREAM_RD : DATA_RD);            // assuming that the master accpets the slave response right away. 
+                  buf_nxtstate    = ahb_hresp_q ? STREAM_ERR_RD : (buf_wr_en ? STREAM_RD : DATA_RD);            // assuming that the master accpets the slave response right away.
                   buf_state_en    = (ahb_hready_q | ahb_hresp_q);
                   buf_data_wr_en  = buf_state_en;
                   slvbuf_error_in = ahb_hresp_q;
@@ -311,7 +311,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
                   bypass_en       = master_ready & master_valid & (buf_nxtstate == STREAM_RD) & buf_state_en;
                   buf_cmd_byte_ptr[2:0] = bypass_en ? master_addr[2:0] : buf_addr[2:0];
                   ahb_htrans[1:0] = 2'b10 & {2{~((buf_nxtstate != STREAM_RD) & buf_state_en)}};
-                  slvbuf_wr_en    = buf_wr_en;                                         // shifting the contents from the buf to slv_buf for streaming cases         
+                  slvbuf_wr_en    = buf_wr_en;                                         // shifting the contents from the buf to slv_buf for streaming cases
          end // case: STREAM_RD
          STREAM_ERR_RD: begin
                   buf_nxtstate = DATA_RD;
@@ -336,15 +336,15 @@ module axi4_to_ahb #(parameter TAG  = 1) (
                   buf_cmd_byte_ptr_en = buf_state_en;
                   slvbuf_wr_en    = buf_state_en;
                   buf_cmd_byte_ptr    = trxn_done ? get_nxtbyte_ptr(buf_cmd_byte_ptrQ[2:0],buf_byteen[7:0],1'b1) : buf_cmd_byte_ptrQ;
-                  cmd_done            = trxn_done & (buf_aligned | (buf_cmd_byte_ptrQ == 3'b111) | 
+                  cmd_done            = trxn_done & (buf_aligned | (buf_cmd_byte_ptrQ == 3'b111) |
                                                      (buf_byteen[get_nxtbyte_ptr(buf_cmd_byte_ptrQ[2:0],buf_byteen[7:0],1'b1)] == 1'b0));
                   ahb_htrans[1:0] = {2{~(cmd_done | cmd_doneQ)}} & 2'b10;
          end
          DATA_WR: begin
                   buf_state_en = (cmd_doneQ & ahb_hready_q) | ahb_hresp_q;
                   master_ready = buf_state_en & ~ahb_hresp_q & slave_ready;   // Ready to accept new command if current command done and no error
-                  buf_nxtstate = (ahb_hresp_q | ~slave_ready) ? DONE : 
-                                  ((master_valid & master_ready) ? ((master_opc[2:1] == 2'b01) ? CMD_WR : CMD_RD) : IDLE);   
+                  buf_nxtstate = (ahb_hresp_q | ~slave_ready) ? DONE :
+                                  ((master_valid & master_ready) ? ((master_opc[2:1] == 2'b01) ? CMD_WR : CMD_RD) : IDLE);
                   slvbuf_error_in = ahb_hresp_q;
                   slvbuf_error_en = buf_state_en;
 
@@ -352,7 +352,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
                   buf_wr_en = buf_state_en & ((buf_nxtstate == CMD_WR) | (buf_nxtstate == CMD_RD));
                   buf_data_wr_en = buf_wr_en;
 
-                  cmd_done     = (ahb_hresp_q | (ahb_hready_q & (ahb_htrans_q[1:0] != 2'b0) & 
+                  cmd_done     = (ahb_hresp_q | (ahb_hready_q & (ahb_htrans_q[1:0] != 2'b0) &
                                  ((buf_cmd_byte_ptrQ == 3'b111) | (buf_byteen[get_nxtbyte_ptr(buf_cmd_byte_ptrQ[2:0],buf_byteen[7:0],1'b1)] == 1'b0))));
                   bypass_en       = buf_state_en & buf_write_in & (buf_nxtstate == CMD_WR);   // Only bypass for writes for the time being
                   ahb_htrans[1:0] = {2{(~(cmd_done | cmd_doneQ) | bypass_en)}} & 2'b10;
@@ -360,7 +360,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
 
                   trxn_done = ahb_hready_q & ahb_hwrite_q & (ahb_htrans_q[1:0] != 2'b0);
                   buf_cmd_byte_ptr_en = trxn_done | bypass_en;
-                  buf_cmd_byte_ptr = bypass_en ? get_nxtbyte_ptr(3'b0,buf_byteen_in[7:0],1'b0) : 
+                  buf_cmd_byte_ptr = bypass_en ? get_nxtbyte_ptr(3'b0,buf_byteen_in[7:0],1'b0) :
                                                  trxn_done ? get_nxtbyte_ptr(buf_cmd_byte_ptrQ[2:0],buf_byteen[7:0],1'b1) : buf_cmd_byte_ptrQ;
             end
          DONE: begin
@@ -374,7 +374,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
 
    assign buf_rst              = 1'b0;
    assign cmd_done_rst         = slave_valid_pre;
-   assign buf_addr_in[2:0]     = (buf_aligned_in & (master_opc[2:1] == 2'b01)) ? get_write_addr(wrbuf_byteen[7:0]) : master_addr[2:0]; 
+   assign buf_addr_in[2:0]     = (buf_aligned_in & (master_opc[2:1] == 2'b01)) ? get_write_addr(wrbuf_byteen[7:0]) : master_addr[2:0];
    assign buf_addr_in[31:3]    = master_addr[31:3];
    assign buf_tag_in[TAG-1:0]  = master_tag[TAG-1:0];
    assign buf_byteen_in[7:0]   = wrbuf_byteen[7:0];
@@ -382,18 +382,18 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    assign buf_size_in[1:0]     = (buf_aligned_in & (master_size[1:0] == 2'b11) & (master_opc[2:1] == 2'b01)) ? get_write_size(wrbuf_byteen[7:0]) : master_size[1:0];
    assign buf_aligned_in       = (master_opc[2:0] == 3'b0)    |   // reads are always aligned since they are either DW or sideeffects
                                  (master_size[1:0] == 2'b0) |  (master_size[1:0] == 2'b01) | (master_size[1:0] == 2'b10) | // Always aligned for Byte/HW/Word since they can be only for non-idempotent. IFU/SB are always aligned
-                                 ((master_size[1:0] == 2'b11) & 
-                                  ((wrbuf_byteen[7:0] == 8'h3)  | (wrbuf_byteen[7:0] == 8'hc)   | (wrbuf_byteen[7:0] == 8'h30) | (wrbuf_byteen[7:0] == 8'hc0) | 
+                                 ((master_size[1:0] == 2'b11) &
+                                  ((wrbuf_byteen[7:0] == 8'h3)  | (wrbuf_byteen[7:0] == 8'hc)   | (wrbuf_byteen[7:0] == 8'h30) | (wrbuf_byteen[7:0] == 8'hc0) |
                                    (wrbuf_byteen[7:0] == 8'hf)  | (wrbuf_byteen[7:0] == 8'hf0)  | (wrbuf_byteen[7:0] == 8'hff)));
-   
+
    // Generate the ahb signals
    assign ahb_haddr[31:0] = bypass_en ? {master_addr[31:3],buf_cmd_byte_ptr[2:0]}  : {buf_addr[31:3],buf_cmd_byte_ptr[2:0]};
-   // assign ahb_hsize[2:0]  = ((buf_state == CMD_RD) | (buf_state == STREAM_RD) | (buf_state == STREAM_ERR_RD) | rd_bypass_idle) ? 3'b011 : 
+   // assign ahb_hsize[2:0]  = ((buf_state == CMD_RD) | (buf_state == STREAM_RD) | (buf_state == STREAM_ERR_RD) | rd_bypass_idle) ? 3'b011 :
    //                                                                               bypass_en ? {1'b0, ({2{buf_aligned_in}} & buf_size_in[1:0])} :
    //                                                                                           {1'b0, ({2{buf_aligned}} & buf_size[1:0])};   // Send the full size for aligned trxn
    assign ahb_hsize[2:0]  = bypass_en ? {1'b0, ({2{buf_aligned_in}} & buf_size_in[1:0])} :
                                         {1'b0, ({2{buf_aligned}} & buf_size[1:0])};   // Send the full size for aligned trxn
-   assign ahb_hburst[2:0] = 3'b0; 
+   assign ahb_hburst[2:0] = 3'b0;
    assign ahb_hmastlock   = 1'b0;
    assign ahb_hprot[3:0]  = {3'b001,~axi_arprot[2]};
    assign ahb_hwrite      = bypass_en ? (master_opc[2:1] == 2'b01) : buf_write;
@@ -404,10 +404,10 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    assign slave_opc[1:0]       = {2{slvbuf_error}} & 2'b10;
    assign slave_rdata[63:0]    = slvbuf_error ? {2{last_bus_addr[31:0]}} : ((buf_state == DONE) ? buf_data[63:0] : ahb_hrdata_q[63:0]);
    assign slave_tag[TAG-1:0]   = slvbuf_tag[TAG-1:0];
-   
+
    assign last_addr_en = (ahb_htrans[1:0] != 2'b0) & ahb_hready & ahb_hwrite ;
-  
- 
+
+
    rvdffsc  #(.WIDTH(1))   wrbuf_vldff     (.din(1'b1), .dout(wrbuf_vld), .en(wrbuf_en), .clear(wrbuf_rst), .clk(bus_clk), .*);
    rvdffsc  #(.WIDTH(1))   wrbuf_data_vldff(.din(1'b1), .dout(wrbuf_data_vld), .en(wrbuf_data_en), .clear(wrbuf_rst), .clk(bus_clk), .*);
    rvdffs   #(.WIDTH(TAG)) wrbuf_tagff     (.din(axi_awid[TAG-1:0]), .dout(wrbuf_tag[TAG-1:0]), .en(wrbuf_en), .clk(bus_clk), .*);
@@ -417,7 +417,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    rvdffs   #(.WIDTH(8))   wrbuf_byteenff  (.din(axi_wstrb[7:0]), .dout(wrbuf_byteen[7:0]), .en(wrbuf_data_en), .clk(bus_clk), .*);
 
    rvdffs #(.WIDTH(32))   last_bus_addrff (.din(ahb_haddr[31:0]), .dout(last_bus_addr[31:0]), .en(last_addr_en), .clk(ahbm_clk), .*);
-   
+
    rvdffsc #(.WIDTH($bits(state_t))) buf_state_ff  (.din(buf_nxtstate), .dout({buf_state}), .en(buf_state_en), .clear(buf_rst), .clk(ahbm_clk), .*);
    rvdffs #(.WIDTH(1))               buf_writeff   (.din(buf_write_in), .dout(buf_write), .en(buf_wr_en), .clk(buf_clk), .*);
    rvdffs #(.WIDTH(TAG))             buf_tagff     (.din(buf_tag_in[TAG-1:0]), .dout(buf_tag[TAG-1:0]), .en(buf_wr_en), .clk(buf_clk), .*);
@@ -426,12 +426,12 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    rvdffs #(.WIDTH(1))               buf_alignedff (.din(buf_aligned_in), .dout(buf_aligned), .en(buf_wr_en), .clk(buf_clk), .*);
    rvdffs #(.WIDTH(8))               buf_byteenff  (.din(buf_byteen_in[7:0]), .dout(buf_byteen[7:0]), .en(buf_wr_en), .clk(buf_clk), .*);
    rvdffe #(.WIDTH(64))              buf_dataff    (.din(buf_data_in[63:0]), .dout(buf_data[63:0]), .en(buf_data_wr_en & bus_clk_en), .*);
-  
- 
+
+
    rvdffs #(.WIDTH(1))   slvbuf_writeff        (.din(buf_write), .dout(slvbuf_write), .en(slvbuf_wr_en), .clk(buf_clk), .*);
    rvdffs #(.WIDTH(TAG)) slvbuf_tagff          (.din(buf_tag[TAG-1:0]), .dout(slvbuf_tag[TAG-1:0]), .en(slvbuf_wr_en), .clk(buf_clk), .*);
    rvdffs #(.WIDTH(1))   slvbuf_errorff        (.din(slvbuf_error_in), .dout(slvbuf_error), .en(slvbuf_error_en), .clk(ahbm_clk), .*);
-    
+
    rvdffsc #(.WIDTH(1)) buf_cmd_doneff     (.din(1'b1), .en(cmd_done), .dout(cmd_doneQ), .clear(cmd_done_rst), .clk(ahbm_clk), .*);
    rvdffs #(.WIDTH(3))  buf_cmd_byte_ptrff (.din(buf_cmd_byte_ptr[2:0]), .dout(buf_cmd_byte_ptrQ[2:0]), .en(buf_cmd_byte_ptr_en), .clk(ahbm_clk), .*);
 
@@ -446,7 +446,7 @@ module axi4_to_ahb #(parameter TAG  = 1) (
    assign buf_clken       = bus_clk_en & (buf_wr_en | slvbuf_wr_en | clk_override);
    assign ahbm_addr_clken = bus_clk_en & ((ahb_hready & ahb_htrans[1]) | clk_override);
    assign ahbm_data_clken = bus_clk_en & ((buf_state != IDLE) | clk_override);
-   
+
    rvclkhdr buf_cgc       (.en(buf_clken), .l1clk(buf_clk), .*);
    rvclkhdr ahbm_cgc      (.en(bus_clk_en), .l1clk(ahbm_clk), .*);
    rvclkhdr ahbm_addr_cgc (.en(ahbm_addr_clken), .l1clk(ahbm_addr_clk), .*);
@@ -459,14 +459,14 @@ module axi4_to_ahb #(parameter TAG  = 1) (
                                         ((ahb_hsize[2:0] == 3'h2) & (ahb_haddr[1:0] == 2'b0)) |
                                         ((ahb_hsize[2:0] == 3'h3) & (ahb_haddr[2:0] == 3'b0)));
    endproperty
-   assert_ahb_trxn_aligned: assert property (ahb_trxn_aligned) else 
+   assert_ahb_trxn_aligned: assert property (ahb_trxn_aligned) else
      $display("Assertion ahb_trxn_aligned failed: ahb_htrans=2'h%h, ahb_hsize=3'h%h, ahb_haddr=32'h%h",ahb_htrans[1:0], ahb_hsize[2:0], ahb_haddr[31:0]);
-   
+
    property ahb_error_protocol;
       @(posedge ahbm_clk) (ahb_hready & ahb_hresp) |-> (~$past(ahb_hready) & $past(ahb_hresp));
    endproperty
    assert_ahb_error_protocol: assert property (ahb_error_protocol) else
       $display("Bus Error with hReady isn't preceded with Bus Error without hready");
 `endif
-   
+
 endmodule // axi4_to_ahb

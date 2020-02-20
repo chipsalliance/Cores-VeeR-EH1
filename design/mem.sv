@@ -15,7 +15,7 @@
 // limitations under the License.
 //********************************************************************************
 
-module mem 
+module mem
    import swerv_types::*;
 (
    input logic         clk,
@@ -23,8 +23,8 @@ module mem
    input logic         lsu_freeze_dc3,
    input logic         dccm_clk_override,
    input logic         icm_clk_override,
-   input logic         dec_tlu_core_ecc_disable, 
-                                            
+   input logic         dec_tlu_core_ecc_disable,
+
    //DCCM ports
    input logic         dccm_wren,
    input logic         dccm_rden,
@@ -45,7 +45,7 @@ module mem
    input logic         iccm_rden,
    input logic [2:0]   iccm_wr_size,
    input logic [77:0]  iccm_wr_data,
-                      
+
    output logic [155:0] iccm_rd_data,
 `endif
    // Icache and Itag Ports
@@ -54,44 +54,44 @@ module mem
    input  logic [3:0]   ic_tag_valid,
    input  logic [3:0]   ic_wr_en,
    input  logic         ic_rd_en,
-   input  logic [127:0] ic_premux_data,     // Premux data to be muxed with each way of the Icache. 
-   input  logic         ic_sel_premux_data, // Premux data sel 
+   input  logic [127:0] ic_premux_data,     // Premux data to be muxed with each way of the Icache.
+   input  logic         ic_sel_premux_data, // Premux data sel
 
 `ifdef RV_ICACHE_ECC
    input  logic [83:0]               ic_wr_data,         // Data to fill to the Icache. With ECC
-   input  logic [41:0]               ic_debug_wr_data,   // Debug wr cache. 
-`else 
+   input  logic [41:0]               ic_debug_wr_data,   // Debug wr cache.
+`else
    input  logic [67:0]               ic_wr_data,         // Data to fill to the Icache. With Parity
-   input  logic [33:0]               ic_debug_wr_data,   // Debug wr cache. 
+   input  logic [33:0]               ic_debug_wr_data,   // Debug wr cache.
 `endif
 
 
 
-   input  logic [15:2]               ic_debug_addr,      // Read/Write addresss to the Icache.   
+   input  logic [15:2]               ic_debug_addr,      // Read/Write addresss to the Icache.
    input  logic                      ic_debug_rd_en,     // Icache debug rd
    input  logic                      ic_debug_wr_en,     // Icache debug wr
    input  logic                      ic_debug_tag_array, // Debug tag array
    input  logic [3:0]                ic_debug_way,       // Debug way. Rd or Wr.
 
 `endif
-   
+
 `ifdef RV_ICACHE_ECC
    output logic [167:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With ECC
-   output logic [24:0]               ictag_debug_rd_data,// Debug icache tag. 
-`else 
+   output logic [24:0]               ictag_debug_rd_data,// Debug icache tag.
+`else
    output logic [135:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With Parity
-   output logic [20:0]               ictag_debug_rd_data,// Debug icache tag. 
+   output logic [20:0]               ictag_debug_rd_data,// Debug icache tag.
 `endif
 
    output logic [3:0]   ic_rd_hit,
    output logic         ic_tag_perr,        // Icache Tag parity error
 
-  
-   input  logic         scan_mode   
-  
+
+   input  logic         scan_mode
+
 );
 `include "global.h"
-   
+
  `ifdef RV_DCCM_ENABLE
       localparam DCCM_ENABLE = 1'b1;
    `else
@@ -108,8 +108,8 @@ module mem
       assign dccm_rd_data_lo = '0;
       assign dccm_rd_data_hi = '0;
    end
-     
-`ifdef RV_ICACHE_ENABLE   
+
+`ifdef RV_ICACHE_ENABLE
    ifu_ic_mem icm  (
       .clk_override(icm_clk_override),
       .*
@@ -128,5 +128,5 @@ module mem
                   .iccm_rd_data(iccm_rd_data[155:0])
                    );
 `endif
-  
+
 endmodule

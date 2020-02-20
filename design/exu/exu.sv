@@ -176,7 +176,7 @@ module exu
    output logic [`RV_BHT_GHR_RANGE]  exu_i0_br_fghr_e4,                // to DEC  I0 branch fghr
    output logic        exu_i0_br_ret_e4,                               // to DEC  I0 branch return
    output logic        exu_i0_br_call_e4,                              // to DEC  I0 branch call
-   
+
    output logic [1:0]  exu_i1_br_hist_e4,                              // to DEC  I1 branch history
    output logic [1:0]  exu_i1_br_bank_e4,                              // to DEC  I1 branch bank
    output logic        exu_i1_br_error_e4,                             // to DEC  I1 branch error
@@ -292,7 +292,7 @@ module exu
                                  ({32{ dec_i1_rs1_bypass_en_d}} & i1_rs1_bypass_data_d[31:0]);
 
    assign i1_rs2_d[31:0]       = ({32{~dec_i1_rs2_bypass_en_d}} & gpr_i1_rs2_d[31:0]) |
-                                 ({32{~dec_i1_rs2_bypass_en_d}} & dec_i1_immed_d[31:0]) | 
+                                 ({32{~dec_i1_rs2_bypass_en_d}} & dec_i1_immed_d[31:0]) |
                                  ({32{ dec_i1_rs2_bypass_en_d}} & i1_rs2_bypass_data_d[31:0]);
 
    assign exu_lsu_rs1_d[31:0]  = ({32{ ~dec_i0_rs1_bypass_en_d &  dec_i0_lsu_d               }} & gpr_i0_rs1_d[31:0]        ) |
@@ -477,7 +477,7 @@ module exu
                             .dout({i0_rs1_e1[31:0], i0_rs2_e1[31:0], i0_br_immed_e1[12:1]})
                             );
 
-   rvdffe #(76) i0_src_e2_ff (.*, 
+   rvdffe #(76) i0_src_e2_ff (.*,
                             .en(i0_e2_data_en),
                             .din( {i0_rs1_e1[31:0], i0_rs2_e1[31:0], i0_br_immed_e1[12:1]}),
                             .dout({i0_rs1_e2[31:0], i0_rs2_e2[31:0], i0_br_immed_e2[12:1]})
@@ -538,7 +538,7 @@ module exu
    assign i1_taken_e1= (i1_ataken_e1 & dec_i1_alu_decode_e1) | (i1_predict_p_e1.hist[1] & ~dec_i1_alu_decode_e1);
 
     assign ghr_e1_ns[`RV_BHT_GHR_RANGE] = ( ({`RV_BHT_GHR_SIZE{~dec_tlu_flush_lower_wb & i0_valid_e1 & (i0_predict_p_e1.misp | ~i1_valid_e1)}} & {ghr_e1[`RV_BHT_GHR_SIZE-2:0], i0_taken_e1}) |
-`ifdef RV_BHT_GHR_SIZE_2                                           
+`ifdef RV_BHT_GHR_SIZE_2
                                            ({`RV_BHT_GHR_SIZE{~dec_tlu_flush_lower_wb & i0_valid_e1 & ~i0_predict_p_e1.misp &  i1_valid_e1}} & {                              i0_taken_e1, i1_taken_e1}) |
 `else
                                            ({`RV_BHT_GHR_SIZE{~dec_tlu_flush_lower_wb & i0_valid_e1 & ~i0_predict_p_e1.misp &  i1_valid_e1}} & {ghr_e1[`RV_BHT_GHR_SIZE-3:0], i0_taken_e1, i1_taken_e1}) |
@@ -556,7 +556,7 @@ module exu
    assign i0_valid_e4 = dec_tlu_i0_valid_e4 & ((i0_predict_p_e4.valid) | i0_predict_p_e4.misp);
    assign i1_pred_valid_e4 = dec_tlu_i1_valid_e4 & ((i1_predict_p_e4.valid) | i1_predict_p_e4.misp) & ~exu_i0_flush_upper_e4;
    assign ghr_e4_ns[`RV_BHT_GHR_RANGE]  = ( ({`RV_BHT_GHR_SIZE{i0_valid_e4 & (i0_predict_p_e4.misp | ~i1_pred_valid_e4)}} & {ghr_e4[`RV_BHT_GHR_SIZE-2:0], i0_predict_p_e4.ataken}) |
-`ifdef RV_BHT_GHR_SIZE_2                                           
+`ifdef RV_BHT_GHR_SIZE_2
                                            ({`RV_BHT_GHR_SIZE{i0_valid_e4  & ~i0_predict_p_e4.misp &  i1_pred_valid_e4}} & {                              i0_predict_p_e4.ataken, i1_predict_p_e4.ataken}) |
 `else
                                            ({`RV_BHT_GHR_SIZE{i0_valid_e4  & ~i0_predict_p_e4.misp &  i1_pred_valid_e4}} & {ghr_e4[`RV_BHT_GHR_SIZE-3:0], i0_predict_p_e4.ataken, i1_predict_p_e4.ataken}) |
@@ -715,7 +715,7 @@ module exu
                                     .din({
                                           exu_i0_flush_path_e1[31:1],
                                           exu_i0_flush_upper_e1}),
-                                    
+
                                     .dout({
                                            i0_flush_path_upper_e2[31:1],
                                            exu_i0_flush_upper_e2})

@@ -35,9 +35,9 @@ printf("end\n");
 
 sub b2d {
     my ($v) = @_;
-    
+
     $v = oct("0b" . $v);
-    
+
     return($v);
 }
 
@@ -48,11 +48,11 @@ sub d2b {
 
     $v = sprintf "%b",$v;
     if (length($v)<$LEN) {
-	$repeat=$LEN-length($v);
-	$v="0"x$repeat.$v;
+        $repeat=$LEN-length($v);
+        $v="0"x$repeat.$v;
     }
     elsif (length($v)>$LEN) {
-	$v=substr($v,length($v)-$LEN,$LEN);
+        $v=substr($v,length($v)-$LEN,$LEN);
     }
 
     return($v);

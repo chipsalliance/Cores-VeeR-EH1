@@ -1,7 +1,6 @@
-# SweRV RISC-V Core<sup>TM</sup> 1.5 from Western Digital
+# EH1 SweRV RISC-V Core<sup>TM</sup> 1.5 from Western Digital
 
-This repository contains the SweRV Core<sup>TM</sup> 1.5 design RTL. The previous version can be found in [branch 1.4.](https://github.com/chipsalliance/Cores-SweRV/tree/branch1.4)
-The SweRV 1 series provides a 32-bit, machine-mode only, implementation of the RISC-V ISA including options I (base integer), M (multiply/divide) and C (compressed instructions from I and M).
+This repository contains the SweRV EH1.5 Core<sup>TM</sup>  design RTL
 
 ## License
 
@@ -13,24 +12,26 @@ Files under the [tools](tools/) directory may be available under a different lic
     ├── configs                 # Configurations Dir
     │   └── snapshots           # Where generated configuration files are created
     ├── design                  # Design root dir
-    │   ├── dbg                 #   Debugger
-    │   ├── dec                 #   Decode, Registers and Exceptions
-    │   ├── dmi                 #   DMI block
-    │   ├── exu                 #   EXU (ALU/MUL/DIV)
-    │   ├── ifu                 #   Fetch & Branch Prediction
+    │   ├── dbg                 # Debugger
+    │   ├── dec                 # Decode, Registers and Exceptions
+    │   ├── dmi                 # DMI block
+    │   ├── exu                 # EXU (ALU/MUL/DIV)
+    │   ├── ifu                 # Fetch & Branch Prediction
     │   ├── include             
     │   ├── lib
-    │   └── lsu                 #   Load/Store
+    │   └── lsu                 # Load/Store
     ├── docs
     ├── tools                   # Scripts/Makefiles
     └── testbench               # (Very) simple testbench
-        ├── asm                 #   Example assembly files
-        └── hex                 #   Canned demo hex files
+        ├── asm                 # Example test files
+        └── hex                 # Canned demo hex files
  
 ## Dependencies
 
-- Verilator **(3.926 or later)** must be installed on the system
-- If adding/removing instructions, espresso must be installed. Espresso is a logic minimization tool used in *tools/coredecode*.
+- Verilator **(4.020 or later)** must be installed on the system if running with verilator
+- If adding/removing instructions, espresso must be installed (used by *tools/coredecode*)
+- RISCV tool chain (based on gcc version 7.3 or higher) must be
+installed so that it can be used to prepare RISCV binaries to run.
 
 ## Quickstart guide
 1. Clone the repository
@@ -47,13 +48,16 @@ SweRV can be configured by running the `$RV_ROOT/configs/swerv.config` script:
 
 `% $RV_ROOT/configs/swerv.config -h` for detailed help options
 
-For example to build with a DCCM of size 64 :  
+For example to build with a DCCM of size 64 Kb:  
 
 `% $RV_ROOT/configs/swerv.config -dccm_size=64`  
 
-This will update the **default** snapshot in $RV_ROOT/configs/snapshots/default/ with parameters for a 64K DCCM.  
+This will update the **default** snapshot in $PWD/snapshots/default/ with parameters for a 64K DCCM. To **unset** a parameter, use `-unset=PARAM` option to swerv.config.
 
 Add `-snapshot=dccm64`, for example, if you wish to name your build snapshot *dccm64* and refer to it during the build.  
+
+There are four predefined target configurations: `default`, `default_ahb`, `default_pd`, `high_perf`  that can be selected via 
+the `-target=name` option to swerv.config.
 
 This script derives the following consistent set of include files :  
 
@@ -62,75 +66,134 @@ This script derives the following consistent set of include files :
     ├── defines.h                               # #defines for C/assembly headers
     ├── pd_defines.vh                           # `defines for physical design
     ├── perl_configs.pl                         # Perl %configs hash for scripting
-    ├── pic_ctrl_verilator_unroll.sv            # Unrolled verilog based on PIC size
     ├── pic_map_auto.h                          # PIC memory map based on configure size
     └── whisper.json                            # JSON file for swerv-iss
 
 
 
 ### Building a model
-1. Set the RV_ROOT environment variable to the root of the SweRV directory structure  
 
-    `RV_ROOT = /path/to/swerv`  
-    `export RV_ROOT`
+while in a work directory:
 
-1. Create your configuration  
+1. Set the RV_ROOT environment variable to the root of the SweRV directory structure.
+Example for bash shell:  
+    `export RV_ROOT=/path/to/swerv`  
+Example for csh or its derivatives:  
+    `setenv RV_ROOT /path/to/swerv`
+    
+1. Create your specific configuration
 
     *(Skip if default is sufficient)*  
-    *(Name your snapshot to distinguish it from the default. Without an explicit name, it will update/override the **default** snapshot)*  
-    `$RV_ROOT/configs/swerv.config [configuration options..] -snapshot=mybuild`  
+    *(Name your snapshot to distinguish it from the default. Without an explicit name, it will update/override the __default__ snapshot)* 
+    For example if `mybuild` is the name for the snapshot:
 
-    Snapshots are placed in `$RV_ROOT/configs/snapshots/<snapshot name>/` directory
-
-1. Build with **verilator**:  
-
-    `make -f $RV_ROOT/tools/Makefile verilator [snapshot=name]`  
-
-This will create and populate the verilator *obj_dir/* in the current work dir.  
-
-**Other targets supported**:  
-
-    vcs  (Synopsys)  
-    irun (Cadence)  
-
-### Running a simple Hello World program (verilator)
-
-    RV_ROOT = /path/to/swerv
-    export RV_ROOT
-
-    make -f $RV_ROOT/tools/Makefile verilator-run
-
-This will build a verilator model of SweRV with AHB-lite bus, and execute a short sequence of instructions that writes out "HELLO
-WORLD" to the bus.
-
-You can re-execute using
-
-    ./obj_dir/Vtb_top
-
-    Start of sim
-
-    ------------------------------
-    Hello World from SweRV @WDC !!
-    ------------------------------
-
-    Finished : minstret = 389, mcycle = 1658
-
-    End of sim
-
-A vcd file `sim.vcd` is created which can be browsed by gtkwave or similar waveform viewers. `trace_port.csv` contains a log of
-the trace port. `exec.log` contains a basic execution trace showing PC, opcode and GPR writes.
-
-The Makefile allows you to specify different assembly files from command line
+    set BUILD_PATH environment variable:
+    
+    `setenv BUILD_PATH snapshots/mybuild`
      
-    make -f $RV_ROOT/tools/Makefile verilator-run ASM_TEST=my_hellow_world.s ASM_TEST_DIR=/path/to/dir
+    `$RV_ROOT/configs/swerv.config [configuration options..] -snapshot=mybuild`  
+    
+    Snapshots are placed in `$BUILD_PATH` directory
 
-If you change only the assembly files, you do not need to rebuild verilator, just specify the target as `program.hex` :
 
-    make -f $RV_ROOT/tools/Makefile program.hex ASM_TEST=my_hello_world.s ASM_TEST_DIR=/path/to/dir
-    ./obj_dir/Vtb_top
+1. Running a simple Hello World program (verilator)
 
-### SweRV CoreMark Benchmarking
-We ran [CoreMark](https://www.eembc.org/coremark/) benchmark on Nexys4 board and achieved CoreMark score of **4.94**. Please see the [document](https://github.com/chipsalliance/Cores-SweRV/blob/master/docs/SweRV_CoreMark_Benchmarking.pdf) for details. 
+    `make -f $RV_ROOT/tools/Makefile`
+
+This command will build a verilator model of SweRV EH1 with AXI bus, and
+execute a short sequence of instructions that writes out "HELLO WORLD"
+to the bus.
+
+    
+The simulation produces output on the screen like:  
+
+````
+VerilatorTB: Start of sim
+
+----------------------------------
+Hello World from SweRV EH1 @WDC !!
+----------------------------------
+
+Finished : minstret = 443, mcycle = 1372
+See "exec.log" for execution trace with register updates..
+
+TEST_PASSED
+````
+
+The simulation generates following files:
+
+ `console.log` contains what the cpu writes to the console address of 0xd0580000.  
+ `exec.log` shows instruction trace with GPR updates.  
+ `trace_port.csv` contains a log of the trace port.   
+ When `debug=1` is provided, a vcd file `sim.vcd` is created and can be browsed by 
+  gtkwave or similar waveform viewers.
+  
+You can re-execute simulation using:  
+   ` ./obj_dir/Vtb_top `  
+or  
+    `make -f $RV_ROOT/tools/Makefile verilator`
+
+
+  
+The simulation run/build command has following generic form:
+
+```
+make -f $RV_ROOT/tools/Makefile [<simulator>] [debug=1] [snapshot=<snapshot>] [target=<target>] [TEST=<test>] [TEST_DIR=<path_to_test_dir>] [CONF_PARAMS=<swerv.config option>]
+
+where:
+
+<simulator> -  can be 'verilator' (by default) 'irun' - Cadence xrun, 'vcs' - Synopsys VCS, 'vlog' Mentor Questa
+               if not provided, 'make' cleans work directory, builds verilator executable and runs a test.
+debug=1     -  allows VCD generation for verilator and VCS and SHM waves for irun option.
+<target>    -  predefined CPU configurations 'default' ( by default), 'default_ahb', 'default_pd', 'high_perf'
+TEST        -  allows to run a C (<test>.c) or assembly (<test>.s) test, hello_world is run by default 
+TEST_DIR    -  alternative to test source directory testbench/asm
+<snapshot>  -  run and build executable model of custom CPU configuration, remember to provide 'snapshot' argument 
+               for runs on custom configurations.
+CONF_PARAMS -  configuration parameter for swerv.config : ex: 'CONF_PARAMS=-unset=dccm_enable' to build with no DCCM
+```
+
+Example:
+     
+    make -f $RV_ROOT/tools/Makefile verilator TEST=cmark
+
+will simulate  testbench/asm/cmark.c program with verilator on default target
+
+
+If you want to compile a test only, you can run:
+
+    make -f $RV_ROOT/tools/Makefile program.hex TEST=<test> [TEST_DIR=/path/to/dir]
+
+
+The Makefile uses  `$RV_ROOT/testbench/link.ld` file by default to build test executable.  
+User can provide test specific linker file in form `<test_name>.ld` to build the test executable,
+ in the same directory with the test source.
+
+User also can create a test specific makefile in form `<test_name>.makefile`, contaning building instructions
+how to create `program.hex`, `data.hex` files used by simulation. The private makefile should be in the same directory
+as the test source.  
+*(`program.hex` file is loaded to instruction bus memory slave and `data.hex` file is loaded to LSU bus memory slave and
+optionally to DCCM at the beginning of simulation)*.
+
+Note: You may need to delete `program.hex` file from work directory, when run a new test.
+
+The  `$RV_ROOT/testbench/asm` directory contains following tests ready to simulate:
+
+```
+hello_world       - default test to run, prints Hello World message to screen and console.log
+hello_world_dccm  - the same as above, but takes the string from preloaded DCCM.
+cmark             - coremark benchmark running with code and data in external memories
+cmark_dccm        - the same as above, running data and stack from DCCM (faster)
+cmark_iccm        - the same as above, but with code preloaded to iccm - runs only on CPU with ICCM
+                    use CONF_PARAMS=-set=iccm_enable argument to `make` to build CPU with ICCM
+```
+
+The `$RV_ROOT/testbench/hex` directory contains precompiled hex files of the tests, ready for simulation in case RISCV SW tools are not installed.
+
+
+
 
 ----
-Western Digital, the Western Digital logo, G-Technology, SanDisk, Tegile, Upthere, WD, SweRV Core, SweRV ISS, and OmniXtend are registered trademarks or trademarks of Western Digital Corporation or its affiliates in the US and/or other countries. All other marks are the property of their respective owners.
+Western Digital, the Western Digital logo, G-Technology, SanDisk, Tegile, Upthere, WD, SweRV Core, SweRV ISS, 
+and OmniXtend are registered trademarks or trademarks of Western Digital Corporation or its affiliates in the US 
+and/or other countries. All other marks are the property of their respective owners.
