@@ -1,3 +1,72 @@
+# SweRV RISC-V Core<sup>TM</sup> 1.5 from Western Digital
+## Release Notes
+
+
+This is a bug-fix and performance-improvement release.  No new functionality
+is added to the SweRV core.
+
+
+1. Bug fixes:
+
+* Hart incorrectly cleared dmcontrol.dmactive on reset (reported by
+  Codasip).  Note that a separate system power-on-reset signal `dbg_rst_l`
+  was added to differentiate power-on-reset vs core reset. 
+* Hart never asserted the dmstatus.allrunning signal on reset which
+  caused a timeout in OpenOCD (reported by Codasip).
+* Debug module failed to auto-increment register on system-bus access
+  of size 64-bit (reported by Codasip).
+* The core_rst_n signal was incorrectly connected (reported by Codasip).
+* Module/instance renamed for tool compatibility.
+* The program counter was getting corrupted when the load/store unit
+  indicated both a single-bit and a double-bit error in the same
+  cycle.
+* The MSTATUS register was not being updated as expected when both a
+  non-maskable-interrupt and an MSTATUS-write happened in the same
+  cycle.
+* Write to SBDATA0 was not starting a system-bus write access when
+  sbreadonaddr/sbreadondata is set.
+* Minstret was incorrectly counting ecall/ebreak instructions.
+* The dec_tlu_mpc_halted_only signal was not set for MPC halt after
+  reset.
+* The MEPC register was not being updated when a firmware-halt request
+  was followed by a timer interrupt.
+* The MINSTRETH control register was being incremented when
+  performance counters were disabled.
+* Bus driver contained combinational logic from multiple clock
+  domains that sometimes caused a glitch.
+* System bus reads were always being made with 64-bit size for the
+  AXI bus which is incorrect for IO access.
+* DCCM single-bit errors were counted for instructions that did not
+  commit.
+* ICCM single bit errors were double-counted.
+* Load/store unit was not detecting access faults when DCCM and PIC
+  memories are next to each other.
+* Single-bit ECC errors on data load were not always corrected in
+  the DCCM.
+* Single-bit ECC errors were not always corrected in the DCCM for DMA
+  accesses.
+* Single-bit errors detected while reading ICCM through DMA were not
+  being corrected in memory.
+
+
+2. Improvements:
+
+* Improved performance by removing redundant term in decode stall
+  logic.
+* Reduced power used by the ICCM memory arrays.
+
+
+3. Testbench Improvements:
+
+* AXI4 and AHB-Lite support.
+* Updated bus memory to be persistent and handle larger programs.
+* Makefile supports ability to run with source or pre-generated hex
+  files.
+* Makefile supports targets for CoreMarks benchmark (issue #25).
+* Questa support in Makefile (Issue #19).
+
+
+
 # SweRV RISC-V Core<sup>TM</sup> 1.4 from Western Digital
 ## Release Notes
 Move declarations to top of Verilog file to fix fpga compile issues.

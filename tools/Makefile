@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2019 Western Digital Corporation or its affiliates.
-# 
+# Copyright 2020 Western Digital Corporation or its affiliates.
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 # http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,124 +20,157 @@ $(error env var RV_ROOT does not point to a valid dir! Exiting!)
 endif
 
 # Allow snapshot override
-ifeq ($(strip $(snapshot)),)
-	snapshot = default
-endif
+target = default
+snapshot = $(target)
 
 # Allow tool override
 SWERV_CONFIG = ${RV_ROOT}/configs/swerv.config
 IRUN = irun
 VCS = vcs
 VERILATOR = verilator
+VLOG = qverilog
 RIVIERA = riviera
 GCC_PREFIX = riscv64-unknown-elf
+BUILD_DIR = snapshots/${snapshot}
+TBDIR = ${RV_ROOT}/testbench
 
-# Define test name
-ifeq ($(strip $(ASM_TEST)),)
-	ASM_TEST = hello_world2
+# Define default test name
+TEST = hello_world
+
+# Define default test directory
+TEST_DIR = $(TBDIR)/asm
+HEX_DIR = $(TBDIR)/hex
+
+ifdef debug
+ DEBUG_PLUS = +dumpon
+ IRUN_DEBUG = -access +rc
+ IRUN_DEBUG_RUN = -input ${RV_ROOT}/testbench/input.tcl
+ VCS_DEBUG = -debug_access
+ RIVIERA_DEBUG = +access +r
 endif
 
-# Define test name
-ifeq ($(strip $(ASM_TEST_DIR)),)
-	ASM_TEST_DIR = ${RV_ROOT}/testbench/asm
+# provide specific link file
+ifeq (,$(wildcard $(TEST_DIR)/$(TEST).ld))
+	LINK = $(TBDIR)/link.ld
+else
+	LINK = $(TEST_DIR)/$(TEST).ld
 endif
 
-defines = ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh ${RV_ROOT}/design/include/build.h ${RV_ROOT}/design/include/global.h ${RV_ROOT}/design/include/swerv_types.sv 
-includes = -I${RV_ROOT}/design/include -I${RV_ROOT}/design/lib -I${RV_ROOT}/design/dmi -I${RV_ROOT}/configs/snapshots/$(snapshot)
+VPATH = $(TEST_DIR) $(BUILD_DIR) $(TBDIR)
+TBFILES = $(TBDIR)/tb_top.sv $(TBDIR)/ahb_sif.sv
+
+defines = $(BUILD_DIR)/common_defines.vh ${RV_ROOT}/design/include/swerv_types.sv 
+includes = -I${RV_ROOT}/design/include -I${RV_ROOT}/design/lib  -I${BUILD_DIR}
 
 # CFLAGS for verilator generated Makefiles. Without -std=c++11 it complains for `auto` variables
 CFLAGS += "-std=c++11"
 # Optimization for better performance; alternative is nothing for slower runtime (faster compiles)
 # -O2 for faster runtime (slower compiles), or -O for balance.
-VERILATOR_MAKE_FLAGS = OPT_FAST=""
+VERILATOR_MAKE_FLAGS = OPT_FAST="-O2"
 
 # Targets
 all: clean verilator
 
 clean:
-	rm -rf obj_dir *.hex build ${RV_ROOT}/configs/snapshots/$(snapshot) work dataset.asdb  library.cfg
+	rm -rf *.log *.s *.hex *.dis *.tbl irun* vcs* simv* snapshots swerv* \
+	verilator* *.exe obj* *.o ucli.key vc_hdrs.h csrc *.csv \
+	work dataset.asdb  library.cfg
 
-verilator: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
-	echo '`undef ASSERT_ON' >> ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
-	$(VERILATOR) '-UASSERT_ON' --cc -CFLAGS ${CFLAGS} $(defines) $(includes) ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
-		-f ${RV_ROOT}/testbench/flist.verilator --top-module swerv_wrapper
-	$(MAKE) -C obj_dir/ -f Vswerv_wrapper.mk $(VERILATOR_MAKE_FLAGS)
+# If define files do not exist, then run swerv.config.
+${BUILD_DIR}/defines.h :
+	BUILD_PATH=${BUILD_DIR} ${SWERV_CONFIG} -target=$(target) $(CONF_PARAMS)
 
-vcs: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
-	$(VCS) -full64 -assert svaext -sverilog +define+RV_OPENSOURCE +error+500 +incdir+${RV_ROOT}/design/lib +incdir+${RV_ROOT}/design/include \
-		${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
-		+incdir+${RV_ROOT}/design/dmi +incdir+${RV_ROOT}/configs/snapshots/$(snapshot)  +libext+.v ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
-		 $(defines)-f ${RV_ROOT}/testbench/flist.vcs -l vcs.log
-
-irun: ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
-	$(IRUN) -64bit -elaborate -ida -access +rw -q -sv -sysv  -nowarn CUVIHR -nclibdirpath ${PWD} -nclibdirname swerv.build \
-		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh+.h\
-		$(defines)  -incdir ${RV_ROOT}/configs/snapshots/$(snapshot) -f ${RV_ROOT}/testbench/flist.vcs -elaborate  -snapshot default
-
-${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh:
-	$(SWERV_CONFIG) -snapshot=$(snapshot)
-
-riviera:
-	vlib work
-	vlog -work work +define+RV_OPENSOURCE \
-		+incdir+${RV_ROOT}/design/lib/ +incdir+${RV_ROOT}/design/include/ +incdir+${RV_ROOT}/design/dmi/ +incdir+${RV_ROOT}/configs/snapshots/default/ +incdir+${RV_ROOT}/testbench/ \
-		+libext+.v ${RV_ROOT}/configs/snapshots/default/common_defines.vh ${RV_ROOT}/design/include/build.h ${RV_ROOT}/design/include/global.h ${RV_ROOT}/design/include/swerv_types.sv		\
-		 -f ${RV_ROOT}/testbench/flist.riviera \
-		 ${RV_ROOT}/testbench/tb_top.sv	 ${RV_ROOT}/testbench/ahb_sif.sv \
-		 -err VCP2694 W1 
-
-verilator-run: program.hex
-	snapshot=ahb_lite
-	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
-	echo '`undef ASSERT_ON' >> ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
-	$(VERILATOR) '-UASSERT_ON' --cc -CFLAGS ${CFLAGS} $(defines) $(includes) ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
-		${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench \
-		-f ${RV_ROOT}/testbench/flist.verilator --top-module tb_top -exe test_tb_top.cpp --trace --autoflush
+verilator-build: ${TBFILES} ${BUILD_DIR}/defines.h test_tb_top.cpp
+	echo '`undef ASSERT_ON' >> ${BUILD_DIR}/common_defines.vh
+	$(VERILATOR) '-UASSERT_ON' --cc -CFLAGS ${CFLAGS} $(defines) $(includes) \
+                -Wno-UNOPTFLAT \
+                -I${RV_ROOT}/testbench \
+		-f ${RV_ROOT}/testbench/flist \
+                ${TBFILES} \
+                --top-module tb_top -exe test_tb_top.cpp --trace --autoflush
 	cp ${RV_ROOT}/testbench/test_tb_top.cpp obj_dir/
 	$(MAKE) -C obj_dir/ -f Vtb_top.mk $(VERILATOR_MAKE_FLAGS)
-	./obj_dir/Vtb_top
+	touch verilator-build
 
-irun-run: program.hex
-	snapshot=ahb_lite
-	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
-	$(IRUN) -64bit -ida -access +rw -q -sv -sysv  -nowarn CUVIHR -nclibdirpath ${PWD} -nclibdirname swerv.build \
-		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${RV_ROOT}/design/dmi -vlog_ext +.vh+.h\
-		$(defines) -top tb_top  ${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench ${RV_ROOT}/testbench/ahb_sif.sv\
-		-incdir ${RV_ROOT}/configs/snapshots/$(snapshot) -f ${RV_ROOT}/testbench/flist.vcs -snapshot default
+vcs-build: ${TBFILES} ${BUILD_DIR}/defines.h
+	$(VCS) -full64 -assert svaext -sverilog +error+500 \
+                +incdir+${RV_ROOT}/design/lib \
+                +incdir+${RV_ROOT}/design/include \
+		+incdir+${BUILD_DIR}  +libext+.v\
+		 $(defines) -f ${RV_ROOT}/testbench/flist\
+		 ${TBFILES} \
+		 -l vcs_compile.log
+	touch vcs-build
 
-vcs-run: program.hex
-	snapshot=ahb_lite
-	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
-	cp ${RV_ROOT}/testbench/hex/*.hex .
-	$(VCS) -full64 -assert svaext -sverilog +define+RV_OPENSOURCE +error+500 +incdir+${RV_ROOT}/design/lib +incdir+${RV_ROOT}/design/include \
-		${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh \
-		+incdir+${RV_ROOT}/design/dmi +incdir+${RV_ROOT}/configs/snapshots/$(snapshot)  +libext+.v  \
-		$(defines) -f ${RV_ROOT}/testbench/flist.vcs ${RV_ROOT}/testbench/tb_top.sv -I${RV_ROOT}/testbench ${RV_ROOT}/testbench/ahb_sif.sv -l vcs.log
-	./simv
+irun-build: ${TBFILES} ${BUILD_DIR}/defines.h
+	$(IRUN) -64bit -elaborate $(IRUN_DEBUG) -q -sv -sysv  -nowarn CUVIHR -nclibdirpath . -nclibdirname swerv.build \
+		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${BUILD_DIR} -vlog_ext +.vh+.h\
+		$(defines)  -f ${RV_ROOT}/testbench/flist\
+		-top tb_top  ${TBFILES} -I${RV_ROOT}/testbench \
+		 -elaborate  -snapshot $(snapshot)
+	touch irun-build
 
-riviera-run: program.hex
-	snapshot=ahb_lite
-	$(SWERV_CONFIG) -snapshot=$(snapshot) -ahb_lite
-	vsim -lib work -c +access +r tb_top -do "run -all; exit"
-program.hex: $(ASM_TEST_DIR)/$(ASM_TEST).s ${RV_ROOT}/configs/snapshots/$(snapshot)/common_defines.vh
-	@echo Building $(ASM_TEST)
-ifeq ($(shell which $(GCC_PREFIX)-as),)
-	@echo " !!! No $(GCC_PREFIX)-as in path, using canned hex files !!"
-	cp ${RV_ROOT}/testbench/hex/*.hex .
+riviera-build: ${TBFILES} ${BUILD_DIR}/defines.h
+	vlib work
+	vlog -work work \
+		-l riviera_compile.log -err VCP2694 W1 \
+		+incdir+${RV_ROOT}/design/lib \
+		+incdir+${RV_ROOT}/design/include \
+		+incdir+${BUILD_DIR} +libext+.v $(defines) \
+		-f ${RV_ROOT}/testbench/flist \
+		${TBFILES}
+	touch riviera-build
+
+verilator: program.hex verilator-build
+	./obj_dir/Vtb_top ${DEBUG_PLUS}
+
+irun: program.hex irun-build
+	$(IRUN) -64bit -abvglobalfailurelimit 1 +lic_queue -licqueue -status -nclibdirpath . -nclibdirname swerv.build \
+		 -snapshot ${snapshot} -r ${snapshot} $(IRUN_DEBUG_RUN)
+
+vcs: program.hex vcs-build
+	./simv $(DEBUG_PLUS) +vcs+lic+wait -l vcs.log
+        
+vlog: program.hex ${TBFILES} ${BUILD_DIR}/defines.h
+	$(VLOG) -l vlog.log -sv -mfcu +incdir+${BUILD_DIR}+${RV_ROOT}/design/include+${RV_ROOT}/design/lib\
+        $(defines) -f ${RV_ROOT}/testbench/flist ${TBFILES} -R ${DEBUG_PLUS}
+
+riviera: program.hex riviera-build
+	vsim -c -lib work ${DEBUG_PLUS} ${RIVIERA_DEBUG} tb_top -do "run -all; exit" -l riviera.log
+
+ifeq ($(shell which $(GCC_PREFIX)-gcc 2> /dev/null),)
+program.hex: ${BUILD_DIR}/defines.h
+	@echo " !!! No $(GCC_PREFIX)-gcc in path, using canned hex files !!"
+	cp ${HEX_DIR}/$(TEST).program.hex program.hex
+	cp ${HEX_DIR}/$(TEST).data.hex data.hex
 else
-	cp $(ASM_TEST_DIR)/$(ASM_TEST).s .
-	$(GCC_PREFIX)-cpp   -I${RV_ROOT}/configs/snapshots/$(snapshot)  $(ASM_TEST).s  > $(ASM_TEST).cpp.s
-	$(GCC_PREFIX)-as -march=rv32imc $(ASM_TEST).cpp.s -o $(ASM_TEST).o
-	$(GCC_PREFIX)-ld -m elf32lriscv --discard-none -T${RV_ROOT}/testbench/link.ld -o $(ASM_TEST).exe $(ASM_TEST).o
-	$(GCC_PREFIX)-objcopy -O verilog --only-section ".data*" --only-section ".rodata*" $(ASM_TEST).exe data.hex
-	$(GCC_PREFIX)-objcopy -O verilog --only-section ".text*" --set-start=0x0 $(ASM_TEST).exe program.hex
-	$(GCC_PREFIX)-objdump -dS $(ASM_TEST).exe > $(ASM_TEST).dis
-	$(GCC_PREFIX)-nm -f posix -C $(ASM_TEST).exe > $(ASM_TEST).tbl
-	@echo Completed building $(ASM_TEST)
+ifneq (,$(wildcard $(TEST_DIR)/$(TEST).makefile))
+program.hex:
+	$(MAKE) -f $(TEST_DIR)/$(TEST).makefile
+else
+program.hex: $(TEST).o $(LINK)
+	@echo Building $(TEST)
+	$(GCC_PREFIX)-ld -m elf32lriscv --discard-none -T$(LINK) -o $(TEST).exe $(TEST).o
+	$(GCC_PREFIX)-objcopy -O verilog --only-section ".data*" --change-section-lma .data=0 $(TEST).exe data.hex
+	$(GCC_PREFIX)-objcopy -O verilog --only-section ".text*"  $(TEST).exe program.hex
+	$(GCC_PREFIX)-objdump -S  $(TEST).exe > $(TEST).dis
+	$(GCC_PREFIX)-nm -f posix -C $(TEST).exe > $(TEST).tbl
+	@echo Completed building $(TEST)
+
+%.o : %.s ${BUILD_DIR}/defines.h
+	$(GCC_PREFIX)-cpp -I${BUILD_DIR}  $<  > $(TEST).cpp.s
+	$(GCC_PREFIX)-as -march=rv32gc $(TEST).cpp.s -o $(TEST).o
+
+TEST_CFLAGS = -g -O3 -funroll-all-loops
+ABI = -mabi=ilp32 -march=rv32imc
+
+%.o : %.c ${BUILD_DIR}/defines.h
+	$(GCC_PREFIX)-gcc -I${BUILD_DIR} ${TEST_CFLAGS} ${ABI} -nostdlib -c $< -o $@	
 endif
-	
+endif
+
 help:
 	@echo Make sure the environment variable RV_ROOT is set.
-	@echo Possible targets: verilator vcs irun help clean all verilator-run irun-run vcs-run program.hex
+	@echo Possible targets: verilator vcs irun vlog riviera help clean all verilator-build irun-build vcs-build riviera-build program.hex
 
-.PHONY: help clean verilator vcs irun riviera verilator-run irun-run  vcs-run riviera-run
+.PHONY: help clean verilator vcs irun vlog riviera 

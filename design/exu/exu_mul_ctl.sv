@@ -59,7 +59,7 @@ module exu_mul_ctl
    assign mul_c1_e2_clken        = (valid_e1 | clk_override) & ~freeze;
    assign mul_c1_e3_clken        = (valid_e2 | clk_override) & ~freeze;
 
-   // C1 - 1 clock pulse for data 
+   // C1 - 1 clock pulse for data
    rvclkhdr exu_mul_c1e1_cgc     (.*, .en(mul_c1_e1_clken),   .l1clk(exu_mul_c1_e1_clk));
    rvclkhdr exu_mul_c1e2_cgc     (.*, .en(mul_c1_e2_clken),   .l1clk(exu_mul_c1_e2_clk));
    rvclkhdr exu_mul_c1e3_cgc     (.*, .en(mul_c1_e3_clken),   .l1clk(exu_mul_c1_e3_clk));

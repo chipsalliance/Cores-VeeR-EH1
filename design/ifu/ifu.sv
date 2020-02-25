@@ -30,9 +30,9 @@ module ifu
 
    input logic dec_ib3_valid_d, dec_ib2_valid_d, // mass balance for decode buffer
 
-   input logic dec_ib0_valid_eff_d,   // effective valid taking decode into account 
-   input logic dec_ib1_valid_eff_d,   // effective valid taking decode into account 
-   
+   input logic dec_ib0_valid_eff_d,   // effective valid taking decode into account
+   input logic dec_ib1_valid_eff_d,   // effective valid taking decode into account
+
    input logic        exu_i0_br_ret_e4, // i0 branch commit is a ret
    input logic        exu_i1_br_ret_e4, // i1 branch commit is a ret
    input logic        exu_i0_br_call_e4, // i0 branch commit is a call
@@ -49,8 +49,8 @@ module ifu
    input logic [31:0]  dec_tlu_mrac_ff ,// Side_effect , cacheable for each region
    input logic         dec_tlu_fence_i_wb, // fence.i, invalidate icache, validated with exu_flush_final
    input logic         dec_tlu_flush_leak_one_wb, // ignore bp for leak one fetches
-  
-   input logic                       dec_tlu_bpred_disable, // disable all branch prediction          
+
+   input logic                       dec_tlu_bpred_disable, // disable all branch prediction
    input logic                       dec_tlu_core_ecc_disable,  // disable ecc checking and flagging
 
    // AXI Write Channels - IFU never writes. So, 0 out mostly
@@ -66,19 +66,19 @@ module ifu
    output logic [3:0]                     ifu_axi_awcache,
    output logic [2:0]                     ifu_axi_awprot,
    output logic [3:0]                     ifu_axi_awqos,
-                                           
-   output logic                           ifu_axi_wvalid,                                       
+
+   output logic                           ifu_axi_wvalid,
    input  logic                           ifu_axi_wready,
    output logic [63:0]                    ifu_axi_wdata,
    output logic [7:0]                     ifu_axi_wstrb,
    output logic                           ifu_axi_wlast,
-                                           
+
    input  logic                           ifu_axi_bvalid,
    output logic                           ifu_axi_bready,
    input  logic [1:0]                     ifu_axi_bresp,
    input  logic [`RV_IFU_BUS_TAG-1:0]     ifu_axi_bid,
-                                           
-   // AXI Read Channels                    
+
+   // AXI Read Channels
    output logic                           ifu_axi_arvalid,
    input  logic                           ifu_axi_arready,
    output logic [`RV_IFU_BUS_TAG-1:0]     ifu_axi_arid,
@@ -91,7 +91,7 @@ module ifu
    output logic [3:0]                     ifu_axi_arcache,
    output logic [2:0]                     ifu_axi_arprot,
    output logic [3:0]                     ifu_axi_arqos,
-                                           
+
    input  logic                           ifu_axi_rvalid,
    output logic                           ifu_axi_rready,
    input  logic [`RV_IFU_BUS_TAG-1:0]     ifu_axi_rid,
@@ -100,101 +100,101 @@ module ifu
    input  logic                           ifu_axi_rlast,
 
  //// AHB LITE BUS
-//`ifdef RV_BUILD_AHB_LITE 
+//`ifdef RV_BUILD_AHB_LITE
    input  logic                      ifu_bus_clk_en,
 
 
-   input  logic                      dma_iccm_req, 
-   input  logic                      dma_iccm_stall_any, 
+   input  logic                      dma_iccm_req,
+   input  logic                      dma_iccm_stall_any,
    input  logic [31:0]               dma_mem_addr,
    input  logic [2:0]                dma_mem_sz,
    input  logic                      dma_mem_write,
    input  logic [63:0]               dma_mem_wdata,
-                                     
-   output logic                      iccm_dma_ecc_error,                 
-   output logic                      iccm_dma_rvalid,            
+
+   output logic                      iccm_dma_ecc_error,
+   output logic                      iccm_dma_rvalid,
    output logic [63:0]               iccm_dma_rdata,
    output logic                      iccm_ready,
 
-//`endif   
+//`endif
 
    output logic [1:0] ifu_pmu_instr_aligned,
    output logic       ifu_pmu_align_stall,
    output logic       ifu_pmu_fetch_stall,
-   
-//   I$ & ITAG Ports   
-   output logic [31:3]               ic_rw_addr,         // Read/Write addresss to the Icache.   
+
+//   I$ & ITAG Ports
+   output logic [31:3]               ic_rw_addr,         // Read/Write addresss to the Icache.
    output logic [3:0]                ic_wr_en,           // Icache write enable, when filling the Icache.
    output logic                      ic_rd_en,           // Icache read  enable.
 `ifdef RV_ICACHE_ECC
    output logic [83:0]               ic_wr_data,         // Data to fill to the Icache. With ECC
    input  logic [167:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With ECC
-   input  logic [24:0]               ictag_debug_rd_data,// Debug icache tag. 
-   output logic [41:0]               ic_debug_wr_data,   // Debug wr cache. 
+   input  logic [24:0]               ictag_debug_rd_data,// Debug icache tag.
+   output logic [41:0]               ic_debug_wr_data,   // Debug wr cache.
    output logic [41:0]               ifu_ic_debug_rd_data,
-`else 
+`else
    output logic [67:0]               ic_wr_data,         // Data to fill to the Icache. With Parity
    input  logic [135:0]              ic_rd_data ,        // Data read from Icache. 2x64bits + parity bits. F2 stage. With Parity
-   input  logic [20:0]               ictag_debug_rd_data,// Debug icache tag. 
-   output logic [33:0]               ic_debug_wr_data,   // Debug wr cache. 
+   input  logic [20:0]               ictag_debug_rd_data,// Debug icache tag.
+   output logic [33:0]               ic_debug_wr_data,   // Debug wr cache.
    output logic [33:0]               ifu_ic_debug_rd_data,
 `endif
 
 
-   output logic [127:0]              ic_premux_data,     // Premux data to be muxed with each way of the Icache. 
+   output logic [127:0]              ic_premux_data,     // Premux data to be muxed with each way of the Icache.
    output logic                      ic_sel_premux_data, // Select the premux data.
 
-   output logic [15:2]               ic_debug_addr,      // Read/Write addresss to the Icache.   
+   output logic [15:2]               ic_debug_addr,      // Read/Write addresss to the Icache.
    output logic                      ic_debug_rd_en,     // Icache debug rd
    output logic                      ic_debug_wr_en,     // Icache debug wr
    output logic                      ic_debug_tag_array, // Debug tag array
    output logic [3:0]                ic_debug_way,       // Debug way. Rd or Wr.
 
 
-   output logic [3:0]                ic_tag_valid,       // Valid bits when accessing the Icache. One valid bit per way. F2 stage 
-                                     
-   input  logic [3:0]                ic_rd_hit,          // Compare hits from Icache tags. Per way.  F2 stage 
+   output logic [3:0]                ic_tag_valid,       // Valid bits when accessing the Icache. One valid bit per way. F2 stage
+
+   input  logic [3:0]                ic_rd_hit,          // Compare hits from Icache tags. Per way.  F2 stage
    input  logic                      ic_tag_perr,        // Icache Tag parity error
 
 
 `ifdef RV_ICCM_ENABLE
-   // ICCM ports                     
+   // ICCM ports
    output logic [`RV_ICCM_BITS-1:2]               iccm_rw_addr,       // ICCM read/write address.
    output logic                      iccm_wren,          // ICCM write enable (through the DMA)
    output logic                      iccm_rden,          // ICCM read enable.
    output logic [77:0]               iccm_wr_data,       // ICCM write data.
-   output logic [2:0]                iccm_wr_size,       // ICCM write location within DW. 
-                                     
+   output logic [2:0]                iccm_wr_size,       // ICCM write location within DW.
+
    input  logic [155:0]              iccm_rd_data,       // Data read from ICCM.
 `endif
 
 // Perf counter sigs
    output logic       ifu_pmu_ic_miss, // ic miss
-   output logic       ifu_pmu_ic_hit, // ic hit 
+   output logic       ifu_pmu_ic_hit, // ic hit
    output logic       ifu_pmu_bus_error, // iside bus error
    output logic       ifu_pmu_bus_busy,  // iside bus busy
    output logic       ifu_pmu_bus_trxn, // iside bus transactions
 
 
-   output logic  ifu_i0_valid,        // Instruction 0 valid. From Aligner to Decode 
-   output logic  ifu_i1_valid,        // Instruction 1 valid. From Aligner to Decode 
+   output logic  ifu_i0_valid,        // Instruction 0 valid. From Aligner to Decode
+   output logic  ifu_i1_valid,        // Instruction 1 valid. From Aligner to Decode
    output logic  ifu_i0_icaf,         // Instruction 0 access fault. From Aligner to Decode
-   output logic  ifu_i1_icaf,         // Instruction 1 access fault. From Aligner to Decode 
+   output logic  ifu_i1_icaf,         // Instruction 1 access fault. From Aligner to Decode
    output logic  ifu_i0_icaf_f1,      // Instruction 0 has access fault on second fetch group
    output logic  ifu_i1_icaf_f1,      // Instruction 1 has access fault on second fetch group
    output logic  ifu_i0_perr,         // Instruction 0 parity error. From Aligner to Decode
-   output logic  ifu_i1_perr,         // Instruction 1 parity error. From Aligner to Decode 
+   output logic  ifu_i1_perr,         // Instruction 1 parity error. From Aligner to Decode
    output logic  ifu_i0_sbecc,        // Instruction 0 has single bit ecc error
    output logic  ifu_i1_sbecc,        // Instruction 1 has single bit ecc error
    output logic  ifu_i0_dbecc,        // Instruction 0 has double bit ecc error
    output logic  ifu_i1_dbecc,        // Instruction 1 has double bit ecc error
    output logic  iccm_dma_sb_error,   // Single Bit ECC error from a DMA access
    output logic[31:0] ifu_i0_instr,   // Instruction 0 . From Aligner to Decode
-   output logic[31:0] ifu_i1_instr,   // Instruction 1 . From Aligner to Decode 
-   output logic[31:1] ifu_i0_pc,      // Instruction 0 pc. From Aligner to Decode 
+   output logic[31:0] ifu_i1_instr,   // Instruction 1 . From Aligner to Decode
+   output logic[31:1] ifu_i0_pc,      // Instruction 0 pc. From Aligner to Decode
    output logic[31:1] ifu_i1_pc,      // Instruction 1 pc. From Aligner to Decode
    output logic ifu_i0_pc4,           // Instruction 0 is 4 byte. From Aligner to Decode
-   output logic ifu_i1_pc4,           // Instruction 1 is 4 byte. From Aligner to Decode 
+   output logic ifu_i1_pc4,           // Instruction 1 is 4 byte. From Aligner to Decode
    output logic [15:0] ifu_illegal_inst, // Illegal instruction.
 
    output logic ifu_miss_state_idle,   // There is no outstanding miss. Cache miss state is idle.
@@ -209,7 +209,7 @@ module ifu
    input br_tlu_pkt_t dec_tlu_br0_wb_pkt, // slot0 update/error pkt
    input br_tlu_pkt_t dec_tlu_br1_wb_pkt, // slot1 update/error pkt
    input dec_tlu_flush_lower_wb,
-   
+
    input rets_pkt_t exu_rets_e1_pkt, // E1 return stack packet
    input rets_pkt_t exu_rets_e4_pkt, // E4 return stack packet
 
@@ -225,13 +225,13 @@ module ifu
    output logic [15:0] ifu_i1_cinst,
 
 
-/// Icache debug 
+/// Icache debug
    input  cache_debug_pkt_t        dec_tlu_ic_diag_pkt ,
    output logic                    ifu_ic_debug_rd_data_valid,
- 
 
 
-   input logic scan_mode   
+
+   input logic scan_mode
    );
 
    localparam TAGWIDTH = 2 ;
@@ -245,7 +245,7 @@ module ifu
    logic [31:1]  ifu_fetch_pc;   // starting pc of fetch
 
    logic [31:1] ifc_fetch_addr_f1;
-   
+
    logic        ic_crit_wd_rdy;
    logic        ic_write_stall;
    logic        ic_dma_active;
@@ -255,9 +255,9 @@ module ifu
    logic        ic_access_fault_f2;
    logic        ifu_ic_mb_empty;
 
-   
+
    logic ic_hit_f2;
-   
+
    // fetch control
    ifu_ifc_ctl ifc (.*
                     );
@@ -278,42 +278,42 @@ module ifu
    logic [7:0]  ifu_bp_pc4_f2; // pc4 indication; right justified
    logic [7:0]  ifu_bp_valid_f2; // branch valid, right justified
    logic [`RV_BHT_GHR_RANGE] ifu_bp_fghr_f2;
-   
+
    // branch predictor
    ifu_bp_ctl bp (.*);
 
-   
+
    logic [7:0]   ic_fetch_val_f2;
    logic [127:0] ic_data_f2;
    logic [127:0] ifu_fetch_data;
    logic ifc_fetch_req_f1_raw, ifc_fetch_req_f1, ifc_fetch_req_f2;
-   logic ic_rd_parity_final_err;  // This fetch has a  data_cache or tag  parity error. 
-   logic iccm_rd_ecc_single_err;  // This fetch has an iccm single error. 
+   logic ic_rd_parity_final_err;  // This fetch has a  data_cache or tag  parity error.
+   logic iccm_rd_ecc_single_err;  // This fetch has an iccm single error.
    logic iccm_rd_ecc_double_err;  // This fetch has an iccm double error.
 
    icache_err_pkt_t ic_error_f2;
-   
+
    logic         ifu_icache_fetch_f2 ;
    logic [16:2]  ifu_icache_error_index;       //  Index with parity error
-   logic         ifu_icache_error_val;   //  Parity error 
+   logic         ifu_icache_error_val;   //  Parity error
    logic         ifu_icache_sb_error_val;
 
    assign ifu_fetch_data[127:0] = ic_data_f2[127:0];
    assign ifu_fetch_val[7:0] = ic_fetch_val_f2[7:0];
    assign ifu_fetch_pc[31:1] = ifc_fetch_addr_f2[31:1];
-   
+
    // aligner
    ifu_aln_ctl aln (.*);
 
    // icache
-   ifu_mem_ctl mem_ctl  
+   ifu_mem_ctl mem_ctl
      (.*,
       .fetch_addr_f1(ifc_fetch_addr_f1),
-      .ifu_icache_error_index(ifu_icache_error_index[16:6]),  
+      .ifu_icache_error_index(ifu_icache_error_index[16:6]),
       .ic_hit_f2(ic_hit_f2),
       .ic_data_f2(ic_data_f2[127:0])
       );
-   
+
 
 
    // Performance debug info
@@ -371,26 +371,26 @@ assign tmp_bnk[2:0] = encode8_3(bp.btb_sel_f2[7:0]);
          `endif
          $display("RS_CONFIG: %d", `RV_RET_STACK_SIZE);
       end
-       if(exu_flush_final & ~(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error | dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error) & (exu_mp_pkt.misp | exu_mp_pkt.ataken)) 
+       if(exu_flush_final & ~(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error | dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error) & (exu_mp_pkt.misp | exu_mp_pkt.ataken))
          $display("%7d BTB_MP  : index: %0h bank: %0h call: %b ret: %b ataken: %b hist: %h valid: %b tag: %h targ: %h eghr: %b pred: %b ghr_index: %h brpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha, exu_mp_addr[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO], exu_mp_bank[1:0], exu_mp_call, exu_mp_ret, exu_mp_ataken, exu_mp_hist[1:0], exu_mp_valid, exu_mp_pkt.btag[`RV_BTB_BTAG_SIZE-1:0], {exu_flush_path_final[31:1], 1'b0}, exu_mp_eghr[`RV_BHT_GHR_RANGE], exu_mp_valid, bp.bht_wr_addr0, mppc[31:0], exu_mp_pkt.way);
      for(int i = 0; i < 8; i++) begin
-      if(ifu_bp_valid_f2[i] & ifc_fetch_req_f2) 
+      if(ifu_bp_valid_f2[i] & ifc_fetch_req_f2)
         $display("%7d BTB_HIT : index: %0h bank: %0h call: %b ret: %b taken: %b strength: %b tag: %h targ: %h ghr: %4b ghr_index: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,btb_rd_addr_f2[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],encode8_3(bp.btb_sel_f2[7:0]), bp.btb_rd_call_f2, bp.btb_rd_ret_f2, ifu_bp_hist1_f2[tmp_bnk], ifu_bp_hist0_f2[tmp_bnk], bp.fetch_rd_tag_f2[`RV_BTB_BTAG_SIZE-1:0], {ifu_bp_btb_target_f2[31:1], 1'b0}, bp.fghr[`RV_BHT_GHR_RANGE], bp.bht_rd_addr_f1, ifu_bp_way_f2[tmp_bnk]);
      end
 `ifdef RV_BTB_48
       for(int y = 0; y < 4; y++) begin
          for(int z = 0; z < 4; z++) begin
             if(bp.lru_bank_sel[y][z])
-              $display("%7d BTB_LRU: index: %0h bank: %0h newlru %h", `DEC.tlu.mcyclel[31:0]+32'ha, z,y,bp.lru_bank_wr_data[y][z]);     
+              $display("%7d BTB_LRU: index: %0h bank: %0h newlru %h", `DEC.tlu.mcyclel[31:0]+32'ha, z,y,bp.lru_bank_wr_data[y][z]);
          end
       end
-`endif      
+`endif
       if(dec_tlu_br0_wb_pkt.valid & ~(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error))
-        $display("%7d BTB_UPD0: ghr_index: %0h bank: %0h hist: %h  way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,bp.br0_hashed_wb[`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO],{dec_tlu_br0_wb_pkt.bank[1:0],dec_tlu_br0_wb_pkt.middle}, dec_tlu_br0_wb_pkt.hist, dec_tlu_br0_wb_pkt.way); 
+        $display("%7d BTB_UPD0: ghr_index: %0h bank: %0h hist: %h  way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,bp.br0_hashed_wb[`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO],{dec_tlu_br0_wb_pkt.bank[1:0],dec_tlu_br0_wb_pkt.middle}, dec_tlu_br0_wb_pkt.hist, dec_tlu_br0_wb_pkt.way);
       if(dec_tlu_br1_wb_pkt.valid & ~(dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error))
-        $display("%7d BTB_UPD1: ghr_index: %0h bank: %0h hist: %h  way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,bp.br1_hashed_wb[`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO],{dec_tlu_br1_wb_pkt.bank[1:0],dec_tlu_br1_wb_pkt.middle}, dec_tlu_br1_wb_pkt.hist, dec_tlu_br1_wb_pkt.way); 
+        $display("%7d BTB_UPD1: ghr_index: %0h bank: %0h hist: %h  way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,bp.br1_hashed_wb[`RV_BHT_ADDR_HI:`RV_BHT_ADDR_LO],{dec_tlu_br1_wb_pkt.bank[1:0],dec_tlu_br1_wb_pkt.middle}, dec_tlu_br1_wb_pkt.hist, dec_tlu_br1_wb_pkt.way);
       if(dec_tlu_br0_wb_pkt.br_error | dec_tlu_br0_wb_pkt.br_start_error)
-        $display("%7d BTB_ERR0: index: %0h bank: %0h start: %b rfpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,dec_tlu_br0_wb_pkt.index[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],dec_tlu_br0_wb_pkt.bank[1:0], dec_tlu_br0_wb_pkt.br_start_error, {exu_flush_path_final[31:1], 1'b0}, dec_tlu_br0_wb_pkt.way);  
+        $display("%7d BTB_ERR0: index: %0h bank: %0h start: %b rfpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,dec_tlu_br0_wb_pkt.index[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],dec_tlu_br0_wb_pkt.bank[1:0], dec_tlu_br0_wb_pkt.br_start_error, {exu_flush_path_final[31:1], 1'b0}, dec_tlu_br0_wb_pkt.way);
       if(dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error)
         $display("%7d BTB_ERR1: index: %0h bank: %0h start: %b rfpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,dec_tlu_br1_wb_pkt.index[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],dec_tlu_br1_wb_pkt.bank[1:0], dec_tlu_br1_wb_pkt.br_start_error, {exu_flush_path_final[31:1], 1'b0}, dec_tlu_br1_wb_pkt.way);
    end // always @ (negedge clk)
@@ -401,6 +401,6 @@ assign tmp_bnk[2:0] = encode8_3(bp.btb_sel_f2[7:0]);
       encode8_3[1] = in[7] | in[6] | in[3] | in[2];
       encode8_3[0] = in[7] | in[5] | in[3] | in[1];
 
-   endfunction          
+   endfunction
 `endif
 endmodule // ifu

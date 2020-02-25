@@ -116,24 +116,24 @@ c.swsp =        [110...........10]
 c.xor =         [100011...01...01]
 
 
-.input 
+.input
 rv32c = {
-	i[15]
-	i[14]
-	i[13]
-	i[12]
-	i[11]
-	i[10]
-	i[9]
-	i[8]
-	i[7]
-	i[6]
-	i[5]
-	i[4]
-	i[3]
-	i[2]
-	i[1]
-	i[0]
+        i[15]
+        i[14]
+        i[13]
+        i[12]
+        i[11]
+        i[10]
+        i[9]
+        i[8]
+        i[7]
+        i[6]
+        i[5]
+        i[4]
+        i[3]
+        i[2]
+        i[1]
+        i[0]
 }
 
 .output
@@ -145,52 +145,52 @@ rv32c = {
         rdprs1
         rs2prs2
         rs2prd
-	uimm9_2
-	ulwimm6_2
-	ulwspimm7_2
-	rdeq2
-	rdeq1
-	rs1eq2
-	sbroffset8_1
-	simm9_4
-	simm5_0
-	sjaloffset11_1
-	sluimm17_12
-	uimm5_0
-	uswimm6_2
-	uswspimm7_2
-        o[31]           
-        o[30]           
-        o[29]           
-        o[28]           
-        o[27]           
-        o[26]           
-        o[25]           
-        o[24]           
-        o[23]           
-        o[22]           
-        o[21]           
-        o[20]           
-        o[19]           
-        o[18]           
-        o[17]           
-        o[16]           
-        o[15]           
-        o[14]           
-        o[13]           
-        o[12]           
-        o[11]           
-        o[10]           
-        o[9]            
-        o[8]            
-        o[7]            
-        o[6]            
-        o[5]            
-        o[4]            
-        o[3]            
-        o[2]            
-        o[1]            
-        o[0]            
+        uimm9_2
+        ulwimm6_2
+        ulwspimm7_2
+        rdeq2
+        rdeq1
+        rs1eq2
+        sbroffset8_1
+        simm9_4
+        simm5_0
+        sjaloffset11_1
+        sluimm17_12
+        uimm5_0
+        uswimm6_2
+        uswspimm7_2
+        o[31]
+        o[30]
+        o[29]
+        o[28]
+        o[27]
+        o[26]
+        o[25]
+        o[24]
+        o[23]
+        o[22]
+        o[21]
+        o[20]
+        o[19]
+        o[18]
+        o[17]
+        o[16]
+        o[15]
+        o[14]
+        o[13]
+        o[12]
+        o[11]
+        o[10]
+        o[9]
+        o[8]
+        o[7]
+        o[6]
+        o[5]
+        o[4]
+        o[3]
+        o[2]
+        o[1]
+        o[0]
       }
 
 #  assign rs2d[4:0] = i[6:2];
@@ -199,7 +199,7 @@ rv32c = {
 #
 #   assign rdpd[4:0] = {2'b01, i[9:7]};
 #
-#   assign rs2pd[4:0] = {2'b01, i[4:2]};  
+#   assign rs2pd[4:0] = {2'b01, i[4:2]};
 
 .decode
 
