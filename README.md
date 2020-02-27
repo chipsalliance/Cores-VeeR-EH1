@@ -142,9 +142,9 @@ make -f $RV_ROOT/tools/Makefile [<simulator>] [debug=1] [snapshot=<snapshot>] [t
 
 where:
 
-<simulator> -  can be 'verilator' (by default) 'irun' - Cadence xrun, 'vcs' - Synopsys VCS, 'vlog' Mentor Questa
-               if not provided, 'make' cleans work directory, builds verilator executable and runs a test.
-debug=1     -  allows VCD generation for verilator and VCS and SHM waves for irun option.
+<simulator> -  can be 'verilator' (by default) 'irun' - Cadence xrun, 'vcs' - Synopsys VCS, 'vlog' Mentor Questa,
+               'riviera' - Aldec Riviera-PRO if not provided, 'make' cleans work directory, builds verilator executable and runs a test.
+debug=1     -  allows VCD generation for verilator, VCS and Riviera-PRO and SHM waves for irun option.
 <target>    -  predefined CPU configurations 'default' ( by default), 'default_ahb', 'default_pd', 'high_perf'
 TEST        -  allows to run a C (<test>.c) or assembly (<test>.s) test, hello_world is run by default 
 TEST_DIR    -  alternative to test source directory testbench/asm
