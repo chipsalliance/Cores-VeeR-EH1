@@ -23,9 +23,6 @@ is added to the SweRV core.
 * The MSTATUS register was not being updated as expected when both a
   non-maskable-interrupt and an MSTATUS-write happened in the same
   cycle.
-* Write to SBDATA0 was not starting a system-bus write access when
-  sbreadonaddr/sbreadondata is set.
-* Minstret was incorrectly counting ecall/ebreak instructions.
 * The dec_tlu_mpc_halted_only signal was not set for MPC halt after
   reset.
 * The MEPC register was not being updated when a firmware-halt request
