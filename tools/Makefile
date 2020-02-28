@@ -46,6 +46,7 @@ ifdef debug
  IRUN_DEBUG = -access +rc
  IRUN_DEBUG_RUN = -input ${RV_ROOT}/testbench/input.tcl
  VCS_DEBUG = -debug_access
+ VERILATOR_DEBUG = --trace
  RIVIERA_DEBUG = +access +r
 endif
 
@@ -87,7 +88,8 @@ verilator-build: ${TBFILES} ${BUILD_DIR}/defines.h test_tb_top.cpp
                 -I${RV_ROOT}/testbench \
 		-f ${RV_ROOT}/testbench/flist \
                 ${TBFILES} \
-                --top-module tb_top -exe test_tb_top.cpp --trace --autoflush
+                --top-module tb_top -exe test_tb_top.cpp --autoflush \
+		$(VERILATOR_DEBUG)
 	cp ${RV_ROOT}/testbench/test_tb_top.cpp obj_dir/
 	$(MAKE) -C obj_dir/ -f Vtb_top.mk $(VERILATOR_MAKE_FLAGS)
 	touch verilator-build
@@ -130,7 +132,7 @@ irun: program.hex irun-build
 
 vcs: program.hex vcs-build
 	./simv $(DEBUG_PLUS) +vcs+lic+wait -l vcs.log
-        
+
 vlog: program.hex ${TBFILES} ${BUILD_DIR}/defines.h
 	$(VLOG) -l vlog.log -sv -mfcu +incdir+${BUILD_DIR}+${RV_ROOT}/design/include+${RV_ROOT}/design/lib\
         $(defines) -f ${RV_ROOT}/testbench/flist ${TBFILES} -R ${DEBUG_PLUS}
@@ -173,4 +175,4 @@ help:
 	@echo Make sure the environment variable RV_ROOT is set.
 	@echo Possible targets: verilator vcs irun vlog riviera help clean all verilator-build irun-build vcs-build riviera-build program.hex
 
-.PHONY: help clean verilator vcs irun vlog riviera 
+.PHONY: help clean verilator vcs irun vlog riviera

@@ -47,23 +47,33 @@ int main(int argc, char** argv) {
   Vtb_top* tb = new Vtb_top;
 
   // init trace dump
-  Verilated::traceEverOn(true);
-  VerilatedVcdC* tfp = new VerilatedVcdC;
-  tb->trace (tfp, 24);
-  if (dumpWaves)
+  VerilatedVcdC* tfp = NULL;
+  if (dumpWaves) {
+#if VM_TRACE
+    tfp = new VerilatedVcdC;
+    Verilated::traceEverOn(true);
+    tb->trace (tfp, 24);
     tfp->open ("sim.vcd");
+#else
+    std::cout << "\nVerilatorTB: +dumpon but model not compiled with --trace" << std::endl;
+#endif
+  }
 
   // Simulate
   while(!Verilated::gotFinish()){
+#if VM_TRACE
       if (dumpWaves)
         tfp->dump (main_time);
+#endif
       main_time += 5;
       tb->core_clk = !tb->core_clk;
       tb->eval();
   }
 
+#if VM_TRACE
   if (dumpWaves)
     tfp->close();
+#endif
 
   std::cout << "\nVerilatorTB: End of sim" << std::endl;
   exit(EXIT_SUCCESS);
