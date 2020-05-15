@@ -1,3 +1,10 @@
+# SweRV RISC-V Core<sup>TM</sup> 1.6 from Western Digital
+## Release Notes
+
+* Added internal timers support. Please see Chapter 4 of the RISC-V SweRV EH1<sup>TM</sup> Programmers Reference Manual.
+* Fixed an openOCD compliance case with abstract command error codes.
+
+
 # SweRV RISC-V Core<sup>TM</sup> 1.5 from Western Digital
 ## Release Notes
 
@@ -6,11 +13,12 @@ This is a bug-fix and performance-improvement release.  No new functionality
 is added to the SweRV core.
 
 
-1. Bug fixes:
+##### 1. Bug fixes:
 
 * Hart incorrectly cleared dmcontrol.dmactive on reset (reported by
-  Codasip).  Note that a separate system power-on-reset signal `dbg_rst_l`
+  Codasip). *Note that a separate system power-on-reset signal `dbg_rst_l`
   was added to differentiate power-on-reset vs core reset. 
+  They can be tied together is there is a single reset on chip.*
 * Hart never asserted the dmstatus.allrunning signal on reset which
   caused a timeout in OpenOCD (reported by Codasip).
 * Debug module failed to auto-increment register on system-bus access
@@ -23,6 +31,9 @@ is added to the SweRV core.
 * The MSTATUS register was not being updated as expected when both a
   non-maskable-interrupt and an MSTATUS-write happened in the same
   cycle.
+* Write to SBDATA0 was not starting a system-bus write access when
+  sbreadonaddr/sbreadondata is set.
+* Minstret was incorrectly counting ecall/ebreak instructions.
 * The dec_tlu_mpc_halted_only signal was not set for MPC halt after
   reset.
 * The MEPC register was not being updated when a firmware-halt request
@@ -46,14 +57,14 @@ is added to the SweRV core.
   being corrected in memory.
 
 
-2. Improvements:
+##### 2. Improvements:
 
 * Improved performance by removing redundant term in decode stall
   logic.
 * Reduced power used by the ICCM memory arrays.
 
 
-3. Testbench Improvements:
+##### 3. Testbench Improvements:
 
 * AXI4 and AHB-Lite support.
 * Updated bus memory to be persistent and handle larger programs.
@@ -78,10 +89,10 @@ Move declarations to top of Verilog file to fix fpga compile issues.
 ## Release Notes
 1. SWERV core RISCV compatibility improvements
     * The ebreak and ecall instructions are no longer counted in the MINSRET
-	  control and status register.
+      control and status register.
     * Write to SBDATA0 does not start SB write access when both
-	  sbreadonaddr/sbreadondata are zero. This fixes issue number
-	  5 on github.
+      sbreadonaddr/sbreadondata are zero. This fixes issue number
+      5 on github.
 
 1. FPGA support: Add fpga_optimize option to swerv.config which
    eliminates over 90% of clock-gating enabling faster FPGA
@@ -122,6 +133,6 @@ Move declarations to top of Verilog file to fix fpga compile issues.
 
 1. Added memory protection windows
     
-	* Now able to define up to eight instruction fetch windows and up to eight
-	  data load/store windows. See the programmer reference manual for more
-	  details.
+    * Now able to define up to eight instruction fetch windows and up to eight
+      data load/store windows. See the programmer reference manual for more
+      details.
