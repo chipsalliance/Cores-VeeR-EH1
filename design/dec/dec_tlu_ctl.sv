@@ -276,8 +276,8 @@ module dec_tlu_ctl
    logic mstatus_mie_ns;
    logic [30:0] mtvec_ns, mtvec;
    logic [15:2] dcsr_ns, dcsr;
-   logic [3:0] mip_ns, mip;
-   logic [3:0] mie_ns, mie;
+   logic [5:0] mip_ns, mip;
+   logic [5:0] mie_ns, mie;
    logic [31:0] mcyclel_ns, mcyclel;
    logic [31:0] mcycleh_ns, mcycleh;
    logic [31:0] minstretl_ns, minstretl;
@@ -319,8 +319,8 @@ module dec_tlu_ctl
    logic        ebreak_e4, ebreak_to_debug_mode_e4, ecall_e4, illegal_e4, illegal_e4_qual, mret_e4, inst_acc_e4, fence_i_e4,
                 ic_perr_e4, iccm_sbecc_e4, ebreak_to_debug_mode_wb, kill_ebreak_count_wb, inst_acc_second_e4;
    logic        ebreak_wb, ecall_wb, illegal_wb,  illegal_raw_wb, inst_acc_wb, inst_acc_second_wb, fence_i_wb, ic_perr_wb, iccm_sbecc_wb;
-   logic ce_int_ready, ext_int_ready, timer_int_ready, mhwakeup_ready,
-         take_ext_int, take_ce_int, take_timer_int, take_nmi, take_nmi_wb;
+   logic ce_int_ready, ext_int_ready, timer_int_ready, int_timer0_int_ready, int_timer1_int_ready, mhwakeup_ready,
+         take_ext_int, take_ce_int, take_timer_int, take_int_timer0_int, take_int_timer1_int, take_nmi, take_nmi_wb, int_timer0_int_possible, int_timer1_int_possible;
    logic i0_exception_valid_e4, interrupt_valid, i0_exception_valid_wb, interrupt_valid_wb, exc_or_int_valid, exc_or_int_valid_wb, mdccme_ce_req, miccme_ce_req, mice_ce_req;
    logic synchronous_flush_e4;
    logic [4:0] exc_cause_e4, exc_cause_wb;
@@ -371,9 +371,9 @@ module dec_tlu_ctl
    logic [8:0] mcgc;
    logic [18:0] mfdc;
    logic [13:0] mfdc_int, mfdc_ns;
-   logic i_cpu_halt_req_sync_qual, i_cpu_run_req_sync_qual, pmu_fw_halt_req_ns, pmu_fw_halt_req_f,
+   logic i_cpu_halt_req_sync_qual, i_cpu_run_req_sync_qual, pmu_fw_halt_req_ns, pmu_fw_halt_req_f, int_timer_stalled,
          fw_halt_req, enter_pmu_fw_halt_req, pmu_fw_tlu_halted, pmu_fw_tlu_halted_f, internal_pmu_fw_halt_mode,
-         internal_pmu_fw_halt_mode_f;
+         internal_pmu_fw_halt_mode_f, int_timer0_int_hold, int_timer1_int_hold, int_timer0_int_hold_f, int_timer1_int_hold_f;
    logic dcsr_single_step_running_ff;
    logic nmi_int_delayed, nmi_int_detected;
    logic [3:0] trigger_execute, trigger_data, trigger_store;
@@ -382,6 +382,12 @@ module dec_tlu_ctl
          mpc_debug_halt_ack_f, mpc_debug_run_ack_f, dbg_run_state_f, dbg_halt_state_ff, mpc_debug_halt_req_sync_pulse,
          mpc_debug_run_req_sync_pulse, debug_brkpt_valid, debug_halt_req, debug_resume_req, dec_tlu_mpc_halted_only_ns;
 
+   // internal timer, isolated for size reasons
+   logic [31:0] dec_timer_rddata_d;
+   logic dec_timer_read_d, dec_timer_t0_pulse, dec_timer_t1_pulse;
+
+   dec_timer_ctl int_timers(.*);
+   // end of internal timers
 
    assign clk_override = dec_tlu_dec_clk_override;
 
@@ -426,12 +432,16 @@ module dec_tlu_ctl
    assign nmi_lsu_store_type = (nmi_lsu_detected & lsu_imprecise_error_store_any & ~(nmi_int_detected_f & ~take_nmi_wb)) | (nmi_lsu_store_type_f & ~take_nmi_wb);
 
 `define MSTATUS_MIE 0
-`define MIP_MCEIP 3
+`define MIP_MCEIP 5
+`define MIP_MITIP0 4
+`define MIP_MITIP1 3
 `define MIP_MEIP 2
 `define MIP_MTIP 1
 `define MIP_MSIP 0
 
-`define MIE_MCEIE 3
+`define MIE_MCEIE 5
+`define MIE_MITIE0 4
+`define MIE_MITIE1 3
 `define MIE_MEIE 2
 `define MIE_MTIE 1
 `define MIE_MSIE 0
@@ -558,7 +568,7 @@ module dec_tlu_ctl
    assign dec_tlu_flush_pause_wb = dec_tlu_wr_pause_wb_f & ~interrupt_valid_wb;
 
    // detect end of pause counter and rfpc
-   assign pause_expired_e4 = ~dec_pause_state & dec_pause_state_f & ~(ext_int_ready | ce_int_ready | timer_int_ready | nmi_int_detected) & ~interrupt_valid_wb & ~debug_halt_req_f & ~pmu_fw_halt_req_f & ~halt_taken_f;
+   assign pause_expired_e4 = ~dec_pause_state & dec_pause_state_f & ~(ext_int_ready | ce_int_ready | timer_int_ready | int_timer0_int_hold_f | int_timer1_int_hold_f | nmi_int_detected) & ~interrupt_valid_wb & ~debug_halt_req_f & ~pmu_fw_halt_req_f & ~halt_taken_f;
 
    // stall dma fifo if a fence is pending, decode is waiting for lsu to idle before decoding the fence inst.
    assign dec_tlu_stall_dma = dec_fence_pending;
@@ -688,12 +698,14 @@ module dec_tlu_ctl
    assign i_cpu_halt_req_sync_qual = i_cpu_halt_req_sync & ~dec_tlu_debug_mode;
    assign i_cpu_run_req_sync_qual = i_cpu_run_req_sync & ~dec_tlu_debug_mode & pmu_fw_tlu_halted_f;
 
-   rvdff #(8) exthaltff (.*, .clk(free_clk), .din({i_cpu_halt_req_sync_qual, i_cpu_run_req_sync_qual,   cpu_halt_status,
+   rvdff #(10) exthaltff (.*, .clk(free_clk), .din({i_cpu_halt_req_sync_qual, i_cpu_run_req_sync_qual,   cpu_halt_status,
                                                    cpu_halt_ack,   cpu_run_ack, internal_pmu_fw_halt_mode,
-                                                   pmu_fw_halt_req_ns, pmu_fw_tlu_halted}),
+                                                   pmu_fw_halt_req_ns, pmu_fw_tlu_halted,
+                                                   int_timer0_int_hold, int_timer1_int_hold}),
                                             .dout({i_cpu_halt_req_d1,        i_cpu_run_req_d1_raw,      o_cpu_halt_status,
                                                    o_cpu_halt_ack, o_cpu_run_ack, internal_pmu_fw_halt_mode_f,
-                                                   pmu_fw_halt_req_f, pmu_fw_tlu_halted_f}));
+                                                   pmu_fw_halt_req_f, pmu_fw_tlu_halted_f,
+                                                   int_timer0_int_hold_f, int_timer1_int_hold_f}));
 
    // only happens if we aren't in dgb_halt
    assign ext_halt_pulse = i_cpu_halt_req_sync_qual & ~i_cpu_halt_req_d1;
@@ -718,7 +730,7 @@ module dec_tlu_ctl
 `endif
 
    // high priority interrupts can wakeup from external halt, so can unmasked timer interrupts
-   assign i_cpu_run_req_d1 = i_cpu_run_req_d1_raw | ((nmi_int_detected | timer_int_ready | (mhwakeup & mhwakeup_ready)) & o_cpu_halt_status);
+   assign i_cpu_run_req_d1 = i_cpu_run_req_d1_raw | ((nmi_int_detected | timer_int_ready | int_timer0_int_hold_f | int_timer1_int_hold_f | (mhwakeup & mhwakeup_ready)) & o_cpu_halt_status);
 
    //--------------------------------------------------------------------------------
    //--------------------------------------------------------------------------------
@@ -906,6 +918,8 @@ module dec_tlu_ctl
 
    assign exc_cause_e4[4:0] = ( ({5{take_ext_int}}        & 5'h0b) |
                                 ({5{take_timer_int}}      & 5'h07) |
+                                ({5{take_int_timer0_int}} & 5'h1d) |
+                                ({5{take_int_timer1_int}} & 5'h1c) |
                                 ({5{take_ce_int}}         & 5'h1e) |
                                 ({5{illegal_e4}}          & 5'h02) |
                                 ({5{ecall_e4}}            & 5'h0b) |
@@ -936,6 +950,19 @@ module dec_tlu_ctl
    assign ce_int_ready    = ~dec_csr_stall_int_ff & mstatus_mie_ns & mip[`MIP_MCEIP]  & mie_ns[`MIE_MCEIE];
    assign timer_int_ready = ~dec_csr_stall_int_ff & mstatus_mie_ns & mip[`MIP_MTIP]   & mie_ns[`MIE_MTIE];
 
+   // MIP for internal timers pulses for 1 clock, resets the timer counter. Mip won't hold past the various stall conditions.
+   assign int_timer0_int_possible = mstatus_mie_ns & mie_ns[`MIE_MITIE0];
+   assign int_timer0_int_ready = mip[`MIP_MITIP0] & int_timer0_int_possible;
+   assign int_timer1_int_possible = mstatus_mie_ns & mie_ns[`MIE_MITIE1];
+   assign int_timer1_int_ready = mip[`MIP_MITIP1] & int_timer1_int_possible;
+
+   // Internal timers pulse and reset. If core is PMU/FW halted, the pulse will cause an exit from halt, but won't stick around
+   // Make it sticky, also for 1 cycle stall conditions.
+   assign int_timer_stalled = dec_csr_stall_int_ff | synchronous_flush_e4 | exc_or_int_valid_wb | mret_wb | mret_e4;
+
+   assign int_timer0_int_hold = (int_timer0_int_ready & (pmu_fw_tlu_halted_f | int_timer_stalled)) | (int_timer0_int_possible & int_timer0_int_hold_f & ~interrupt_valid & ~internal_dbg_halt_mode_f);
+   assign int_timer1_int_hold = (int_timer1_int_ready & (pmu_fw_tlu_halted_f | int_timer_stalled)) | (int_timer1_int_possible & int_timer1_int_hold_f & ~interrupt_valid & ~internal_dbg_halt_mode_f);
+
    // mispredicts
    assign i0_mp_e4 = exu_i0_flush_lower_e4 & ~i0_trigger_hit_e4;
    assign i1_mp_e4 = exu_i1_flush_lower_e4 & ~trigger_hit_e4 & ~lsu_i0_rfnpc_dc4;
@@ -957,11 +984,13 @@ module dec_tlu_ctl
    assign take_ext_int = ext_int_ready & ~block_interrupts;
    assign take_ce_int  = ce_int_ready & ~ext_int_ready & ~block_interrupts;
    assign take_timer_int = timer_int_ready & ~ext_int_ready & ~ce_int_ready & ~block_interrupts;
+   assign take_int_timer0_int = (int_timer0_int_ready | int_timer0_int_hold_f) & int_timer0_int_possible & ~dec_csr_stall_int_ff & ~timer_int_ready & ~ext_int_ready & ~ce_int_ready & ~block_interrupts;
+   assign take_int_timer1_int = (int_timer1_int_ready | int_timer1_int_hold_f) & int_timer1_int_possible & ~dec_csr_stall_int_ff & ~(int_timer0_int_ready | int_timer0_int_hold_f) & ~timer_int_ready & ~ext_int_ready & ~ce_int_ready & ~block_interrupts;
 
    assign take_reset = reset_delayed & mpc_reset_run_req;
    assign take_nmi = nmi_int_detected & ~internal_pmu_fw_halt_mode & (~internal_dbg_halt_mode | (dcsr_single_step_running_f & dcsr[`DCSR_STEPIE] & ~dec_tlu_i0_valid_e4 & ~dcsr_single_step_done_f)) & ~synchronous_flush_e4 & ~mret_e4 & ~take_reset & ~ebreak_to_debug_mode_e4;
 
-   assign interrupt_valid = take_ext_int | take_timer_int | take_nmi | take_ce_int;
+   assign interrupt_valid = take_ext_int | take_timer_int | take_nmi | take_ce_int | take_int_timer0_int | take_int_timer1_int;
 
 
    // Compute interrupt path:
@@ -1085,6 +1114,8 @@ module dec_tlu_ctl
    // MIP (RW)
    //
    // [30] MCEIP  : (RO) M-Mode Correctable Error interrupt pending
+   // [29] MITIP0 : (RO) M-Mode Internal Timer0 interrupt pending
+   // [28] MITIP1 : (RO) M-Mode Internal Timer1 interrupt pending
    // [11] MEIP   : (RO) M-Mode external interrupt pending
    // [7]  MTIP   : (RO) M-Mode timer interrupt pending
    // [3]  MSIP   : (RO) M-Mode software interrupt pending
@@ -1092,20 +1123,22 @@ module dec_tlu_ctl
 
    assign ce_int = (mdccme_ce_req | miccme_ce_req | mice_ce_req);
 
-   assign mip_ns[3:0] = {ce_int, mexintpend, timer_int_sync, mip[0]};
-   rvdff #(4)  mip_ff (.*, .clk(free_clk), .din(mip_ns[3:0]), .dout(mip[3:0]));
+   assign mip_ns[5:0] = {ce_int, dec_timer_t0_pulse, dec_timer_t1_pulse, mexintpend, timer_int_sync, mip[0]};
+   rvdff #(6)  mip_ff (.*, .clk(free_clk), .din(mip_ns[5:0]), .dout(mip[5:0]));
 
    // ----------------------------------------------------------------------
    // MIE (RW)
    // [30] MCEIE  : (RO) M-Mode Correctable Error interrupt enable
+   // [29] MITIE0 : (RO) M-Mode Internal Timer0 interrupt enable
+   // [28] MITIE1 : (RO) M-Mode Internal Timer1 interrupt enable
    // [11] MEIE   : (RW) M-Mode external interrupt enable
    // [7]  MTIE   : (RW) M-Mode timer interrupt enable
    // [3]  MSIE   : (RW) M-Mode software interrupt enable
    `define MIE 12'h304
 
    assign wr_mie_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MIE);
-   assign mie_ns[3:0] = wr_mie_wb ? {dec_csr_wrdata_wb[30], dec_csr_wrdata_wb[11], dec_csr_wrdata_wb[7], dec_csr_wrdata_wb[3]} : mie[3:0];
-   rvdff #(4)  mie_ff (.*, .clk(csr_wr_clk), .din(mie_ns[3:0]), .dout(mie[3:0]));
+   assign mie_ns[5:0] = wr_mie_wb ? {dec_csr_wrdata_wb[30:28], dec_csr_wrdata_wb[11], dec_csr_wrdata_wb[7], dec_csr_wrdata_wb[3]} : mie[5:0];
+   rvdff #(6)  mie_ff (.*, .clk(csr_wr_clk), .din(mie_ns[5:0]), .dout(mie[5:0]));
 
 
    // ----------------------------------------------------------------------
@@ -1949,7 +1982,7 @@ module dec_tlu_ctl
              ({2{(mhpme_vec[i][5:0] == `MHPME_DMA_DCCM_STALL  )}} & {1'b0, dma_dccm_stall_any}) |
              ({2{(mhpme_vec[i][5:0] == `MHPME_DMA_ICCM_STALL  )}} & {1'b0, dma_iccm_stall_any}) |
              ({2{(mhpme_vec[i][5:0] == `MHPME_EXC_TAKEN       )}} & {1'b0, (i0_exception_valid_e4 | trigger_hit_e4 | lsu_exc_valid_e4)}) |
-             ({2{(mhpme_vec[i][5:0] == `MHPME_TIMER_INT_TAKEN )}} & {1'b0, take_timer_int}) |
+             ({2{(mhpme_vec[i][5:0] == `MHPME_TIMER_INT_TAKEN )}} & {1'b0, take_timer_int | take_int_timer0_int | take_int_timer1_int}) |
              ({2{(mhpme_vec[i][5:0] == `MHPME_EXT_INT_TAKEN   )}} & {1'b0, take_ext_int}) |
              ({2{(mhpme_vec[i][5:0] == `MHPME_FLUSH_LOWER     )}} & {1'b0, tlu_flush_lower_e4}) |
              ({2{(mhpme_vec[i][5:0] == `MHPME_BR_ERROR        )}} & {(dec_tlu_br1_error_e4 | dec_tlu_br1_start_error_e4) & rfpc_i1_e4, (dec_tlu_br0_error_e4 | dec_tlu_br0_start_error_e4) & rfpc_i0_e4}) |
@@ -1961,7 +1994,7 @@ module dec_tlu_ctl
              ({2{(mhpme_vec[i][5:0] == `MHPME_IBUS_STALL      )}} & {1'b0, ifu_pmu_bus_busy}) |
              ({2{(mhpme_vec[i][5:0] == `MHPME_DBUS_STALL      )}} & {1'b0, lsu_pmu_bus_busy}) |
              ({2{(mhpme_vec[i][5:0] == `MHPME_INT_DISABLED    )}} & {1'b0, ~mstatus[`MSTATUS_MIE]}) |
-             ({2{(mhpme_vec[i][5:0] == `MHPME_INT_STALLED     )}} & {1'b0, ~mstatus[`MSTATUS_MIE] & |(mip[3:0] & mie[3:0])})
+             ({2{(mhpme_vec[i][5:0] == `MHPME_INT_STALLED     )}} & {1'b0, ~mstatus[`MSTATUS_MIE] & |(mip[5:0] & mie[5:0])})
              );
    end
 
@@ -2209,7 +2242,7 @@ assign csr_mvendorid = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[7]
 assign csr_marchid = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[7]
     &dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]);
 
-assign csr_mimpid = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[3]
+assign csr_mimpid = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[6]
     &dec_csr_rdaddr_d[1]&dec_csr_rdaddr_d[0]);
 
 assign csr_mhartid = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[7]
@@ -2219,7 +2252,7 @@ assign csr_mstatus = (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[6]
     &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[0]);
 
 assign csr_mtvec = (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[5]
-    &dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[0]);
+    &!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[0]);
 
 assign csr_mip = (!dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[2]);
 
@@ -2251,14 +2284,14 @@ assign csr_mepc = (!dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[1]
 assign csr_mcause = (!dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
     &dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]);
 
-assign csr_mtval = (dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[3]&dec_csr_rdaddr_d[1]
+assign csr_mtval = (!dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[1]
     &dec_csr_rdaddr_d[0]);
 
 assign csr_mrac = (!dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
     &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
     &!dec_csr_rdaddr_d[1]);
 
-assign csr_dmst = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[2]
+assign csr_dmst = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[2]
     &!dec_csr_rdaddr_d[1]);
 
 assign csr_mdseac = (dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[10]
@@ -2283,12 +2316,13 @@ assign csr_meicidpl = (dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[6]
 assign csr_dcsr = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]
     &dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[0]);
 
-assign csr_mpmc = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]);
+assign csr_mpmc = (dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[2]
+    &dec_csr_rdaddr_d[1]);
 
 assign csr_mcgc = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
     &!dec_csr_rdaddr_d[0]);
 
-assign csr_mcpc = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]
+assign csr_mcpc = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[4]
     &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]);
 
 assign csr_mfdc = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
@@ -2353,134 +2387,138 @@ assign csr_mhpme6 = (dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]
     &!dec_csr_rdaddr_d[3]&dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]
     &!dec_csr_rdaddr_d[0]);
 
-assign csr_mgpmc = (dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]);
+assign csr_mgpmc = (dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]
+    &!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]);
 
 assign csr_micect = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[3]
     &!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]);
 
-assign csr_miccmect = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[4]
+assign csr_miccmect = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]
     &!dec_csr_rdaddr_d[3]&dec_csr_rdaddr_d[0]);
 
-assign csr_mdccmect = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[4]
+assign csr_mdccmect = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]
     &dec_csr_rdaddr_d[1]);
 
 assign csr_dicawics = (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[5]
     &dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]);
 
-assign csr_dicad0 = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[5]
+assign csr_dicad0 = (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[4]
     &dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[1]&dec_csr_rdaddr_d[0]);
 
 assign csr_dicad1 = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[3]
     &dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]);
 
-assign csr_dicago = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[7]
+assign csr_dicago = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[3]
     &dec_csr_rdaddr_d[1]&dec_csr_rdaddr_d[0]);
 
 assign presync = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
     &dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
-    &dec_csr_rdaddr_d[4]) | (!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
-    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
-    &dec_csr_rdaddr_d[1]) | (dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[4]
-    &!dec_csr_rdaddr_d[3]&dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]) | (
+    &dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]) | (
+    !dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]
+    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]) | (
     dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
-    &dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[7]
-    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
-    &!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]);
+    &dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]) | (dec_csr_rdaddr_d[11]
+    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&dec_csr_rdaddr_d[1]
+    &!dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[5]
+    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
+    &dec_csr_rdaddr_d[1]);
 
 assign postsync = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
-    &dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[6]
-    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[0]) | (
-    !dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[1]
+    &dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[5]
+    &!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[0]) | (
+    !dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
+    &!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]
+    &dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]
+    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[1]) | (!dec_csr_rdaddr_d[7]
+    &dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[1]&dec_csr_rdaddr_d[0]) | (
+    dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
     &dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[4]
-    &!dec_csr_rdaddr_d[3]&dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[10]
-    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
-    &dec_csr_rdaddr_d[1]) | (!dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[7]
-    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[1]) | (
-    !dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[2]
-    &dec_csr_rdaddr_d[0]);
+    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]) | (
+    !dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[5]
+    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]);
 
 
 logic legal_csr;
-assign legal_csr = (!dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
-    &dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
-    &dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
-    &!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]
-    &!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &!dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
-    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[1]) | (
-    dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
-    &dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
-    &!dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[9]
+assign legal_csr = (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
+    &dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]
+    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
+    &!dec_csr_rdaddr_d[1]) | (dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[9]
     &dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
     &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[2]
-    &!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]
-    &dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]
-    &dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]) | (
+    &!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[11]
+    &!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
+    &!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[0]) | (
     !dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
     &dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
-    &dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
-    &!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]
-    &dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]
-    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]) | (
-    dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &!dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
-    &dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
-    &dec_csr_rdaddr_d[1]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
+    &dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[2]
+    &!dec_csr_rdaddr_d[1]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
     &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]
     &!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[2]) | (
     !dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
     &dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
-    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
-    &!dec_csr_rdaddr_d[2]) | (dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[9]
+    &dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
+    &!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[10]
+    &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]
+    &!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[3]
+    &!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]) | (dec_csr_rdaddr_d[11]
+    &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]
+    &!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]
+    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[0]) | (
+    !dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
+    &dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
+    &!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
+    &dec_csr_rdaddr_d[2]) | (dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[9]
     &dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]
     &!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
     &dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]) | (
-    dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &!dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
-    &dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
+    dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
+    &dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[5]
+    &!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]) | (
+    !dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
+    &dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
+    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
+    &!dec_csr_rdaddr_d[2]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
+    &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]
+    &!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[1]
     &dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
     &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]
     &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
-    &!dec_csr_rdaddr_d[2]) | (dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
-    &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]
-    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
-    &!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]
-    &!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &!dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]
-    &dec_csr_rdaddr_d[1]&dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]
+    &!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[11]
+    &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]
+    &!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]
+    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]) | (
+    !dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
+    &dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
+    &!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
+    &dec_csr_rdaddr_d[1]) | (dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
+    &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[6]
+    &!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[2]) | (!dec_csr_rdaddr_d[11]
+    &dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
+    &dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]
+    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
+    &!dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
+    &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[6]
+    &!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[1]) | (!dec_csr_rdaddr_d[11]
     &dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
     &dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
-    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[0]) | (
-    !dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
-    &dec_csr_rdaddr_d[8]&dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]
-    &dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
-    &!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[11]
+    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]
     &!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[2]) | (
+    &!dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
+    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]) | (
     !dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
-    &dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]&dec_csr_rdaddr_d[6]
-    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
-    &!dec_csr_rdaddr_d[2]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
+    &dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[5]
+    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[1]
+    &!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
     &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]
-    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
-    &!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[11]
-    &!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[1]) | (
-    !dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
-    &dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]
-    &dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[3]) | (!dec_csr_rdaddr_d[11]
-    &!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &!dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]
-    &dec_csr_rdaddr_d[4]) | (dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
-    &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[6]
-    &!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[3]) | (dec_csr_rdaddr_d[11]
-    &!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]
-    &!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]);
-
-
-
+    &!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[3]) | (
+    dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
+    &dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
+    &dec_csr_rdaddr_d[3]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]
+    &dec_csr_rdaddr_d[9]&dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[7]
+    &!dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]) | (
+    dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
+    &dec_csr_rdaddr_d[8]&!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
+    &dec_csr_rdaddr_d[4]);
 
 
 assign dec_tlu_presync_d = presync & dec_csr_any_unq_d & ~dec_csr_wen_unq_d;
@@ -2495,11 +2533,11 @@ assign dec_csr_legal_d = ( dec_csr_any_unq_d &
 assign dec_csr_rddata_d[31:0] = ( ({32{csr_misa}}      & 32'h40001104) |
                                   ({32{csr_mvendorid}} & 32'h00000045) |
                                   ({32{csr_marchid}}   & 32'h0000000b) |
-                                  ({32{csr_mimpid}}    & 32'h2) |
+                                  ({32{csr_mimpid}}    & 32'h3) |
                                   ({32{csr_mstatus}}   & {19'b0, 2'b11, 3'b0, mstatus[1], 3'b0, mstatus[0], 3'b0}) |
                                   ({32{csr_mtvec}}     & {mtvec[30:1], 1'b0, mtvec[0]}) |
-                                  ({32{csr_mip}}       & {1'b0, mip[3], 18'b0, mip[2], 3'b0, mip[1], 3'b0, mip[0], 3'b0}) |
-                                  ({32{csr_mie}}       & {1'b0, mie[3], 18'b0, mie[2], 3'b0, mie[1], 3'b0, mie[0], 3'b0}) |
+                                  ({32{csr_mip}}       & {1'b0, mip[5:3], 16'b0, mip[2], 3'b0, mip[1], 3'b0, mip[0], 3'b0}) |
+                                  ({32{csr_mie}}       & {1'b0, mie[5:3], 16'b0, mie[2], 3'b0, mie[1], 3'b0, mie[0], 3'b0}) |
                                   ({32{csr_mcyclel}}   & mcyclel[31:0]) |
                                   ({32{csr_mcycleh}}   & mcycleh_inc[31:0]) |
                                   ({32{csr_minstretl}} & minstretl_read[31:0]) |
@@ -2544,7 +2582,8 @@ assign dec_csr_rddata_d[31:0] = ( ({32{csr_misa}}      & 32'h40001104) |
                                   ({32{csr_mhpme4}}    & {26'b0,mhpme4[5:0]}) |
                                   ({32{csr_mhpme5}}    & {26'b0,mhpme5[5:0]}) |
                                   ({32{csr_mhpme6}}    & {26'b0,mhpme6[5:0]}) |
-                                  ({32{csr_mgpmc}}     & {31'b0, mgpmc})
+                                  ({32{csr_mgpmc}}     & {31'b0, mgpmc}) |
+                                  ({32{dec_timer_read_d}} & dec_timer_rddata_d[31:0])
                                   );
 
 
@@ -2581,3 +2620,169 @@ assign dec_csr_rddata_d[31:0] = ( ({32{csr_misa}}      & 32'h40001104) |
 
 endmodule // dec_tlu_ctl
 
+module dec_timer_ctl
+  (
+   input logic clk,
+   input logic free_clk,
+   input logic rst_l,
+   input logic        dec_csr_wen_wb_mod,      // csr write enable at wb
+   input logic [11:0] dec_csr_rdaddr_d,      // read address for csr
+   input logic [11:0] dec_csr_wraddr_wb,      // write address for csr
+   input logic [31:0] dec_csr_wrdata_wb,   // csr write data at wb
+
+   input logic dec_pause_state, // Paused
+   input logic dec_tlu_pmu_fw_halted, // pmu/fw halted
+   input logic internal_dbg_halt_timers, // debug halted
+
+   output logic [31:0] dec_timer_rddata_d, // timer CSR read data
+   output logic        dec_timer_read_d, // timer CSR address match
+   output logic        dec_timer_t0_pulse, // timer0 int
+   output logic        dec_timer_t1_pulse, // timer1 int
+
+   input  logic        scan_mode
+   );
+   `define MITCTL_ENABLE 0
+   `define MITCTL_ENABLE_HALTED 1
+   `define MITCTL_ENABLE_PAUSED 2
+
+   logic [31:0] mitcnt0_ns, mitcnt0, mitcnt1_ns, mitcnt1, mitb0, mitb1, mitb0_b, mitb1_b, mitcnt0_inc, mitcnt1_inc;
+   logic [2:0] mitctl0_ns, mitctl0, mitctl1_ns, mitctl1;
+   logic wr_mitcnt0_wb, wr_mitcnt1_wb, wr_mitb0_wb, wr_mitb1_wb, wr_mitctl0_wb, wr_mitctl1_wb;
+   logic mitcnt0_inc_ok, mitcnt1_inc_ok, mitcnt0_cout_nc, mitcnt1_cout_nc;
+
+ logic mit0_match_ns;
+ logic mit1_match_ns;
+ logic mitctl0_0_b_ns;
+ logic mitctl0_0_b;
+ logic mitctl1_0_b_ns;
+ logic mitctl1_0_b;
+
+   assign mit0_match_ns = (mitcnt0[31:0] >= mitb0[31:0]);
+   assign mit1_match_ns = (mitcnt1[31:0] >= mitb1[31:0]);
+
+   assign dec_timer_t0_pulse = mit0_match_ns;
+   assign dec_timer_t1_pulse = mit1_match_ns;
+   // ----------------------------------------------------------------------
+   // MITCNT0 (RW)
+   // [31:0] : Internal Timer Counter 0
+
+   `define MITCNT0 12'h7d2
+
+   assign wr_mitcnt0_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MITCNT0);
+
+   assign mitcnt0_inc_ok = mitctl0[`MITCTL_ENABLE] & (~dec_pause_state | mitctl0[`MITCTL_ENABLE_PAUSED]) & (~dec_tlu_pmu_fw_halted | mitctl0[`MITCTL_ENABLE_HALTED]) & ~internal_dbg_halt_timers;
+
+   assign {mitcnt0_cout_nc, mitcnt0_inc[31:0]} = mitcnt0[31:0] + {31'b0, 1'b1};
+   assign mitcnt0_ns[31:0] = mit0_match_ns ? 'b0 : wr_mitcnt0_wb ? dec_csr_wrdata_wb[31:0] : mitcnt0_inc[31:0];
+
+   rvdffe #(32) mitcnt0_ff      (.*, .en(wr_mitcnt0_wb | mitcnt0_inc_ok | mit0_match_ns), .din(mitcnt0_ns[31:0]), .dout(mitcnt0[31:0]));
+
+   // ----------------------------------------------------------------------
+   // MITCNT1 (RW)
+   // [31:0] : Internal Timer Counter 0
+
+   `define MITCNT1 12'h7d5
+
+   assign wr_mitcnt1_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MITCNT1);
+
+   assign mitcnt1_inc_ok = mitctl1[`MITCTL_ENABLE] & (~dec_pause_state | mitctl1[`MITCTL_ENABLE_PAUSED]) & (~dec_tlu_pmu_fw_halted | mitctl1[`MITCTL_ENABLE_HALTED]) & ~internal_dbg_halt_timers;
+
+   assign {mitcnt1_cout_nc, mitcnt1_inc[31:0]} = mitcnt1[31:0] + {31'b0, 1'b1};
+   assign mitcnt1_ns[31:0] = mit1_match_ns ? 'b0 :  wr_mitcnt1_wb ? dec_csr_wrdata_wb[31:0] : mitcnt1_inc[31:0];
+
+   rvdffe #(32) mitcnt1_ff      (.*, .en(wr_mitcnt1_wb | mitcnt1_inc_ok | mit1_match_ns), .din(mitcnt1_ns[31:0]), .dout(mitcnt1[31:0]));
+
+   // ----------------------------------------------------------------------
+   // MITB0 (RW)
+   // [31:0] : Internal Timer Bound 0
+
+   `define MITB0 12'h7d3
+
+   assign wr_mitb0_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MITB0);
+
+   rvdffe #(32) mitb0_ff      (.*, .en(wr_mitb0_wb), .din(~dec_csr_wrdata_wb[31:0]), .dout(mitb0_b[31:0]));
+   assign mitb0[31:0] = ~mitb0_b[31:0];
+
+   // ----------------------------------------------------------------------
+   // MITB1 (RW)
+   // [31:0] : Internal Timer Bound 1
+
+   `define MITB1 12'h7d6
+
+   assign wr_mitb1_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MITB1);
+
+   rvdffe #(32) mitb1_ff      (.*, .en(wr_mitb1_wb), .din(~dec_csr_wrdata_wb[31:0]), .dout(mitb1_b[31:0]));
+   assign mitb1[31:0] = ~mitb1_b[31:0];
+
+   // ----------------------------------------------------------------------
+   // MITCTL0 (RW) Internal Timer Ctl 0
+   // [31:3] : Reserved, reads 0x0
+   // [2]    : Enable while PAUSEd
+   // [1]    : Enable while HALTed
+   // [0]    : Enable (resets to 0x1)
+
+   `define MITCTL0 12'h7d4
+
+   assign wr_mitctl0_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MITCTL0);
+   assign mitctl0_ns[2:0] = wr_mitctl0_wb ? {dec_csr_wrdata_wb[2:0]} : {mitctl0[2:0]};
+
+   assign mitctl0_0_b_ns = ~mitctl0_ns[0];
+   rvdff #(3) mitctl0_ff      (.*, .clk(free_clk), .din({mitctl0_ns[2:1], mitctl0_0_b_ns}), .dout({mitctl0[2:1], mitctl0_0_b}));
+   assign mitctl0[0] = ~mitctl0_0_b;
+
+   // ----------------------------------------------------------------------
+   // MITCTL1 (RW) Internal Timer Ctl 1
+   // [31:3] : Reserved, reads 0x0
+   // [2]    : Enable while PAUSEd
+   // [1]    : Enable while HALTed
+   // [0]    : Enable (resets to 0x1)
+
+   `define MITCTL1 12'h7d7
+
+   assign wr_mitctl1_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MITCTL1);
+   assign mitctl1_ns[2:0] = wr_mitctl1_wb ? {dec_csr_wrdata_wb[2:0]} : {mitctl1[2:0]};
+
+   assign mitctl1_0_b_ns = ~mitctl1_ns[0];
+   rvdff #(3) mitctl1_ff      (.*, .clk(free_clk), .din({mitctl1_ns[2:1], mitctl1_0_b_ns}), .dout({mitctl1[2:1], mitctl1_0_b}));
+   assign mitctl1[0] = ~mitctl1_0_b;
+
+
+
+logic csr_mitctl0;
+logic csr_mitctl1;
+logic csr_mitb0;
+logic csr_mitb1;
+logic csr_mitcnt0;
+logic csr_mitcnt1;
+assign csr_mitctl0 = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[4]
+    &dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]);
+
+assign csr_mitctl1 = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[2]
+    &dec_csr_rdaddr_d[1]&dec_csr_rdaddr_d[0]);
+
+assign csr_mitb0 = (dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&dec_csr_rdaddr_d[4]
+    &!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[0]);
+
+assign csr_mitb1 = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[2]
+    &dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]);
+
+assign csr_mitcnt0 = (dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
+    &dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]
+    &!dec_csr_rdaddr_d[0]);
+
+assign csr_mitcnt1 = (dec_csr_rdaddr_d[6]&dec_csr_rdaddr_d[2]
+    &!dec_csr_rdaddr_d[1]&dec_csr_rdaddr_d[0]);
+
+
+
+   assign dec_timer_read_d = csr_mitcnt1 | csr_mitcnt0 | csr_mitb1 | csr_mitb0 | csr_mitctl0 | csr_mitctl1;
+   assign dec_timer_rddata_d[31:0] = ( ({32{csr_mitcnt0}}      & mitcnt0[31:0]) |
+                                       ({32{csr_mitcnt1}}      & mitcnt1[31:0]) |
+                                       ({32{csr_mitb0}}        & mitb0[31:0]) |
+                                       ({32{csr_mitb1}}        & mitb1[31:0]) |
+                                       ({32{csr_mitctl0}}      & {29'b0, mitctl0[2:0]}) |
+                                       ({32{csr_mitctl1}}      & {29'b0, mitctl1[2:0]})
+                                       );
+
+
+endmodule // dec_timer_ctl

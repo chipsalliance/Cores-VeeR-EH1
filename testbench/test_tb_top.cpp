@@ -32,38 +32,32 @@ double sc_time_stamp () {
 int main(int argc, char** argv) {
   std::cout << "\nVerilatorTB: Start of sim\n" << std::endl;
 
-  // Check for +dumpon and remove it from argv
-  bool dumpWaves = false;
-  int newArgc = 0;
-  for (int i = 0; i < argc; ++i)
-    if (strcmp(argv[i], "+dumpon") == 0)
-      dumpWaves = true;
-    else
-      argv[newArgc++] = argv[i];
-  argc = newArgc;
-
   Verilated::commandArgs(argc, argv);
 
   Vtb_top* tb = new Vtb_top;
 
   // init trace dump
-  Verilated::traceEverOn(true);
-  VerilatedVcdC* tfp = new VerilatedVcdC;
-  tb->trace (tfp, 24);
-  if (dumpWaves)
-    tfp->open ("sim.vcd");
+  VerilatedVcdC* tfp = NULL;
 
+#if VM_TRACE
+  Verilated::traceEverOn(true);
+  tfp = new VerilatedVcdC;
+  tb->trace (tfp, 24);
+  tfp->open ("sim.vcd");
+#endif
   // Simulate
   while(!Verilated::gotFinish()){
-      if (dumpWaves)
-        tfp->dump (main_time);
+#if VM_TRACE
+      tfp->dump (main_time);
+#endif
       main_time += 5;
       tb->core_clk = !tb->core_clk;
       tb->eval();
   }
 
-  if (dumpWaves)
-    tfp->close();
+#if VM_TRACE
+  tfp->close();
+#endif
 
   std::cout << "\nVerilatorTB: End of sim" << std::endl;
   exit(EXIT_SUCCESS);

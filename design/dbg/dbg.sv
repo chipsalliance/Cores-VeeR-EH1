@@ -161,6 +161,7 @@ module dbg (
    logic         dmcontrol_wren, dmcontrol_wren_Q;
    // command
    logic         command_wren;
+   logic [31:0]  command_din;
    // needed to send the read data back for dmi reads
    logic  [31:0] dmi_reg_rdata_din;
 
@@ -357,22 +358,19 @@ module dbg (
    assign        abstractcs_error_sel2 = core_dbg_cmd_done & core_dbg_cmd_fail;
    assign        abstractcs_error_sel3 = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h17) & (dbg_state != HALTED);
    assign        abstractcs_error_sel4 = (dmi_reg_addr ==  7'h17) & dmi_reg_en & dmi_reg_wr_en &
-                                         ( ((dmi_reg_wdata[22:20] == 3'b001) &  data1_reg[0]) |
-                                           ((dmi_reg_wdata[22:20] == 3'b010) &  (|data1_reg[1:0])) |
-                                           dmi_reg_wdata[22] | (dmi_reg_wdata[22:20] == 3'b011)
-                                           );
+                                         ((dmi_reg_wdata[22:20] != 3'b010) | ((dmi_reg_wdata[31:24] == 8'h2) && (|data1_reg[1:0])));  // Only word size is allowed
 
    assign        abstractcs_error_sel5 = (dmi_reg_addr ==  7'h16) & dmi_reg_en & dmi_reg_wr_en;
 
    assign        abstractcs_error_selor = abstractcs_error_sel0 | abstractcs_error_sel1 | abstractcs_error_sel2 | abstractcs_error_sel3 | abstractcs_error_sel4 | abstractcs_error_sel5;
 
-   assign        abstractcs_error_din[2:0]  = ({3{abstractcs_error_sel0}} & 3'b001) |       // writing command or abstractcs while a command was executing. Or accessing data0
-                                              ({3{abstractcs_error_sel1}} & 3'b010) |       // writing a non-zero command to cmd field of command
-                                              ({3{abstractcs_error_sel2}} & 3'b011) |       // exception while running command
-                                              ({3{abstractcs_error_sel3}} & 3'b100) |       // writing a comnand when not in the halted state
-                                              ({3{abstractcs_error_sel4}} & 3'b111) |       // unaligned abstract memory command
-                                              ({3{abstractcs_error_sel5}} & ~dmi_reg_wdata[10:8] & abstractcs_reg[10:8]) |        // W1C
-                                              ({3{~abstractcs_error_selor}} & abstractcs_reg[10:8]);                              // hold
+   assign        abstractcs_error_din[2:0]  = abstractcs_error_sel0 ? 3'b001 :               // writing command or abstractcs while a command was executing. Or accessing data0
+                                                 abstractcs_error_sel1 ? 3'b010 :            // writing a illegal command type to cmd field of command
+                                                    abstractcs_error_sel2 ? 3'b011 :         // exception while running command
+                                                       abstractcs_error_sel3 ? 3'b100 :      // writing a comnand when not in the halted state
+                                                          abstractcs_error_sel4 ? 3'b111 :   // unaligned or illegal size abstract memory command
+                                                             abstractcs_error_sel5 ? (~dmi_reg_wdata[10:8] & abstractcs_reg[10:8]) :   //W1C
+                                                                                     abstractcs_reg[10:8];                             //hold
 
    rvdffs #(1) dmabstractcs_busy_reg  (.din(abstractcs_busy_din), .dout(abstractcs_reg[12]), .en(abstractcs_busy_wren), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
    rvdff  #(3) dmabstractcs_error_reg (.din(abstractcs_error_din[2:0]), .dout(abstractcs_reg[10:8]), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
@@ -381,7 +379,8 @@ module dbg (
    // command register - implemented all the bits in this register
    // command[16] = 1: write, 0: read
    assign     command_wren = (dmi_reg_addr ==  7'h17) & dmi_reg_en & dmi_reg_wr_en & (dbg_state == HALTED);
-   rvdffe #(32) dmcommand_reg (.*, .din(dmi_reg_wdata[31:0]), .dout(command_reg[31:0]), .en(command_wren), .rst_l(dbg_dm_rst_l));
+   assign     command_din[31:0] = {dmi_reg_wdata[31:24],1'b0,dmi_reg_wdata[22:20],3'b0,dmi_reg_wdata[16:0]};
+   rvdffe #(32) dmcommand_reg (.*, .din(command_din[31:0]), .dout(command_reg[31:0]), .en(command_wren), .rst_l(dbg_dm_rst_l));
 
    // data0 reg
    assign data0_reg_wren0   = (dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h4) & (dbg_state == HALTED));

@@ -25,7 +25,7 @@ snapshot = $(target)
 
 # Allow tool override
 SWERV_CONFIG = ${RV_ROOT}/configs/swerv.config
-IRUN = irun
+IRUN = xrun
 VCS = vcs
 VERILATOR = verilator
 VLOG = qverilog
@@ -46,6 +46,7 @@ ifdef debug
  IRUN_DEBUG = -access +rc
  IRUN_DEBUG_RUN = -input ${RV_ROOT}/testbench/input.tcl
  VCS_DEBUG = -debug_access
+ VERILATOR_DEBUG = --trace
  RIVIERA_DEBUG = +access +r
 endif
 
@@ -59,7 +60,7 @@ endif
 VPATH = $(TEST_DIR) $(BUILD_DIR) $(TBDIR)
 TBFILES = $(TBDIR)/tb_top.sv $(TBDIR)/ahb_sif.sv
 
-defines = $(BUILD_DIR)/common_defines.vh ${RV_ROOT}/design/include/swerv_types.sv 
+defines = $(BUILD_DIR)/common_defines.vh ${RV_ROOT}/design/include/swerv_types.sv
 includes = -I${RV_ROOT}/design/include -I${RV_ROOT}/design/lib  -I${BUILD_DIR}
 
 # CFLAGS for verilator generated Makefiles. Without -std=c++11 it complains for `auto` variables
@@ -87,8 +88,8 @@ verilator-build: ${TBFILES} ${BUILD_DIR}/defines.h test_tb_top.cpp
                 -I${RV_ROOT}/testbench \
 		-f ${RV_ROOT}/testbench/flist \
                 ${TBFILES} \
-                --top-module tb_top -exe test_tb_top.cpp --trace --autoflush
-	cp ${RV_ROOT}/testbench/test_tb_top.cpp obj_dir/
+                --top-module tb_top -exe test_tb_top.cpp --autoflush $(VERILATOR_DEBUG)
+	cp ${RV_ROOT}/testbench/test_tb_top.cpp obj_dir
 	$(MAKE) -C obj_dir/ -f Vtb_top.mk $(VERILATOR_MAKE_FLAGS)
 	touch verilator-build
 
@@ -103,7 +104,7 @@ vcs-build: ${TBFILES} ${BUILD_DIR}/defines.h
 	touch vcs-build
 
 irun-build: ${TBFILES} ${BUILD_DIR}/defines.h
-	$(IRUN) -64bit -elaborate $(IRUN_DEBUG) -q -sv -sysv  -nowarn CUVIHR -nclibdirpath . -nclibdirname swerv.build \
+	$(IRUN) -64bit -elaborate $(IRUN_DEBUG) -q -sv -sysv  -nowarn CUVIHR -xmlibdirpath . -xmlibdirname swerv.build \
 		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${BUILD_DIR} -vlog_ext +.vh+.h\
 		$(defines)  -f ${RV_ROOT}/testbench/flist\
 		-top tb_top  ${TBFILES} -I${RV_ROOT}/testbench \
@@ -125,12 +126,12 @@ verilator: program.hex verilator-build
 	./obj_dir/Vtb_top ${DEBUG_PLUS}
 
 irun: program.hex irun-build
-	$(IRUN) -64bit -abvglobalfailurelimit 1 +lic_queue -licqueue -status -nclibdirpath . -nclibdirname swerv.build \
+	$(IRUN) -64bit -abvglobalfailurelimit 1 +lic_queue -licqueue -status -xmlibdirpath . -xmlibdirname swerv.build \
 		 -snapshot ${snapshot} -r ${snapshot} $(IRUN_DEBUG_RUN)
 
 vcs: program.hex vcs-build
 	./simv $(DEBUG_PLUS) +vcs+lic+wait -l vcs.log
-        
+
 vlog: program.hex ${TBFILES} ${BUILD_DIR}/defines.h
 	$(VLOG) -l vlog.log -sv -mfcu +incdir+${BUILD_DIR}+${RV_ROOT}/design/include+${RV_ROOT}/design/lib\
         $(defines) -f ${RV_ROOT}/testbench/flist ${TBFILES} -R ${DEBUG_PLUS}
@@ -165,7 +166,7 @@ TEST_CFLAGS = -g -O3 -funroll-all-loops
 ABI = -mabi=ilp32 -march=rv32imc
 
 %.o : %.c ${BUILD_DIR}/defines.h
-	$(GCC_PREFIX)-gcc -I${BUILD_DIR} ${TEST_CFLAGS} ${ABI} -nostdlib -c $< -o $@	
+	$(GCC_PREFIX)-gcc -I${BUILD_DIR} ${TEST_CFLAGS} ${ABI} -nostdlib -c $< -o $@
 endif
 endif
 
@@ -173,4 +174,4 @@ help:
 	@echo Make sure the environment variable RV_ROOT is set.
 	@echo Possible targets: verilator vcs irun vlog riviera help clean all verilator-build irun-build vcs-build riviera-build program.hex
 
-.PHONY: help clean verilator vcs irun vlog riviera 
+.PHONY: help clean verilator vcs irun vlog riviera

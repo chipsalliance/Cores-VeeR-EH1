@@ -57,6 +57,12 @@ csr_mcgc =          [011111111000]
 csr_mcpc =          [011111000010]
 csr_mfdc =          [011111111001]
 csr_mgpmc =         [011111010000]
+csr_mitctl0 =       [011111010100]
+csr_mitctl1 =       [011111010111]
+csr_mitb0 =         [011111010011]
+csr_mitb1 =         [011111010110]
+csr_mitcnt0 =       [011111010010]
+csr_mitcnt1 =       [011111010101]
 csr_perfva =        [101100000111]
 csr_perfvb =        [101100001...]
 csr_perfvc =        [10110001....]
@@ -136,6 +142,12 @@ csr = {
      csr_mhpme5
      csr_mhpme6
      csr_mgpmc
+     csr_mitctl0
+     csr_mitctl1
+     csr_mitb0
+     csr_mitb1
+     csr_mitcnt0
+     csr_mitcnt1
 csr_perfva
 csr_perfvb
 csr_perfvc
@@ -215,6 +227,12 @@ csr[ csr_dicawics  ] = {  csr_dicawics  }
 csr[ csr_dicad0    ] = {  csr_dicad0    }
 csr[ csr_dicad1    ] = {  csr_dicad1    }
 csr[ csr_dicago    ] = {  csr_dicago    }
+csr[ csr_mitctl0   ] = {  csr_mitctl0   }
+csr[ csr_mitctl1   ] = {  csr_mitctl1   }
+csr[ csr_mitb0     ] = {  csr_mitb0     }
+csr[ csr_mitb1     ] = {  csr_mitb1     }
+csr[ csr_mitcnt0   ] = {  csr_mitcnt0   }
+csr[ csr_mitcnt1   ] = {  csr_mitcnt1   }
 
 csr[ csr_perfva    ] = { valid_only }
 csr[ csr_perfvb    ] = { valid_only }

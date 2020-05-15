@@ -29,7 +29,7 @@ module ram_32768x39
 
    reg [38:0]   ram_core [32767:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -53,7 +53,7 @@ module ram_16384x39
 
    reg [38:0]   ram_core [16383:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -76,7 +76,7 @@ module ram_8192x39
 
    reg [38:0]   ram_core [8191:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -99,7 +99,7 @@ module ram_4096x39
 
    reg [38:0]   ram_core [4095:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -122,7 +122,7 @@ module ram_3072x39
 
    reg [38:0]   ram_core [3071:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -147,7 +147,7 @@ module ram_2048x39
 
    reg [38:0]   ram_core [2047:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -170,7 +170,7 @@ module ram_1536x39     // need this for the 48KB DCCM option
 
    reg [38:0]   ram_core [1535:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -194,7 +194,7 @@ module ram_1024x39
 
    reg [38:0]   ram_core [1023:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -217,7 +217,7 @@ module ram_768x39
 
    reg [38:0]   ram_core [767:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -241,7 +241,7 @@ module ram_512x39
 
    reg [38:0]   ram_core [511:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -265,7 +265,7 @@ module ram_256x39
 
    reg [38:0]   ram_core [255:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -289,7 +289,7 @@ module ram_128x39
 
    reg [38:0]   ram_core [127:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -316,7 +316,7 @@ module ram_1024x20
 
    reg [19:0]   ram_core [1023:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -338,7 +338,7 @@ module ram_512x20
 
    reg [19:0]   ram_core [511:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -361,7 +361,7 @@ module ram_256x20
 
    reg [19:0]   ram_core [255:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -383,7 +383,7 @@ module ram_128x20
 
    reg [19:0]   ram_core [127:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -406,7 +406,7 @@ module ram_64x20
 
    reg [19:0]   ram_core [63:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -433,7 +433,7 @@ module ram_4096x34
 
    reg [33:0]   ram_core [4095:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -458,7 +458,7 @@ module ram_2048x34
 
    reg [33:0]   ram_core [2047:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -483,7 +483,7 @@ module ram_1024x34
 
    reg [33:0]   ram_core [1023:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -508,7 +508,7 @@ module ram_512x34
 
    reg [33:0]   ram_core [511:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -533,7 +533,7 @@ module ram_256x34
 
    reg [33:0]   ram_core [255:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -558,7 +558,7 @@ module ram_128x34
 
    reg [33:0]   ram_core [127:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -582,7 +582,7 @@ module ram_64x34
 
    reg [33:0]   ram_core [63:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -609,7 +609,7 @@ module ram_4096x42
 
    reg [41:0]   ram_core [4095:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -634,7 +634,7 @@ module ram_2048x42
 
    reg [41:0]   ram_core [2047:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -658,7 +658,7 @@ module ram_1024x42
 
    reg [41:0]   ram_core [1023:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -682,7 +682,7 @@ module ram_512x42
 
    reg [41:0]   ram_core [511:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -708,7 +708,7 @@ module ram_256x42
 
    reg [41:0]   ram_core [255:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -733,7 +733,7 @@ module ram_128x42
 
    reg [41:0]   ram_core [127:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -758,7 +758,7 @@ module ram_64x42
 
    reg [41:0]   ram_core [63:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -786,7 +786,7 @@ module ram_1024x21
 
    reg [20:0]   ram_core [1023:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -809,7 +809,7 @@ module ram_512x21
 
    reg [20:0]   ram_core [511:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -834,7 +834,7 @@ module ram_256x21
 
    reg [20:0]   ram_core [255:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -859,7 +859,7 @@ module ram_128x21
 
    reg [20:0]   ram_core [127:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -884,7 +884,7 @@ module ram_64x21
 
    reg [20:0]   ram_core [63:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -908,7 +908,7 @@ module ram_1024x25
 
    reg [24:0]   ram_core [1023:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -934,7 +934,7 @@ module ram_512x25
 
    reg [24:0]   ram_core [511:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -960,7 +960,7 @@ module ram_256x25
 
    reg [24:0]   ram_core [255:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -986,7 +986,7 @@ module ram_128x25
 
    reg [24:0]   ram_core [127:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];
@@ -1012,7 +1012,7 @@ module ram_64x25
 
    reg [24:0]   ram_core [63:0];
 
-   always_ff @(posedge CLK) begin
+   always @(posedge CLK) begin
       if (WE) begin// for active high WE - must be specified by user
          ram_core[ADR] <= D; Q <= 'x; end else
            Q <= ram_core[ADR];

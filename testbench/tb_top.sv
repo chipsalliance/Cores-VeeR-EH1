@@ -342,7 +342,7 @@ module tb_top;
                    commit_count++;
                    $fwrite (el, "%10d : %6s 0 %h %h %s\n", cycleCnt, $sformatf("#%0d",commit_count),
                           trace_rv_i_address_ip[31+i*32 -:32], trace_rv_i_insn_ip[31+i*32-:32],
-                          wb_dest[i] !=0 ?  $sformatf("r%0d=%h", wb_dest[i], wb_data[i]) : "");
+                          (wb_dest[i] !=0 && wb_valid[i]) ?  $sformatf("r%0d=%h", wb_dest[i], wb_data[i]) : "");
                end
         end
     end

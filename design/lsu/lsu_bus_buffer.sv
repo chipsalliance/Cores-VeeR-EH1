@@ -236,6 +236,8 @@ module lsu_bus_buffer
    logic                                FreezePtrEn;
    logic [DEPTH_LOG2-1:0]               FreezePtr;
 
+   logic [DEPTH_LOG2-1:0]               lsu_imprecise_error_store_tag;
+
    logic                                bus_addr_match_pending;
    logic                                bus_cmd_sent, bus_cmd_ready;
    logic                                bus_wcmd_sent, bus_wdata_sent;
@@ -807,7 +809,6 @@ module lsu_bus_buffer
    end
 
    // Store imprecise error logic
-   logic [DEPTH_LOG2-1:0] lsu_imprecise_error_store_tag;
    always_comb begin
       lsu_imprecise_error_store_any = '0;
       lsu_imprecise_error_store_tag = '0;
