@@ -102,6 +102,11 @@ targets:
           - -mfcu
           - -cuautoname=du
           - config/common_defines.vh
+      rivierapro:
+        vlog_options :
+          - config/common_defines.vh
+          - "-err VCP2694 W1"
+        compilation_mode : common
       verilator:
         verilator_options : [--trace, -Wno-fatal]
     toplevel : tb_top
