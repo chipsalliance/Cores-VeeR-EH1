@@ -185,11 +185,11 @@ module ifu_ifc_ctl
 //11 0-10- 01
 //11 0-00- 11
 
-   assign next_state[1] = state_t'((~state[1] & state[0] & ~reset_delayed & miss_f2 & ~goto_idle) |
-                          (state[1] & ~reset_delayed & ~mb_empty_mod & ~goto_idle));
+   assign next_state[1] = (~state[1] & state[0] & ~reset_delayed & miss_f2 & ~goto_idle) |
+                          (state[1] & ~reset_delayed & ~mb_empty_mod & ~goto_idle);
 
-   assign next_state[0] = state_t'((~goto_idle & leave_idle) | (state[0] & ~goto_idle) |
-                          (reset_delayed));
+   assign next_state[0] = (~goto_idle & leave_idle) | (state[0] & ~goto_idle) |
+                          (reset_delayed);
 
    assign flush_fb = exu_flush_final;
 
