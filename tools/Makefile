@@ -114,7 +114,6 @@ irun-build: ${TBFILES} ${BUILD_DIR}/defines.h
 riviera-build: ${TBFILES} ${BUILD_DIR}/defines.h
 	vlib work
 	vlog -work work \
-		-err VCP2694 W1 \
 		+incdir+${RV_ROOT}/design/lib \
 		+incdir+${RV_ROOT}/design/include \
 		+incdir+${BUILD_DIR} +libext+.v $(defines) \
