@@ -45,6 +45,9 @@ module lsu_lsc_ctl
    input logic        lsu_freeze_c2_dc1_clk,
    input logic        lsu_freeze_c2_dc2_clk,
    input logic        lsu_freeze_c2_dc3_clk,
+   input logic        lsu_freeze_c2_dc1_clken,
+   input logic        lsu_freeze_c2_dc2_clken,
+   input logic        lsu_freeze_c2_dc3_clken,
 
    input logic        lsu_store_c1_dc1_clken,
    input logic        lsu_store_c1_dc2_clken,
@@ -248,9 +251,6 @@ module lsu_lsc_ctl
    end
 
    // C2 clock for valid and C1 for other bits of packet
-   rvdff #(1) lsu_pkt_vlddc1ff (.*, .din(lsu_pkt_dc1_in.valid), .dout(lsu_pkt_dc1.valid), .clk(lsu_freeze_c2_dc1_clk));
-   rvdff #(1) lsu_pkt_vlddc2ff (.*, .din(lsu_pkt_dc2_in.valid), .dout(lsu_pkt_dc2.valid), .clk(lsu_freeze_c2_dc2_clk));
-   rvdff #(1) lsu_pkt_vlddc3ff (.*, .din(lsu_pkt_dc3_in.valid), .dout(lsu_pkt_dc3.valid), .clk(lsu_freeze_c2_dc3_clk));
    rvdff #(1) lsu_pkt_vlddc4ff (.*, .din(lsu_pkt_dc4_in.valid), .dout(lsu_pkt_dc4.valid), .clk(lsu_c2_dc4_clk));
    rvdff #(1) lsu_pkt_vlddc5ff (.*, .din(lsu_pkt_dc5_in.valid), .dout(lsu_pkt_dc5.valid), .clk(lsu_c2_dc5_clk));
 
@@ -321,19 +321,22 @@ module lsu_lsc_ctl
    rvdff #(32) end_addr_dc4ff (.*, .din(end_addr_dc3[31:0]), .dout(end_addr_dc4[31:0]), .clk(lsu_c1_dc4_clk));
    rvdff #(32) end_addr_dc5ff (.*, .din(end_addr_dc4[31:0]), .dout(end_addr_dc5[31:0]), .clk(lsu_c1_dc5_clk));
 
-   rvdff #(1) addr_in_dccm_dc2ff(.din(addr_in_dccm_dc1), .dout(addr_in_dccm_dc2), .clk(lsu_freeze_c1_dc2_clk), .*);
-   rvdff #(1) addr_in_dccm_dc3ff(.din(addr_in_dccm_dc2), .dout(addr_in_dccm_dc3), .clk(lsu_freeze_c1_dc3_clk), .*);
-   rvdff #(1) addr_in_pic_dc2ff(.din(addr_in_pic_dc1), .dout(addr_in_pic_dc2), .clk(lsu_freeze_c1_dc2_clk), .*);
-   rvdff #(1) addr_in_pic_dc3ff(.din(addr_in_pic_dc2), .dout(addr_in_pic_dc3), .clk(lsu_freeze_c1_dc3_clk), .*);
+   rvdff_fpga #(1) addr_in_dccm_dc2ff     (.din(addr_in_dccm_dc1),     .dout(addr_in_dccm_dc2),     .clk(lsu_freeze_c1_dc2_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc2_clken), .*);
+   rvdff_fpga #(1) addr_in_dccm_dc3ff     (.din(addr_in_dccm_dc2),     .dout(addr_in_dccm_dc3),     .clk(lsu_freeze_c1_dc3_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc3_clken), .*);
+   rvdff_fpga #(1) addr_in_pic_dc2ff      (.din(addr_in_pic_dc1),      .dout(addr_in_pic_dc2),      .clk(lsu_freeze_c1_dc2_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc2_clken), .*);
+   rvdff_fpga #(1) addr_in_pic_dc3ff      (.din(addr_in_pic_dc2),      .dout(addr_in_pic_dc3),      .clk(lsu_freeze_c1_dc3_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc3_clken), .*);
+   rvdff_fpga #(1) access_fault_dc2ff     (.din(access_fault_dc1),     .dout(access_fault_dc2),     .clk(lsu_freeze_c1_dc2_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc2_clken), .*);
+   rvdff_fpga #(1) access_fault_dc3ff     (.din(access_fault_dc2),     .dout(access_fault_dc3),     .clk(lsu_freeze_c1_dc3_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc3_clken), .*);
+   rvdff_fpga #(1) addr_external_dc2ff    (.din(addr_external_dc1),    .dout(addr_external_dc2),    .clk(lsu_freeze_c1_dc2_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc2_clken), .*);
+   rvdff_fpga #(1) addr_external_dc3ff    (.din(addr_external_dc2),    .dout(addr_external_dc3),    .clk(lsu_freeze_c1_dc3_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc3_clken), .*);
+   rvdff_fpga #(1) misaligned_fault_dc2ff (.din(misaligned_fault_dc1), .dout(misaligned_fault_dc2), .clk(lsu_freeze_c1_dc2_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc2_clken), .*);
+   rvdff_fpga #(1) misaligned_fault_dc3ff (.din(misaligned_fault_dc2), .dout(misaligned_fault_dc3), .clk(lsu_freeze_c1_dc3_clk), .rawclk(clk), .clken(lsu_freeze_c1_dc3_clken), .*);
+   rvdff_fpga #(1) lsu_pkt_vlddc1ff       (.din(lsu_pkt_dc1_in.valid), .dout(lsu_pkt_dc1.valid),    .clk(lsu_freeze_c2_dc1_clk), .rawclk(clk), .clken(lsu_freeze_c2_dc1_clken), .*);
+   rvdff_fpga #(1) lsu_pkt_vlddc2ff       (.din(lsu_pkt_dc2_in.valid), .dout(lsu_pkt_dc2.valid),    .clk(lsu_freeze_c2_dc2_clk), .rawclk(clk), .clken(lsu_freeze_c2_dc2_clken), .*);
+   rvdff_fpga #(1) lsu_pkt_vlddc3ff       (.din(lsu_pkt_dc3_in.valid), .dout(lsu_pkt_dc3.valid),    .clk(lsu_freeze_c2_dc3_clk), .rawclk(clk), .clken(lsu_freeze_c2_dc3_clken), .*);
 
-   rvdff #(1) addr_external_dc2ff(.din(addr_external_dc1), .dout(addr_external_dc2), .clk(lsu_freeze_c1_dc2_clk), .*);
-   rvdff #(1) addr_external_dc3ff(.din(addr_external_dc2), .dout(addr_external_dc3), .clk(lsu_freeze_c1_dc3_clk), .*);
    rvdff #(1) addr_external_dc4ff(.din(addr_external_dc3), .dout(addr_external_dc4), .clk(lsu_c1_dc4_clk), .*);
    rvdff #(1) addr_external_dc5ff(.din(addr_external_dc4), .dout(addr_external_dc5), .clk(lsu_c1_dc5_clk), .*);
 
-   rvdff #(1) access_fault_dc2ff(.din(access_fault_dc1), .dout(access_fault_dc2), .clk(lsu_freeze_c1_dc2_clk), .*);
-   rvdff #(1) access_fault_dc3ff(.din(access_fault_dc2), .dout(access_fault_dc3), .clk(lsu_freeze_c1_dc3_clk), .*);
-   rvdff #(1) misaligned_fault_dc2ff(.din(misaligned_fault_dc1), .dout(misaligned_fault_dc2), .clk(lsu_freeze_c1_dc2_clk), .*);
-   rvdff #(1) misaligned_fault_dc3ff(.din(misaligned_fault_dc2), .dout(misaligned_fault_dc3), .clk(lsu_freeze_c1_dc3_clk), .*);
 
 endmodule

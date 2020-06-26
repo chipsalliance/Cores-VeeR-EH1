@@ -260,12 +260,13 @@ module lsu
    logic        lsu_c2_dc3_clk, lsu_c2_dc4_clk, lsu_c2_dc5_clk;
    logic        lsu_freeze_c1_dc2_clk, lsu_freeze_c1_dc3_clk;
    logic        lsu_freeze_c1_dc1_clken, lsu_freeze_c1_dc2_clken, lsu_freeze_c1_dc3_clken;
+   logic        lsu_freeze_c2_dc1_clken, lsu_freeze_c2_dc2_clken, lsu_freeze_c2_dc3_clken, lsu_freeze_c2_dc4_clken;
    logic        lsu_store_c1_dc1_clken, lsu_store_c1_dc2_clken, lsu_store_c1_dc3_clken, lsu_store_c1_dc4_clk, lsu_store_c1_dc5_clk;
 
    logic        lsu_freeze_c2_dc1_clk, lsu_freeze_c2_dc2_clk, lsu_freeze_c2_dc3_clk, lsu_freeze_c2_dc4_clk;
    logic        lsu_stbuf_c1_clk;
    logic        lsu_bus_ibuf_c1_clk, lsu_bus_obuf_c1_clk, lsu_bus_buf_c1_clk;
-   logic        lsu_dccm_c1_dc3_clk, lsu_pic_c1_dc3_clken;
+   logic        lsu_dccm_c1_dc3_clk, lsu_dccm_c1_dc3_clken, lsu_pic_c1_dc3_clken;
    logic        lsu_busm_clk;
    logic        lsu_free_c2_clk;
 
@@ -359,10 +360,11 @@ module lsu
 
    //Flops
    //rvdffs #(1) lsu_i0_valid_dc1ff (.*, .din(dec_i0_lsu_decode_d), .dout(lsu_i0_valid_dc1), .en(~lsu_freeze_dc3));
-   rvdff #(1) lsu_i0_valid_dc1ff    (.*, .din(dec_i0_lsu_decode_d), .dout(lsu_i0_valid_dc1), .clk(lsu_freeze_c2_dc1_clk));
-   rvdff #(1) lsu_i0_valid_dc2ff    (.*, .din(lsu_i0_valid_dc1),    .dout(lsu_i0_valid_dc2), .clk(lsu_freeze_c2_dc2_clk));
-   rvdff #(1) lsu_i0_valid_dc3ff    (.*, .din(lsu_i0_valid_dc2),    .dout(lsu_i0_valid_dc3), .clk(lsu_freeze_c2_dc3_clk));
-   rvdff #(1) lsu_i0_valid_dc4ff    (.*, .din(lsu_i0_valid_dc3),    .dout(lsu_i0_valid_dc4), .clk(lsu_freeze_c2_dc4_clk));
+   rvdff_fpga #(1) lsu_i0_valid_dc1ff    (.*, .din(dec_i0_lsu_decode_d), .dout(lsu_i0_valid_dc1), .clk(lsu_freeze_c2_dc1_clk), .clken(lsu_freeze_c2_dc1_clken), .rawclk(clk));
+   rvdff_fpga #(1) lsu_i0_valid_dc2ff    (.*, .din(lsu_i0_valid_dc1),    .dout(lsu_i0_valid_dc2), .clk(lsu_freeze_c2_dc2_clk), .clken(lsu_freeze_c2_dc2_clken), .rawclk(clk));
+   rvdff_fpga #(1) lsu_i0_valid_dc3ff    (.*, .din(lsu_i0_valid_dc2),    .dout(lsu_i0_valid_dc3), .clk(lsu_freeze_c2_dc3_clk), .clken(lsu_freeze_c2_dc3_clken), .rawclk(clk));
+   rvdff_fpga #(1) lsu_i0_valid_dc4ff    (.*, .din(lsu_i0_valid_dc3),    .dout(lsu_i0_valid_dc4), .clk(lsu_freeze_c2_dc4_clk), .clken(lsu_freeze_c2_dc4_clken), .rawclk(clk));
+
    rvdff #(1) lsu_i0_valid_dc5ff    (.*, .din(lsu_i0_valid_dc4),    .dout(lsu_i0_valid_dc5), .clk(lsu_c2_dc5_clk));
    rvdff #(1) lsu_single_ecc_err_dc4(.*, .din(lsu_single_ecc_error_dc3), .dout(lsu_single_ecc_error_dc4), .clk(lsu_c2_dc4_clk));
    rvdff #(1) lsu_single_ecc_err_dc5(.*, .din(lsu_single_ecc_error_dc4), .dout(lsu_single_ecc_error_dc5), .clk(lsu_c2_dc5_clk));

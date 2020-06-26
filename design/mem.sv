@@ -50,7 +50,7 @@ module mem
 `endif
    // Icache and Itag Ports
 `ifdef RV_ICACHE_ENABLE //temp
-   input  logic [31:3]  ic_rw_addr,
+   input  logic [31:2]  ic_rw_addr,
    input  logic [3:0]   ic_tag_valid,
    input  logic [3:0]   ic_wr_en,
    input  logic         ic_rd_en,
@@ -97,6 +97,9 @@ module mem
    `else
       localparam DCCM_ENABLE = 1'b0;
    `endif
+
+   logic free_clk;
+   rvoclkhdr free_cg   ( .en(1'b1),         .l1clk(free_clk), .* );
 
    // DCCM Instantiation
    if (DCCM_ENABLE == 1) begin: Gen_dccm_enable

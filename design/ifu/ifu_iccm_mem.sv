@@ -24,6 +24,7 @@ module ifu_iccm_mem
 
 (
    input logic         clk,
+   input logic         free_clk,
    input logic         rst_l,
    input logic         clk_override,
 
@@ -136,7 +137,7 @@ module ifu_iccm_mem
  end
    // 8 banks, each bank 8B, we index as 4 banks
  else begin
-  rvdff  #(2) rd_addr_ff (.*, .din(iccm_rw_addr[5:4]), .dout(iccm_rw_addr_q[5:4]) );
+  rvdff  #(2) rd_addr_ff (.*, .clk(free_clk), .din(iccm_rw_addr[5:4]), .dout(iccm_rw_addr_q[5:4]) );
  end
 endmodule // ifu_iccm_mem
 

@@ -31,7 +31,10 @@ module lsu_dccm_ctl
 (
    input logic                             lsu_freeze_c2_dc2_clk,     // clocks
    input logic                             lsu_freeze_c2_dc3_clk,
+   input logic                             lsu_freeze_c2_dc2_clken,     // clocks
+   input logic                             lsu_freeze_c2_dc3_clken,
    input logic                             lsu_dccm_c1_dc3_clk,
+   input logic                             lsu_dccm_c1_dc3_clken,
    input logic                             lsu_pic_c1_dc3_clken,
 
    input logic                             rst_l,
@@ -178,14 +181,15 @@ module lsu_dccm_ctl
    assign picm_rd_data_dc3[63:0] = {picm_rd_data_lo_dc3[31:0], picm_rd_data_lo_dc3[31:0]} ;
    rvdffe #(32) picm_data_ff (.*, .din(picm_rd_data[31:0]), .dout(picm_rd_data_lo_dc3[31:0]), .en(lsu_pic_c1_dc3_clken));
    if (DCCM_ENABLE == 1) begin: Gen_dccm_enable
-      rvdff #(1) dccm_rden_dc2ff (.*, .din(lsu_dccm_rden_dc1), .dout(lsu_dccm_rden_dc2), .clk(lsu_freeze_c2_dc2_clk));
-      rvdff #(1) dccm_rden_dc3ff (.*, .din(lsu_dccm_rden_dc2), .dout(lsu_dccm_rden_dc3), .clk(lsu_freeze_c2_dc3_clk));
 
-      rvdff #(DCCM_DATA_WIDTH) dccm_data_hi_ff (.*, .din(dccm_data_hi_dc2[DCCM_DATA_WIDTH-1:0]), .dout(dccm_data_hi_dc3[DCCM_DATA_WIDTH-1:0]), .clk(lsu_dccm_c1_dc3_clk));
-      rvdff #(DCCM_DATA_WIDTH) dccm_data_lo_ff (.*, .din(dccm_data_lo_dc2[DCCM_DATA_WIDTH-1:0]), .dout(dccm_data_lo_dc3[DCCM_DATA_WIDTH-1:0]), .clk(lsu_dccm_c1_dc3_clk));
+      rvdff_fpga #(1) dccm_rden_dc2ff (.*, .din(lsu_dccm_rden_dc1), .dout(lsu_dccm_rden_dc2), .clk(lsu_freeze_c2_dc2_clk), .clken(lsu_freeze_c2_dc2_clken), .rawclk(clk));
+      rvdff_fpga #(1) dccm_rden_dc3ff (.*, .din(lsu_dccm_rden_dc2), .dout(lsu_dccm_rden_dc3), .clk(lsu_freeze_c2_dc3_clk), .clken(lsu_freeze_c2_dc3_clken), .rawclk(clk));
 
-      rvdff #(DCCM_ECC_WIDTH) dccm_data_ecc_hi_ff (.*, .din(dccm_data_ecc_hi_dc2[DCCM_ECC_WIDTH-1:0]), .dout(dccm_data_ecc_hi_dc3[DCCM_ECC_WIDTH-1:0]), .clk(lsu_dccm_c1_dc3_clk));
-      rvdff #(DCCM_ECC_WIDTH) dccm_data_ecc_lo_ff (.*, .din(dccm_data_ecc_lo_dc2[DCCM_ECC_WIDTH-1:0]), .dout(dccm_data_ecc_lo_dc3[DCCM_ECC_WIDTH-1:0]), .clk(lsu_dccm_c1_dc3_clk));
+      rvdff_fpga #(DCCM_DATA_WIDTH) dccm_data_hi_ff    (.*, .din(dccm_data_hi_dc2[DCCM_DATA_WIDTH-1:0]),    .dout(dccm_data_hi_dc3[DCCM_DATA_WIDTH-1:0]),    .clk(lsu_dccm_c1_dc3_clk), .clken(lsu_dccm_c1_dc3_clken), .rawclk(clk));
+      rvdff_fpga #(DCCM_DATA_WIDTH) dccm_data_lo_ff    (.*, .din(dccm_data_lo_dc2[DCCM_DATA_WIDTH-1:0]),    .dout(dccm_data_lo_dc3[DCCM_DATA_WIDTH-1:0]),    .clk(lsu_dccm_c1_dc3_clk), .clken(lsu_dccm_c1_dc3_clken), .rawclk(clk));
+      rvdff_fpga #(DCCM_ECC_WIDTH) dccm_data_ecc_hi_ff (.*, .din(dccm_data_ecc_hi_dc2[DCCM_ECC_WIDTH-1:0]), .dout(dccm_data_ecc_hi_dc3[DCCM_ECC_WIDTH-1:0]), .clk(lsu_dccm_c1_dc3_clk), .clken(lsu_dccm_c1_dc3_clken), .rawclk(clk));
+      rvdff_fpga #(DCCM_ECC_WIDTH) dccm_data_ecc_lo_ff (.*, .din(dccm_data_ecc_lo_dc2[DCCM_ECC_WIDTH-1:0]), .dout(dccm_data_ecc_lo_dc3[DCCM_ECC_WIDTH-1:0]), .clk(lsu_dccm_c1_dc3_clk), .clken(lsu_dccm_c1_dc3_clken), .rawclk(clk));
+
    end else begin: Gen_dccm_disable
       assign lsu_dccm_rden_dc2 = '0;
       assign lsu_dccm_rden_dc3 = '0;

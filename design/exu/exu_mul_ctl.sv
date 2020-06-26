@@ -59,20 +59,23 @@ module exu_mul_ctl
    assign mul_c1_e2_clken        = (valid_e1 | clk_override) & ~freeze;
    assign mul_c1_e3_clken        = (valid_e2 | clk_override) & ~freeze;
 
+`ifndef RV_FPGA_OPTIMIZE
    // C1 - 1 clock pulse for data
-   rvclkhdr exu_mul_c1e1_cgc     (.*, .en(mul_c1_e1_clken),   .l1clk(exu_mul_c1_e1_clk));
-   rvclkhdr exu_mul_c1e2_cgc     (.*, .en(mul_c1_e2_clken),   .l1clk(exu_mul_c1_e2_clk));
-   rvclkhdr exu_mul_c1e3_cgc     (.*, .en(mul_c1_e3_clken),   .l1clk(exu_mul_c1_e3_clk));
+   rvclkhdr exu_mul_c1e1_cgc     (.*, .en(mul_c1_e1_clken),   .l1clk(exu_mul_c1_e1_clk));   // ifndef FPGA_OPTIMIZE
+   rvclkhdr exu_mul_c1e2_cgc     (.*, .en(mul_c1_e2_clken),   .l1clk(exu_mul_c1_e2_clk));   // ifndef FPGA_OPTIMIZE
+   rvclkhdr exu_mul_c1e3_cgc     (.*, .en(mul_c1_e3_clken),   .l1clk(exu_mul_c1_e3_clk));   // ifndef FPGA_OPTIMIZE
+`endif
 
 
    // --------------------------- Input flops    ----------------------------------
 
-   rvdffs #(1)  valid_e1_ff      (.*, .din(mp.valid),                  .dout(valid_e1),               .clk(active_clk),        .en(~freeze));
-   rvdff  #(1)  rs1_sign_e1_ff   (.*, .din(mp.rs1_sign),               .dout(rs1_sign_e1),            .clk(exu_mul_c1_e1_clk));
-   rvdff  #(1)  rs2_sign_e1_ff   (.*, .din(mp.rs2_sign),               .dout(rs2_sign_e1),            .clk(exu_mul_c1_e1_clk));
-   rvdff  #(1)  low_e1_ff        (.*, .din(mp.low),                    .dout(low_e1),                 .clk(exu_mul_c1_e1_clk));
-   rvdff  #(1)  ld_rs1_byp_e1_ff (.*, .din(mp.load_mul_rs1_bypass_e1), .dout(load_mul_rs1_bypass_e1), .clk(exu_mul_c1_e1_clk));
-   rvdff  #(1)  ld_rs2_byp_e1_ff (.*, .din(mp.load_mul_rs2_bypass_e1), .dout(load_mul_rs2_bypass_e1), .clk(exu_mul_c1_e1_clk));
+   rvdffs      #(1)  valid_e1_ff      (.*, .din(mp.valid),                  .dout(valid_e1),               .clk(active_clk),        .en(~freeze));
+
+   rvdff_fpga  #(1)  rs1_sign_e1_ff   (.*, .din(mp.rs1_sign),               .dout(rs1_sign_e1),            .clk(exu_mul_c1_e1_clk), .clken(mul_c1_e1_clken), .rawclk(clk));
+   rvdff_fpga  #(1)  rs2_sign_e1_ff   (.*, .din(mp.rs2_sign),               .dout(rs2_sign_e1),            .clk(exu_mul_c1_e1_clk), .clken(mul_c1_e1_clken), .rawclk(clk));
+   rvdff_fpga  #(1)  low_e1_ff        (.*, .din(mp.low),                    .dout(low_e1),                 .clk(exu_mul_c1_e1_clk), .clken(mul_c1_e1_clken), .rawclk(clk));
+   rvdff_fpga  #(1)  ld_rs1_byp_e1_ff (.*, .din(mp.load_mul_rs1_bypass_e1), .dout(load_mul_rs1_bypass_e1), .clk(exu_mul_c1_e1_clk), .clken(mul_c1_e1_clken), .rawclk(clk));
+   rvdff_fpga  #(1)  ld_rs2_byp_e1_ff (.*, .din(mp.load_mul_rs2_bypass_e1), .dout(load_mul_rs2_bypass_e1), .clk(exu_mul_c1_e1_clk), .clken(mul_c1_e1_clken), .rawclk(clk));
 
    rvdffe  #(32) a_e1_ff          (.*, .din(a[31:0]),                   .dout(a_ff_e1[31:0]),          .en(mul_c1_e1_clken));
    rvdffe  #(32) b_e1_ff          (.*, .din(b[31:0]),                   .dout(b_ff_e1[31:0]),          .en(mul_c1_e1_clken));
@@ -88,8 +91,9 @@ module exu_mul_ctl
    assign rs2_neg_e1             =  rs2_sign_e1 & b_e1[31];
 
 
-   rvdffs #(1)  valid_e2_ff      (.*, .din(valid_e1),                  .dout(valid_e2),               .clk(active_clk),        .en(~freeze));
-   rvdff  #(1)  low_e2_ff        (.*, .din(low_e1),                    .dout(low_e2),                 .clk(exu_mul_c1_e2_clk));
+   rvdffs       #(1)  valid_e2_ff      (.*, .din(valid_e1),                  .dout(valid_e2),          .clk(active_clk),        .en(~freeze));
+
+   rvdff_fpga   #(1)    low_e2_ff      (.*, .din(low_e1),                    .dout(low_e2),            .clk(exu_mul_c1_e2_clk), .clken(mul_c1_e2_clken), .rawclk(clk));
 
    rvdffe  #(33) a_e2_ff          (.*, .din({rs1_neg_e1, a_e1[31:0]}),  .dout(a_ff_e2[32:0]),          .en(mul_c1_e2_clken));
    rvdffe  #(33) b_e2_ff          (.*, .din({rs2_neg_e1, b_e1[31:0]}),  .dout(b_ff_e2[32:0]),          .en(mul_c1_e2_clken));
@@ -103,9 +107,9 @@ module exu_mul_ctl
 
    assign prod_e2[65:0]          =  a_ff_e2  *  b_ff_e2;
 
+   rvdff_fpga  #(1)    low_e3_ff      (.*, .din(low_e2),                    .dout(low_e3),                 .clk(exu_mul_c1_e3_clk), .clken(mul_c1_e3_clken), .rawclk(clk));
 
-   rvdff  #(1)  low_e3_ff        (.*, .din(low_e2),                    .dout(low_e3),                 .clk(exu_mul_c1_e3_clk));
-   rvdffe  #(64) prod_e3_ff       (.*, .din(prod_e2[63:0]),             .dout(prod_e3[63:0]),          .en(mul_c1_e3_clken));
+   rvdffe      #(64) prod_e3_ff       (.*, .din(prod_e2[63:0]),             .dout(prod_e3[63:0]),          .en(mul_c1_e3_clken));
 
 
 

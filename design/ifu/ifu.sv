@@ -123,7 +123,7 @@ module ifu
    output logic       ifu_pmu_fetch_stall,
 
 //   I$ & ITAG Ports
-   output logic [31:3]               ic_rw_addr,         // Read/Write addresss to the Icache.
+   output logic [31:2]               ic_rw_addr,         // Read/Write addresss to the Icache.
    output logic [3:0]                ic_wr_en,           // Icache write enable, when filling the Icache.
    output logic                      ic_rd_en,           // Icache read  enable.
 `ifdef RV_ICACHE_ECC
@@ -358,7 +358,7 @@ module ifu
    assign mppc_ns[31:1] = `EXU.exu_i0_flush_upper_e1 ? `DEC.decode.i0_pc_e1[31:1] : (`EXU.exu_i1_flush_upper_e1 ? `DEC.decode.i1_pc_e1[31:1] : (`EXU.exu_i0_flush_lower_e4 ?  `DEC.decode.i0_pc_e4[31:1] :  `DEC.decode.i1_pc_e4[31:1]));
    assign mppc_ns[0] = 1'b0;
    logic [3:0] ic_rd_hit_f2;
-   rvdff #(36)  mdseal_ff (.*, .din({mppc_ns[31:0], mem_ctl.ic_rd_hit[3:0]}), .dout({mppc[31:0],ic_rd_hit_f2[3:0]}));
+   rvdff #(36)  junk_ff (.*, .clk(free_clk), .din({mppc_ns[31:0], mem_ctl.ic_rd_hit[3:0]}), .dout({mppc[31:0],ic_rd_hit_f2[3:0]}));
 logic [2:0] tmp_bnk;
 assign tmp_bnk[2:0] = encode8_3(bp.btb_sel_f2[7:0]);
    always @(negedge clk) begin

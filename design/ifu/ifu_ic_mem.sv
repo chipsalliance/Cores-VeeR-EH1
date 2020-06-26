@@ -19,12 +19,13 @@
 /////////////////////////////////////////////////////
 module ifu_ic_mem
   (
+      input logic free_clk,
       input logic clk,
       input logic rst_l,
       input logic clk_override,
       input logic dec_tlu_core_ecc_disable,
 
-      input logic [31:3]  ic_rw_addr,
+      input logic [31:2]  ic_rw_addr,
       input logic [3:0]   ic_wr_en  ,  // Which way to write
       input logic         ic_rd_en  ,  // Read enable
 
@@ -79,7 +80,7 @@ module ifu_ic_mem
            .*,
            .ic_wr_en     (ic_wr_en[3:0]),
            .ic_debug_addr(ic_debug_addr[ICACHE_TAG_HIGH-1:2]),
-           .ic_rw_addr   (ic_rw_addr[ICACHE_TAG_HIGH-1:3])
+           .ic_rw_addr   (ic_rw_addr[ICACHE_TAG_HIGH-1:2])
            ) ;
 
  endmodule
@@ -93,11 +94,12 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
                            ICACHE_IC_DEPTH=1024
                                         )
      (
+      input logic free_clk,
       input logic clk,
       input logic rst_l,
       input logic clk_override,
 
-      input logic [ICACHE_TAG_HIGH-1:3]  ic_rw_addr,
+      input logic [ICACHE_TAG_HIGH-1:2]  ic_rw_addr,
       input logic [3:0]                  ic_wr_en,
       input logic                        ic_rd_en,  // Read enable
 `ifdef RV_ICACHE_ECC
@@ -128,7 +130,7 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
    logic [5:4]             ic_rw_addr_ff;
 
 
-   logic [3:0][3:0]       ic_b_sb_wren;    // way, bank
+   logic [3:0][3:0]       ic_b_sb_wren, ic_bank_way_clken, ic_bank_way_clk;    // way, bank
 
    logic                   ic_debug_sel_sb0 ;
    logic                   ic_debug_sel_sb1 ;
@@ -146,8 +148,6 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
    logic [3:0] [33:0]      ic_sb_wr_data;
 `endif
 
-   logic [3:0]              ic_bank_way_clken;    // bank , way
-   logic [3:0]             ic_bank_way_clk  ;    // bank , way
    logic                   ic_b_rden;
    logic [3:0]             ic_debug_rd_way_en;   // debug wr_way
    logic [3:0]             ic_debug_rd_way_en_ff;   // debug wr_way
@@ -197,13 +197,12 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
 
    assign  ic_b_rden       = (ic_rd_en   | ic_debug_rd_en );
 
-   assign  ic_bank_way_clken[3:0]   = ({4{ic_b_rden | clk_override }}) |
-                                      ic_b_sb_wren[0][3:0] |
-                                      ic_b_sb_wren[1][3:0] |
-                                      ic_b_sb_wren[2][3:0] |
-                                      ic_b_sb_wren[3][3:0] ;
-
-
+   logic [3:0] ic_bank_read;
+   logic [3:0] ic_bank_read_ff;
+   assign ic_bank_read[0] = (ic_b_rden) & (~|ic_rw_addr[3:2] | ic_debug_rd_en);
+   assign ic_bank_read[1] = (ic_b_rden) & (~ic_rw_addr[3] | ic_debug_rd_en);
+   assign ic_bank_read[2] = (ic_b_rden) & (~&ic_rw_addr[3:2] | ic_debug_rd_en);
+   assign ic_bank_read[3] = (ic_b_rden) | ic_debug_rd_en;
 
     assign ic_rw_addr_q[ICACHE_TAG_HIGH-1:4] = (ic_debug_rd_en | ic_debug_wr_en) ?
                                                 ic_debug_addr[ICACHE_TAG_HIGH-1:4] :
@@ -212,10 +211,17 @@ module IC_DATA #(parameter ICACHE_TAG_HIGH = 16 ,
    logic ic_debug_rd_en_ff;
 
    rvdff #(2) adr_ff (.*,
+                    .clk(free_clk),
                     .din ({ic_rw_addr_q[5:4]}),
                     .dout({ic_rw_addr_ff[5:4]}));
 
+   rvdff #(4) bank_adr_ff (.*,
+                    .clk(free_clk),
+                    .din (ic_bank_read[3:0]),
+                    .dout(ic_bank_read_ff[3:0]));
+
    rvdff #(5) debug_rd_wy_ff (.*,
+                    .clk(free_clk),
                     .din ({ic_debug_rd_way_en[3:0], ic_debug_rd_en}),
                     .dout({ic_debug_rd_way_en_ff[3:0], ic_debug_rd_en_ff}));
 
@@ -225,13 +231,17 @@ localparam NUM_SUBBANKS=4 ;
 
      for (genvar i=0; i<NUM_WAYS; i++) begin: WAYS
 
-        rvoclkhdr bank_way_c1_cgc  ( .en(ic_bank_way_clken[i]), .l1clk(ic_bank_way_clk[i]), .* );
 
         for (genvar k=0; k<NUM_SUBBANKS; k++) begin: SUBBANKS   // 16B subbank
 
+           // way3-bank3, way3-bank2, ... way0-bank0
+           assign  ic_bank_way_clken[i][k]   = ic_bank_read[k] |  ic_b_sb_wren[k][i];
+
+           rvoclkhdr bank_way_bank_c1_cgc  ( .en(ic_bank_way_clken[i][k] | clk_override), .l1clk(ic_bank_way_clk[i][k]), .* );
+
         `ifdef RV_ICACHE_ECC
          `RV_ICACHE_DATA_CELL  ic_bank_sb_way_data (
-                                     .CLK(ic_bank_way_clk[i]),
+                                     .CLK(ic_bank_way_clk[i][k]),
                                      .WE (ic_b_sb_wren[k][i]),
                                      .D  (ic_sb_wr_data[k][41:0]),
                                      .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:4]),
@@ -239,7 +249,7 @@ localparam NUM_SUBBANKS=4 ;
                                     );
         `else
          `RV_ICACHE_DATA_CELL  ic_bank_sb_way_data (
-                                     .CLK(ic_bank_way_clk[i]),
+                                     .CLK(ic_bank_way_clk[i][k]),
                                      .WE (ic_b_sb_wren[k][i]),
                                      .D  (ic_sb_wr_data[k][33:0]),
                                      .ADR(ic_rw_addr_q[ICACHE_TAG_HIGH-1:4]),
@@ -261,10 +271,10 @@ localparam NUM_SUBBANKS=4 ;
    logic [3:0] [167:0] wb_dout_way_with_premux;
 
    assign ic_premux_data_ext[167:0] =  {10'b0,ic_premux_data[127:96],10'b0,ic_premux_data[95:64] ,10'b0,ic_premux_data[63:32],10'b0,ic_premux_data[31:0]};
-   assign wb_dout_way[0][167:0]       = wb_dout[0][167:0];
-   assign wb_dout_way[1][167:0]       = wb_dout[1][167:0];
-   assign wb_dout_way[2][167:0]       = wb_dout[2][167:0];
-   assign wb_dout_way[3][167:0]       = wb_dout[3][167:0];
+   assign wb_dout_way[0][167:0]       = wb_dout[0][167:0] & {  {42{ic_bank_read_ff[3]}} ,  {42{ic_bank_read_ff[2]}}  ,  {42{ic_bank_read_ff[1]}}  ,  {42{ic_bank_read_ff[0]}} };
+   assign wb_dout_way[1][167:0]       = wb_dout[1][167:0] & {  {42{ic_bank_read_ff[3]}} ,  {42{ic_bank_read_ff[2]}}  ,  {42{ic_bank_read_ff[1]}}  ,  {42{ic_bank_read_ff[0]}} };
+   assign wb_dout_way[2][167:0]       = wb_dout[2][167:0] & {  {42{ic_bank_read_ff[3]}} ,  {42{ic_bank_read_ff[2]}}  ,  {42{ic_bank_read_ff[1]}}  ,  {42{ic_bank_read_ff[0]}} };
+   assign wb_dout_way[3][167:0]       = wb_dout[3][167:0] & {  {42{ic_bank_read_ff[3]}} ,  {42{ic_bank_read_ff[2]}}  ,  {42{ic_bank_read_ff[1]}}  ,  {42{ic_bank_read_ff[0]}} };
 
 
    assign wb_dout_way_with_premux[0][167:0]  =  ic_sel_premux_data ? ic_premux_data_ext[167:0] : wb_dout_way[0][167:0] ;
@@ -283,10 +293,10 @@ localparam NUM_SUBBANKS=4 ;
    logic [3:0] [135:0] wb_dout_way_with_premux;
 
    assign ic_premux_data_ext[135:0]   = {2'b0,ic_premux_data[127:96],2'b0,ic_premux_data[95:64] ,2'b0,ic_premux_data[63:32],2'b0,ic_premux_data[31:0]};
-   assign wb_dout_way[0][135:0]       = wb_dout[0][135:0];
-   assign wb_dout_way[1][135:0]       = wb_dout[1][135:0];
-   assign wb_dout_way[2][135:0]       = wb_dout[2][135:0];
-   assign wb_dout_way[3][135:0]       = wb_dout[3][135:0];
+   assign wb_dout_way[0][135:0]       = wb_dout[0][135:0] &  {  {34{ic_bank_read_ff[3]}} ,  {34{ic_bank_read_ff[2]}}  ,  {34{ic_bank_read_ff[1]}}  ,  {34{ic_bank_read_ff[0]}} };
+   assign wb_dout_way[1][135:0]       = wb_dout[1][135:0] &  {  {34{ic_bank_read_ff[3]}} ,  {34{ic_bank_read_ff[2]}}  ,  {34{ic_bank_read_ff[1]}}  ,  {34{ic_bank_read_ff[0]}} };
+   assign wb_dout_way[2][135:0]       = wb_dout[2][135:0] &  {  {34{ic_bank_read_ff[3]}} ,  {34{ic_bank_read_ff[2]}}  ,  {34{ic_bank_read_ff[1]}}  ,  {34{ic_bank_read_ff[0]}} };
+   assign wb_dout_way[3][135:0]       = wb_dout[3][135:0] &  {  {34{ic_bank_read_ff[3]}} ,  {34{ic_bank_read_ff[2]}}  ,  {34{ic_bank_read_ff[1]}}  ,  {34{ic_bank_read_ff[0]}} };
 
    assign wb_dout_way_with_premux[0][135:0]  =  ic_sel_premux_data ? ic_premux_data_ext[135:0] : wb_dout_way[0][135:0] ;
    assign wb_dout_way_with_premux[1][135:0]  =  ic_sel_premux_data ? ic_premux_data_ext[135:0] : wb_dout_way[1][135:0] ;
@@ -311,6 +321,7 @@ module IC_TAG #(parameter ICACHE_TAG_HIGH = 16 ,
                           ICACHE_TAG_DEPTH=1024
                                         )
      (
+      input logic free_clk,
       input logic clk,
       input logic rst_l,
       input logic clk_override,
@@ -374,6 +385,7 @@ module IC_TAG #(parameter ICACHE_TAG_HIGH = 16 ,
    assign  ic_tag_clken[3:0]  = {4{ic_rd_en | clk_override}} | ic_wr_en[3:0] | ic_debug_wr_way_en[3:0] | ic_debug_rd_way_en[3:0];
 
    rvdff #(32-ICACHE_TAG_HIGH) adr_ff (.*,
+                    .clk(free_clk),
                     .din ({ic_rw_addr[31:ICACHE_TAG_HIGH]}),
                     .dout({ic_rw_addr_ff[31:ICACHE_TAG_HIGH]}));
 
@@ -436,6 +448,7 @@ end
 
 
    rvdff #(4) tag_rd_wy_ff (.*,
+                    .clk(free_clk),
                     .din ({ic_debug_rd_way_en[3:0]}),
                     .dout({ic_debug_rd_way_en_ff[3:0]}));
 
@@ -443,7 +456,9 @@ end
 
 
    for (genvar i=0; i<NUM_WAYS; i++) begin: WAYS
-   rvclkhdr ic_tag_c1_cgc  ( .en(ic_tag_clken[i]), .l1clk(ic_tag_clk[i]), .* );
+
+      rvoclkhdr ic_tag_c1_cgc  ( .en(ic_tag_clken[i]), .l1clk(ic_tag_clk[i]), .* );
+
      if (ICACHE_TAG_DEPTH == 64 ) begin : ICACHE_SZ_16
       `ifdef RV_ICACHE_ECC
          ram_64x25  ic_way_tag (

@@ -44,6 +44,10 @@ module lsu_bus_intf
    input logic                          lsu_freeze_c1_dc3_clk,
    input logic                          lsu_freeze_c2_dc2_clk,
    input logic                          lsu_freeze_c2_dc3_clk,
+   input logic                          lsu_freeze_c1_dc2_clken,
+   input logic                          lsu_freeze_c1_dc3_clken,
+   input logic                          lsu_freeze_c2_dc2_clken,
+   input logic                          lsu_freeze_c2_dc3_clken,
    input logic                          lsu_bus_ibuf_c1_clk,
    input logic                          lsu_bus_obuf_c1_clk,
    input logic                          lsu_bus_buf_c1_clk,
@@ -383,19 +387,21 @@ module lsu_bus_intf
    assign bus_read_data_dc3[31:0]                           = ld_full_hit_dc3 ? ld_fwddata_dc3[31:0] : ld_bus_data_dc3[31:0];
 
    // Fifo flops
-   rvdff #(.WIDTH(1)) lsu_full_hit_dc3ff (.din(ld_full_hit_dc2), .dout(ld_full_hit_dc3), .clk(lsu_freeze_c2_dc3_clk), .*);
-   rvdff #(.WIDTH(32)) lsu_fwddata_dc3ff (.din(ld_fwddata_dc2[31:0]), .dout(ld_fwddata_dc3[31:0]), .clk(lsu_c1_dc3_clk), .*);
 
    rvdff #(.WIDTH(1)) clken_ff (.din(lsu_bus_clk_en), .dout(lsu_bus_clk_en_q), .clk(free_clk), .*);
 
-   rvdff #(.WIDTH(1)) ldst_dual_dc2ff (.din(ldst_dual_dc1), .dout(ldst_dual_dc2), .clk(lsu_freeze_c1_dc2_clk), .*);
-   rvdff #(.WIDTH(1)) ldst_dual_dc3ff (.din(ldst_dual_dc2), .dout(ldst_dual_dc3), .clk(lsu_freeze_c1_dc3_clk),  .*);
+   rvdff_fpga #(.WIDTH(1)) ldst_dual_dc2ff    (.din(ldst_dual_dc1),        .dout(ldst_dual_dc2),        .clk(lsu_freeze_c1_dc2_clk), .clken(lsu_freeze_c1_dc2_clken), .rawclk(clk), .*);
+   rvdff_fpga #(.WIDTH(1)) lsu_full_hit_dc3ff (.din(ld_full_hit_dc2),      .dout(ld_full_hit_dc3),      .clk(lsu_freeze_c2_dc3_clk), .clken(lsu_freeze_c2_dc3_clken), .rawclk(clk), .*);
+   rvdff_fpga #(.WIDTH(1)) ldst_dual_dc3ff    (.din(ldst_dual_dc2),        .dout(ldst_dual_dc3),        .clk(lsu_freeze_c1_dc3_clk), .clken(lsu_freeze_c1_dc3_clken), .rawclk(clk), .*);
+   rvdff_fpga #(4)         lsu_byten_dc3ff    (.din(ldst_byteen_dc2[3:0]), .dout(ldst_byteen_dc3[3:0]), .clk(lsu_freeze_c1_dc3_clk), .clken(lsu_freeze_c1_dc3_clken), .rawclk(clk), .*);
+
+   rvdff #(.WIDTH(32)) lsu_fwddata_dc3ff (.din(ld_fwddata_dc2[31:0]), .dout(ld_fwddata_dc3[31:0]), .clk(lsu_c1_dc3_clk), .*);
+
    rvdff #(.WIDTH(1)) ldst_dual_dc4ff (.din(ldst_dual_dc3), .dout(ldst_dual_dc4), .clk(lsu_c1_dc4_clk), .*);
    rvdff #(.WIDTH(1)) ldst_dual_dc5ff (.din(ldst_dual_dc4), .dout(ldst_dual_dc5), .clk(lsu_c1_dc5_clk), .*);
    rvdff #(.WIDTH(1)) is_sideeffects_dc4ff (.din(is_sideeffects_dc3), .dout(is_sideeffects_dc4), .clk(lsu_c1_dc4_clk), .*);
    rvdff #(.WIDTH(1)) is_sideeffects_dc5ff (.din(is_sideeffects_dc4), .dout(is_sideeffects_dc5), .clk(lsu_c1_dc5_clk), .*);
 
-   rvdff #(4) lsu_byten_dc3ff (.*, .din(ldst_byteen_dc2[3:0]), .dout(ldst_byteen_dc3[3:0]), .clk(lsu_freeze_c1_dc3_clk));
    rvdff #(4) lsu_byten_dc4ff (.*, .din(ldst_byteen_dc3[3:0]), .dout(ldst_byteen_dc4[3:0]), .clk(lsu_c1_dc4_clk));
    rvdff #(4) lsu_byten_dc5ff (.*, .din(ldst_byteen_dc4[3:0]), .dout(ldst_byteen_dc5[3:0]), .clk(lsu_c1_dc5_clk));
 

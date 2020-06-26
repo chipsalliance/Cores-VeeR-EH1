@@ -84,7 +84,14 @@ module lsu_clkdomain
    output logic     lsu_freeze_c2_dc3_clk,
    output logic     lsu_freeze_c2_dc4_clk,
 
+   output logic     lsu_freeze_c2_dc1_clken,
+   output logic     lsu_freeze_c2_dc2_clken,
+   output logic     lsu_freeze_c2_dc3_clken,
+   output logic     lsu_freeze_c2_dc4_clken,
+
    output logic     lsu_dccm_c1_dc3_clk,               // dccm clock
+   output logic     lsu_dccm_c1_dc3_clken,
+
    output logic     lsu_pic_c1_dc3_clken,              // pic clock enable
 
    output logic     lsu_stbuf_c1_clk,
@@ -104,13 +111,12 @@ module lsu_clkdomain
    logic lsu_store_c1_dc4_clken, lsu_store_c1_dc5_clken;
 
    logic lsu_freeze_c1_dc4_clken;
-   logic lsu_freeze_c2_dc1_clken, lsu_freeze_c2_dc2_clken, lsu_freeze_c2_dc3_clken, lsu_freeze_c2_dc4_clken;
+
    logic lsu_freeze_c1_dc1_clken_q, lsu_freeze_c1_dc2_clken_q, lsu_freeze_c1_dc3_clken_q, lsu_freeze_c1_dc4_clken_q;
 
    logic lsu_stbuf_c1_clken;
    logic lsu_bus_ibuf_c1_clken, lsu_bus_obuf_c1_clken, lsu_bus_buf_c1_clken;
 
-   logic lsu_dccm_c1_dc3_clken;
 
    logic lsu_free_c1_clken, lsu_free_c1_clken_q, lsu_free_c2_clken;
    logic lsu_bus_valid_clken;
@@ -168,10 +174,10 @@ module lsu_clkdomain
    rvdff #(1) lsu_c1_dc4_clkenff (.din(lsu_c1_dc4_clken), .dout(lsu_c1_dc4_clken_q), .clk(lsu_free_c2_clk), .*);
    rvdff #(1) lsu_c1_dc5_clkenff (.din(lsu_c1_dc5_clken), .dout(lsu_c1_dc5_clken_q), .clk(lsu_free_c2_clk), .*);
 
-   rvdff #(1) lsu_freeze_c1_dc1_clkenff (.din(lsu_freeze_c1_dc1_clken), .dout(lsu_freeze_c1_dc1_clken_q), .clk(lsu_freeze_c2_dc1_clk), .*);
-   rvdff #(1) lsu_freeze_c1_dc2_clkenff (.din(lsu_freeze_c1_dc2_clken), .dout(lsu_freeze_c1_dc2_clken_q), .clk(lsu_freeze_c2_dc2_clk), .*);
-   rvdff #(1) lsu_freeze_c1_dc3_clkenff (.din(lsu_freeze_c1_dc3_clken), .dout(lsu_freeze_c1_dc3_clken_q), .clk(lsu_freeze_c2_dc3_clk), .*);
-   rvdff #(1) lsu_freeze_c1_dc4_clkenff (.din(lsu_freeze_c1_dc4_clken), .dout(lsu_freeze_c1_dc4_clken_q), .clk(lsu_freeze_c2_dc4_clk), .*);
+   rvdff_fpga #(1) lsu_freeze_c1_dc1_clkenff (.din(lsu_freeze_c1_dc1_clken), .dout(lsu_freeze_c1_dc1_clken_q), .clk(lsu_freeze_c2_dc1_clk), .clken(lsu_freeze_c2_dc1_clken), .rawclk(clk), .*);
+   rvdff_fpga #(1) lsu_freeze_c1_dc2_clkenff (.din(lsu_freeze_c1_dc2_clken), .dout(lsu_freeze_c1_dc2_clken_q), .clk(lsu_freeze_c2_dc2_clk), .clken(lsu_freeze_c2_dc2_clken), .rawclk(clk), .*);
+   rvdff_fpga #(1) lsu_freeze_c1_dc3_clkenff (.din(lsu_freeze_c1_dc3_clken), .dout(lsu_freeze_c1_dc3_clken_q), .clk(lsu_freeze_c2_dc3_clk), .clken(lsu_freeze_c2_dc3_clken), .rawclk(clk), .*);
+   rvdff_fpga #(1) lsu_freeze_c1_dc4_clkenff (.din(lsu_freeze_c1_dc4_clken), .dout(lsu_freeze_c1_dc4_clken_q), .clk(lsu_freeze_c2_dc4_clk), .clken(lsu_freeze_c2_dc4_clken), .rawclk(clk), .*);
 
    // Clock Headers
    rvoclkhdr lsu_c1dc3_cgc ( .en(lsu_c1_dc3_clken), .l1clk(lsu_c1_dc3_clk), .* );
@@ -182,32 +188,41 @@ module lsu_clkdomain
    rvoclkhdr lsu_c2dc4_cgc ( .en(lsu_c2_dc4_clken), .l1clk(lsu_c2_dc4_clk), .* );
    rvoclkhdr lsu_c2dc5_cgc ( .en(lsu_c2_dc5_clken), .l1clk(lsu_c2_dc5_clk), .* );
 
-//  rvclkhdr lsu_store_c1dc1_cgc (.en(lsu_store_c1_dc1_clken), .l1clk(lsu_store_c1_dc1_clk), .*);
-//   rvclkhdr lsu_store_c1dc2_cgc (.en(lsu_store_c1_dc2_clken), .l1clk(lsu_store_c1_dc2_clk), .*);
-//   rvclkhdr lsu_store_c1dc3_cgc (.en(lsu_store_c1_dc3_clken), .l1clk(lsu_store_c1_dc3_clk), .*);
    rvoclkhdr lsu_store_c1dc4_cgc (.en(lsu_store_c1_dc4_clken), .l1clk(lsu_store_c1_dc4_clk), .*);
    rvoclkhdr lsu_store_c1dc5_cgc (.en(lsu_store_c1_dc5_clken), .l1clk(lsu_store_c1_dc5_clk), .*);
 
-//   rvclkhdr lsu_freeze_c1dc1_cgc ( .en(lsu_freeze_c1_dc1_clken), .l1clk(lsu_freeze_c1_dc1_clk), .* );
-   rvclkhdr lsu_freeze_c1dc2_cgc ( .en(lsu_freeze_c1_dc2_clken), .l1clk(lsu_freeze_c1_dc2_clk), .* );
-   rvclkhdr lsu_freeze_c1dc3_cgc ( .en(lsu_freeze_c1_dc3_clken), .l1clk(lsu_freeze_c1_dc3_clk), .* );
+`ifdef RV_FPGA_OPTIMIZE
+   assign lsu_freeze_c1_dc2_clk = 1'b0;
+   assign lsu_freeze_c1_dc3_clk = 1'b0;
+   assign lsu_freeze_c2_dc1_clk = 1'b0;
+   assign lsu_freeze_c2_dc2_clk = 1'b0;
+   assign lsu_freeze_c2_dc3_clk = 1'b0;
+   assign lsu_freeze_c2_dc4_clk = 1'b0;
 
-   rvclkhdr lsu_freeze_c2dc1_cgc ( .en(lsu_freeze_c2_dc1_clken), .l1clk(lsu_freeze_c2_dc1_clk), .* );
-   rvclkhdr lsu_freeze_c2dc2_cgc ( .en(lsu_freeze_c2_dc2_clken), .l1clk(lsu_freeze_c2_dc2_clk), .* );
-   rvclkhdr lsu_freeze_c2dc3_cgc ( .en(lsu_freeze_c2_dc3_clken), .l1clk(lsu_freeze_c2_dc3_clk), .* );
-   rvclkhdr lsu_freeze_c2dc4_cgc ( .en(lsu_freeze_c2_dc4_clken), .l1clk(lsu_freeze_c2_dc4_clk), .* );
+   assign lsu_busm_clk = 1'b0;
+   assign lsu_dccm_c1_dc3_clk = 1'b0;
+
+`else
+   rvclkhdr lsu_freeze_c1dc2_cgc ( .en(lsu_freeze_c1_dc2_clken), .l1clk(lsu_freeze_c1_dc2_clk), .* );  // ifndef FPGA_OPTIMIZE
+   rvclkhdr lsu_freeze_c1dc3_cgc ( .en(lsu_freeze_c1_dc3_clken), .l1clk(lsu_freeze_c1_dc3_clk), .* );  // ifndef FPGA_OPTIMIZE
+   rvclkhdr lsu_freeze_c2dc1_cgc ( .en(lsu_freeze_c2_dc1_clken), .l1clk(lsu_freeze_c2_dc1_clk), .* );  // ifndef FPGA_OPTIMIZE
+   rvclkhdr lsu_freeze_c2dc2_cgc ( .en(lsu_freeze_c2_dc2_clken), .l1clk(lsu_freeze_c2_dc2_clk), .* );  // ifndef FPGA_OPTIMIZE
+   rvclkhdr lsu_freeze_c2dc3_cgc ( .en(lsu_freeze_c2_dc3_clken), .l1clk(lsu_freeze_c2_dc3_clk), .* );  // ifndef FPGA_OPTIMIZE
+   rvclkhdr lsu_freeze_c2dc4_cgc ( .en(lsu_freeze_c2_dc4_clken), .l1clk(lsu_freeze_c2_dc4_clk), .* );  // ifndef FPGA_OPTIMIZE
+
+   rvclkhdr lsu_busm_cgc (.en(lsu_bus_clk_en), .l1clk(lsu_busm_clk), .*);                              // ifndef FPGA_OPTIMIZE
+   rvclkhdr lsu_dccm_c1dc3_cgc (.en(lsu_dccm_c1_dc3_clken), .l1clk(lsu_dccm_c1_dc3_clk), .*);          // ifndef FPGA_OPTIMIZE
+
+`endif
 
    rvoclkhdr lsu_stbuf_c1_cgc ( .en(lsu_stbuf_c1_clken), .l1clk(lsu_stbuf_c1_clk), .* );
    rvoclkhdr lsu_bus_ibuf_c1_cgc ( .en(lsu_bus_ibuf_c1_clken), .l1clk(lsu_bus_ibuf_c1_clk), .* );
    rvoclkhdr lsu_bus_obuf_c1_cgc ( .en(lsu_bus_obuf_c1_clken), .l1clk(lsu_bus_obuf_c1_clk), .* );
    rvoclkhdr lsu_bus_buf_c1_cgc  ( .en(lsu_bus_buf_c1_clken),  .l1clk(lsu_bus_buf_c1_clk), .* );
 
-   rvclkhdr lsu_busm_cgc (.en(lsu_bus_clk_en), .l1clk(lsu_busm_clk), .*);
 
-   rvclkhdr lsu_dccm_c1dc3_cgc (.en(lsu_dccm_c1_dc3_clken), .l1clk(lsu_dccm_c1_dc3_clk), .*);
-//   rvclkhdr lsu_pic_c1dc3_cgc (.en(lsu_pic_c1_dc3_clken), .l1clk(lsu_pic_c1_dc3_clk), .*);
 
-   rvclkhdr lsu_free_cgc (.en(lsu_free_c2_clken), .l1clk(lsu_free_c2_clk), .*);
+   rvoclkhdr lsu_free_cgc (.en(lsu_free_c2_clken), .l1clk(lsu_free_c2_clk), .*);
 
 endmodule
 

@@ -30,6 +30,7 @@ module lsu_dccm_mem
    import swerv_types::*;
 (
    input logic         clk,                                              // clock
+   input logic         free_clk,                                         // clock
    input logic         rst_l,
    input logic         lsu_freeze_dc3,                                   // freeze
    input logic         clk_override,                                     // clock override
@@ -71,11 +72,24 @@ module lsu_dccm_mem
    logic [DCCM_NUM_BANKS-1:0]            dccm_clk;
    logic [DCCM_NUM_BANKS-1:0]            dccm_clken;
 
+   logic [DCCM_FDATA_WIDTH-1:0]          dccm_rd_data_lo_q, dccm_rd_data_hi_q;
+   logic                                 lsu_freeze_dc3_q;
+
    assign rd_unaligned = (dccm_rd_addr_lo[DCCM_WIDTH_BITS+:DCCM_BANK_BITS] != dccm_rd_addr_hi[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]);
 
+`ifdef RV_FPGA_OPTIMIZE
+   // Align the read data
+   assign dccm_rd_data_lo[DCCM_FDATA_WIDTH-1:0]  = lsu_freeze_dc3_q ? dccm_rd_data_lo_q[DCCM_FDATA_WIDTH-1:0] : dccm_bank_dout[dccm_rd_addr_lo_q[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]][DCCM_FDATA_WIDTH-1:0];
+   assign dccm_rd_data_hi[DCCM_FDATA_WIDTH-1:0]  = lsu_freeze_dc3_q ? dccm_rd_data_hi_q[DCCM_FDATA_WIDTH-1:0] : dccm_bank_dout[dccm_rd_addr_hi_q[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]][DCCM_FDATA_WIDTH-1:0];
+
+   rvdff  #(1) lsu_freeze_dc3ff(.din(lsu_freeze_dc3), .dout(lsu_freeze_dc3_q), .clk(free_clk), .*);
+   rvdffe #(DCCM_FDATA_WIDTH) dccm_rd_data_loff(.din(dccm_rd_data_lo), .dout(dccm_rd_data_lo_q), .en(~lsu_freeze_dc3_q), .*);
+   rvdffe #(DCCM_FDATA_WIDTH) dccm_rd_data_hiff(.din(dccm_rd_data_hi), .dout(dccm_rd_data_hi_q), .en(~lsu_freeze_dc3_q), .*);
+`else
    // Align the read data
    assign dccm_rd_data_lo[DCCM_FDATA_WIDTH-1:0]  = dccm_bank_dout[dccm_rd_addr_lo_q[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]][DCCM_FDATA_WIDTH-1:0];
    assign dccm_rd_data_hi[DCCM_FDATA_WIDTH-1:0]  = dccm_bank_dout[dccm_rd_addr_hi_q[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]][DCCM_FDATA_WIDTH-1:0];
+`endif
 
    // Generate even/odd address
    // assign rd_addr_even[(DCCM_BANK_BITS+DCCM_WIDTH_BITS)+:DCCM_INDEX_BITS] = dccm_rd_addr_lo[2] ? dccm_rd_addr_hi[(DCCM_BANK_BITS+DCCM_WIDTH_BITS)+:DCCM_INDEX_BITS] :
@@ -103,7 +117,7 @@ module lsu_dccm_mem
 
       // clock gating section
       assign  dccm_clken[i] = (wren_bank[i] | rden_bank[i] | clk_override) & ~lsu_freeze_dc3;
-      rvclkhdr lsu_dccm_cgc (.en(dccm_clken[i]), .l1clk(dccm_clk[i]), .*);
+      rvoclkhdr lsu_dccm_cgc (.en(dccm_clken[i]), .l1clk(dccm_clk[i]), .*);
       // end clock gating section
 
       `RV_DCCM_DATA_CELL  dccm_bank (
@@ -119,8 +133,8 @@ module lsu_dccm_mem
    end : mem_bank
 
    // Flops
-   rvdffs  #(DCCM_BANK_BITS) rd_addr_lo_ff (.*, .din(dccm_rd_addr_lo[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]), .dout(dccm_rd_addr_lo_q[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]), .en(~lsu_freeze_dc3));
-   rvdffs  #(DCCM_BANK_BITS) rd_addr_hi_ff (.*, .din(dccm_rd_addr_hi[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]), .dout(dccm_rd_addr_hi_q[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]), .en(~lsu_freeze_dc3));
+   rvdffs  #(DCCM_BANK_BITS) rd_addr_lo_ff (.*, .din(dccm_rd_addr_lo[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]), .dout(dccm_rd_addr_lo_q[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]), .en(~lsu_freeze_dc3), .clk(free_clk));
+   rvdffs  #(DCCM_BANK_BITS) rd_addr_hi_ff (.*, .din(dccm_rd_addr_hi[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]), .dout(dccm_rd_addr_hi_q[DCCM_WIDTH_BITS+:DCCM_BANK_BITS]), .en(~lsu_freeze_dc3), .clk(free_clk));
 
 endmodule // lsu_dccm_mem
 

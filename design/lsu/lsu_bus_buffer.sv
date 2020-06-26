@@ -58,6 +58,7 @@ module lsu_bus_buffer
    input logic                          lsu_freeze_c1_dc3_clk,
    input logic                          lsu_freeze_c2_dc2_clk,
    input logic                          lsu_freeze_c2_dc3_clk,
+   input logic                          lsu_freeze_c2_dc3_clken,
    input logic                          lsu_bus_ibuf_c1_clk,
    input logic                          lsu_bus_obuf_c1_clk,
    input logic                          lsu_bus_buf_c1_clk,
@@ -527,10 +528,28 @@ module lsu_bus_buffer
    assign obuf_merge_en = (CmdPtr0 != CmdPtr1) & found_cmdptr0 & found_cmdptr1 & (buf_state[CmdPtr0] == CMD) & (buf_state[CmdPtr1] == CMD) & ~buf_cmd_state_bus_en[CmdPtr0] & ~buf_sideeffect[CmdPtr0] &
                           (~buf_write[CmdPtr0] & buf_dual[CmdPtr0] & ~buf_dualhi[CmdPtr0] & buf_samedw[CmdPtr0]);  // CmdPtr0/CmdPtr1 are for same load which is within a DW
 
-   rvdff   #(.WIDTH(1))              obuf_wren_ff      (.din(obuf_wr_en),                  .dout(obuf_wr_enQ),                                        .clk(lsu_busm_clk), .*);
-   rvdff   #(.WIDTH(1))              obuf_cmd_done_ff  (.din(obuf_cmd_done_in),            .dout(obuf_cmd_done),                                      .clk(lsu_busm_clk), .*);
-   rvdff   #(.WIDTH(1))              obuf_data_done_ff (.din(obuf_data_done_in),           .dout(obuf_data_done),                                     .clk(lsu_busm_clk), .*);
-   rvdffsc #(.WIDTH(1))              obuf_valid_ff     (.din(1'b1),                        .dout(obuf_valid),      .en(obuf_wr_en), .clear(obuf_rst), .clk(lsu_busm_clk), .*);
+   rvdff_fpga   #(1)              obuf_wren_ff      (.din(obuf_wr_en),        .dout(obuf_wr_enQ),                                        .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga   #(1)              obuf_cmd_done_ff  (.din(obuf_cmd_done_in),  .dout(obuf_cmd_done),                                      .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga   #(1)              obuf_data_done_ff (.din(obuf_data_done_in), .dout(obuf_data_done),                                     .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdffsc_fpga #(1)              obuf_valid_ff     (.din(1'b1),              .dout(obuf_valid),     .clear(obuf_rst),  .en(obuf_wr_en), .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga   #(TIMER_LOG2)     obuf_timerff      (.din(obuf_wr_timer_in),  .dout(obuf_wr_timer),                                      .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+
+   rvdff_fpga #(1)            lsu_axi_awvalid_ff (.din(lsu_axi_awvalid),                .dout(lsu_axi_awvalid_q),                .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga #(1)            lsu_axi_awready_ff (.din(lsu_axi_awready),                .dout(lsu_axi_awready_q),                .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga #(1)            lsu_axi_wvalid_ff  (.din(lsu_axi_wvalid),                 .dout(lsu_axi_wvalid_q),                 .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga #(1)            lsu_axi_wready_ff  (.din(lsu_axi_wready),                 .dout(lsu_axi_wready_q),                 .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga #(1)            lsu_axi_arvalid_ff (.din(lsu_axi_arvalid),                .dout(lsu_axi_arvalid_q),                .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga #(1)            lsu_axi_arready_ff (.din(lsu_axi_arready),                .dout(lsu_axi_arready_q),                .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(1)           lsu_axi_bvalid_ff  (.din(lsu_axi_bvalid),                 .dout(lsu_axi_bvalid_q),                 .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(1)           lsu_axi_bready_ff  (.din(lsu_axi_bready),                 .dout(lsu_axi_bready_q),                 .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(2)           lsu_axi_bresp_ff   (.din(lsu_axi_bresp[1:0]),             .dout(lsu_axi_bresp_q[1:0]),             .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(LSU_BUS_TAG) lsu_axi_bid_ff     (.din(lsu_axi_bid[LSU_BUS_TAG-1:0]),   .dout(lsu_axi_bid_q[LSU_BUS_TAG-1:0]),   .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(1)           lsu_axi_rvalid_ff  (.din(lsu_axi_rvalid),                 .dout(lsu_axi_rvalid_q),                 .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(1)           lsu_axi_rready_ff  (.din(lsu_axi_rready),                 .dout(lsu_axi_rready_q),                 .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(2)           lsu_axi_rresp_ff   (.din(lsu_axi_rresp[1:0]),             .dout(lsu_axi_rresp_q[1:0]),             .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(LSU_BUS_TAG) lsu_axi_rid_ff     (.din(lsu_axi_rid[LSU_BUS_TAG-1:0]),   .dout(lsu_axi_rid_q[LSU_BUS_TAG-1:0]),   .clk(lsu_busm_clk), .clken(lsu_bus_clk_en), .rawclk(clk), .*);
+
+
    rvdffs  #(.WIDTH(LSU_BUS_TAG))    obuf_tag0ff       (.din(obuf_tag0_in),                .dout(obuf_tag0),       .en(obuf_wr_en),                   .clk(lsu_bus_obuf_c1_clk), .*);
    rvdffs  #(.WIDTH(LSU_BUS_TAG))    obuf_tag1ff       (.din(obuf_tag1_in),                .dout(obuf_tag1),       .en(obuf_wr_en),                   .clk(lsu_bus_obuf_c1_clk), .*);
    rvdffs  #(.WIDTH(1))              obuf_mergeff      (.din(obuf_merge_in),               .dout(obuf_merge),      .en(obuf_wr_en),                   .clk(lsu_bus_obuf_c1_clk), .*);
@@ -540,7 +559,6 @@ module lsu_bus_buffer
    rvdffe  #(.WIDTH(32))             obuf_addrff       (.din(obuf_addr_in[31:0]),          .dout(obuf_addr),       .en(obuf_wr_en),                                              .*);
    rvdffs  #(.WIDTH(8))              obuf_byteenff     (.din(obuf_byteen_in[7:0]),         .dout(obuf_byteen),     .en(obuf_wr_en),                   .clk(lsu_bus_obuf_c1_clk), .*);
    rvdffe  #(.WIDTH(64))             obuf_dataff       (.din(obuf_data_in[63:0]),          .dout(obuf_data),       .en(obuf_wr_en),                                              .*);
-   rvdff   #(.WIDTH(TIMER_LOG2))     obuf_timerff      (.din(obuf_wr_timer_in),            .dout(obuf_wr_timer),                                      .clk(lsu_busm_clk), .*);
 
    //------------------------------------------------------------------------------
    // Output buffer logic ends here
@@ -872,23 +890,7 @@ module lsu_bus_buffer
    assign lsu_pmu_bus_error = ld_bus_error_dc3 | lsu_imprecise_error_load_any | lsu_imprecise_error_store_any;
    assign lsu_pmu_bus_busy  = (lsu_axi_awvalid_q & ~lsu_axi_awready_q) | (lsu_axi_wvalid_q & ~lsu_axi_wready_q) | (lsu_axi_arvalid_q & ~lsu_axi_arready_q);
 
-   rvdff #(.WIDTH(1))            lsu_axi_awvalid_ff (.din(lsu_axi_awvalid),                .dout(lsu_axi_awvalid_q),                .clk(lsu_busm_clk), .*);
-   rvdff #(.WIDTH(1))            lsu_axi_awready_ff (.din(lsu_axi_awready),                .dout(lsu_axi_awready_q),                .clk(lsu_busm_clk), .*);
-   rvdff #(.WIDTH(1))            lsu_axi_wvalid_ff  (.din(lsu_axi_wvalid),                 .dout(lsu_axi_wvalid_q),                 .clk(lsu_busm_clk), .*);
-   rvdff #(.WIDTH(1))            lsu_axi_wready_ff  (.din(lsu_axi_wready),                 .dout(lsu_axi_wready_q),                 .clk(lsu_busm_clk), .*);
-   rvdff #(.WIDTH(1))            lsu_axi_arvalid_ff (.din(lsu_axi_arvalid),                .dout(lsu_axi_arvalid_q),                .clk(lsu_busm_clk), .*);
-   rvdff #(.WIDTH(1))            lsu_axi_arready_ff (.din(lsu_axi_arready),                .dout(lsu_axi_arready_q),                .clk(lsu_busm_clk), .*);
-
-   rvdff  #(.WIDTH(1))           lsu_axi_bvalid_ff  (.din(lsu_axi_bvalid),                 .dout(lsu_axi_bvalid_q),                 .clk(lsu_busm_clk), .*);
-   rvdff  #(.WIDTH(1))           lsu_axi_bready_ff  (.din(lsu_axi_bready),                 .dout(lsu_axi_bready_q),                 .clk(lsu_busm_clk), .*);
-   rvdff  #(.WIDTH(2))           lsu_axi_bresp_ff   (.din(lsu_axi_bresp[1:0]),             .dout(lsu_axi_bresp_q[1:0]),             .clk(lsu_busm_clk), .*);
-   rvdff  #(.WIDTH(LSU_BUS_TAG)) lsu_axi_bid_ff     (.din(lsu_axi_bid[LSU_BUS_TAG-1:0]),   .dout(lsu_axi_bid_q[LSU_BUS_TAG-1:0]),   .clk(lsu_busm_clk), .*);
    rvdffe #(.WIDTH(64))          lsu_axi_rdata_ff   (.din(lsu_axi_rdata[63:0]),            .dout(lsu_axi_rdata_q[63:0]),            .en(lsu_axi_rvalid & lsu_bus_clk_en), .*);
-
-   rvdff  #(.WIDTH(1))           lsu_axi_rvalid_ff  (.din(lsu_axi_rvalid),                 .dout(lsu_axi_rvalid_q),                 .clk(lsu_busm_clk), .*);
-   rvdff  #(.WIDTH(1))           lsu_axi_rready_ff  (.din(lsu_axi_rready),                 .dout(lsu_axi_rready_q),                 .clk(lsu_busm_clk), .*);
-   rvdff  #(.WIDTH(2))           lsu_axi_rresp_ff   (.din(lsu_axi_rresp[1:0]),             .dout(lsu_axi_rresp_q[1:0]),             .clk(lsu_busm_clk), .*);
-   rvdff  #(.WIDTH(LSU_BUS_TAG)) lsu_axi_rid_ff     (.din(lsu_axi_rid[LSU_BUS_TAG-1:0]),   .dout(lsu_axi_rid_q[LSU_BUS_TAG-1:0]),   .clk(lsu_busm_clk), .*);
 
    // General flops
    rvdffsc #(.WIDTH(1))          ld_freezeff            (.din(1'b1),                    .dout(ld_freeze_dc3),       .en(ld_freeze_en), .clear(ld_freeze_rst), .clk(lsu_free_c2_clk), .*);
@@ -905,7 +907,10 @@ module lsu_bus_buffer
    rvdff #(.WIDTH(1)) lsu_busreq_dc4ff (.din(lsu_busreq_dc3 & ~flush_dc4),      .dout(lsu_busreq_dc4), .clk(lsu_c2_dc4_clk), .*);
    rvdff #(.WIDTH(1)) lsu_busreq_dc5ff (.din(lsu_busreq_dc4 & ~flush_dc5),      .dout(lsu_busreq_dc5), .clk(lsu_c2_dc5_clk), .*);
 
-   rvdff #(.WIDTH(1)) dec_nonblock_load_freeze_dc3ff (.din(dec_nonblock_load_freeze_dc2), .dout(dec_nonblock_load_freeze_dc3), .clk(lsu_freeze_c2_dc3_clk), .*);
+   rvdff_fpga #(.WIDTH(1)) dec_nonblock_load_freeze_dc3ff (.din(dec_nonblock_load_freeze_dc2), .dout(dec_nonblock_load_freeze_dc3), .clk(lsu_freeze_c2_dc3_clk), .clken(lsu_freeze_c2_dc3_clken), .rawclk(clk), .*);
+
+
+
    rvdff #(.WIDTH(1)) lsu_nonblock_load_valid_dc4ff  (.din(lsu_nonblock_load_valid_dc3),  .dout(lsu_nonblock_load_valid_dc4), .clk(lsu_c2_dc4_clk), .*);
    rvdff #(.WIDTH(1)) lsu_nonblock_load_valid_dc5ff  (.din(lsu_nonblock_load_valid_dc4),  .dout(lsu_nonblock_load_valid_dc5), .clk(lsu_c2_dc5_clk), .*);
 

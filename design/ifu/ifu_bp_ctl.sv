@@ -1289,7 +1289,7 @@ assign fgmask_f2[0] = (~ifc_fetch_addr_f2[3] & ~ifc_fetch_addr_f2[2]
                                        ({31{e1_rs_hold}}  & e1_rets_out[i][31:1]) );
 
 
-      rvdff #(31) e1_rets_ff (.*, .din(e1_rets_in[i][31:1]), .dout(e1_rets_out[i][31:1]));
+      rvdffe #(31) e1_rets_ff (.*, .en(~e1_rs_hold), .din(e1_rets_in[i][31:1]), .dout(e1_rets_out[i][31:1]));
 
    end : e1_retstack
 
@@ -1346,7 +1346,7 @@ assign fgmask_f2[0] = (~ifc_fetch_addr_f2[3] & ~ifc_fetch_addr_f2[2]
                                        ({31{e4_rs_hold}}  & e4_rets_out[i][31:1]) );
 
 
-      rvdff #(31) e4_rets_ff (.*, .din(e4_rets_in[i][31:1]), .dout(e4_rets_out[i][31:1]));
+      rvdffe #(31) e4_rets_ff (.*, .en(~e4_rs_hold), .din(e4_rets_in[i][31:1]), .dout(e4_rets_out[i][31:1]));
 
    end : e4_retstack
 
@@ -1628,7 +1628,11 @@ assign fgmask_f2[0] = (~ifc_fetch_addr_f2[3] & ~ifc_fetch_addr_f2[2]
                                     (bht_wr_en1[i] & ((bht_wr_addr1[`RV_BHT_ADDR_HI: NUM_BHT_LOOP_OUTER_LO]==k) |  BHT_NO_ADDR_MATCH)) |
                                     (bht_wr_en2[i] & ((bht_wr_addr2[`RV_BHT_ADDR_HI: NUM_BHT_LOOP_OUTER_LO]==k) |  BHT_NO_ADDR_MATCH));
 
-     rvclkhdr bht_bank_grp_cgc ( .en(bht_bank_clken[i][k]), .l1clk(bht_bank_clk[i][k]), .* );
+`ifndef RV_FPGA_OPTIMIZE
+     rvclkhdr bht_bank_grp_cgc ( .en(bht_bank_clken[i][k]), .l1clk(bht_bank_clk[i][k]), .* );  // ifndef RV_FPGA_OPTIMIZE
+`else
+     assign bht_bank_clk[i][k] = '0;
+`endif
 
      for (j=0 ; j<NUM_BHT_LOOP ; j++) begin : BHT_FLOPS
        assign   bht_bank_sel[i][k][j]    = (bht_wr_en0[i] & (bht_wr_addr0[NUM_BHT_LOOP_INNER_HI :`RV_BHT_ADDR_LO] == j) & ((bht_wr_addr0[`RV_BHT_ADDR_HI: NUM_BHT_LOOP_OUTER_LO]==k) | BHT_NO_ADDR_MATCH)) |
@@ -1639,9 +1643,10 @@ assign fgmask_f2[0] = (~ifc_fetch_addr_f2[3] & ~ifc_fetch_addr_f2[2]
                                            (bht_wr_en1[i] & (bht_wr_addr1[NUM_BHT_LOOP_INNER_HI:`RV_BHT_ADDR_LO] == j) & ((bht_wr_addr1[`RV_BHT_ADDR_HI: NUM_BHT_LOOP_OUTER_LO]==k) | BHT_NO_ADDR_MATCH)) ? bht_wr_data1[1:0] :
                                                                                                                       bht_wr_data0[1:0]   ;
 
-
-          rvdffs #(2) bht_bank (.*,
+          rvdffs_fpga #(2) bht_bank (.*,
                     .clk        (bht_bank_clk[i][k]),
+                    .clken      (bht_bank_sel[i][k][j]),
+                    .rawclk     (clk),
                     .en         (bht_bank_sel[i][k][j]),
                     .din        (bht_bank_wr_data[i][k][j]),
                     .dout       (bht_bank_rd_data_out[i][(16*k)+j]));

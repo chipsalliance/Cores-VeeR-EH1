@@ -396,9 +396,6 @@ module dma_ctrl (
 
    // Inputs
    rvdff #(1)  ahbs_bus_clken_ff (.din(dma_bus_clk_en), .dout(dma_bus_clk_en_q), .clk(free_clk), .*);
-   rvdff #(1)  fifo_full_bus_ff (.din(fifo_full_spec), .dout(fifo_full_spec_bus), .clk(dma_bus_clk), .*);
-   rvdff #(1)  dbg_dma_bubble_ff (.din(dbg_dma_bubble), .dout(dbg_dma_bubble_bus), .clk(dma_bus_clk), .*);
-   rvdff #(1)  dec_tlu_stall_dma_ff (.din(dec_tlu_stall_dma), .dout(dec_tlu_stall_dma_bus), .clk(dma_bus_clk), .*);
    rvdff #(1) dma_dbg_cmd_doneff (.din(dma_dbg_cmd_done), .dout(dma_dbg_cmd_done_q), .clk(free_clk), .*);
 
    // Clock Gating logic
@@ -407,7 +404,34 @@ module dma_ctrl (
 
    rvoclkhdr dma_buffer_c1cgc ( .en(dma_buffer_c1_clken), .l1clk(dma_buffer_c1_clk), .* );
    rvoclkhdr dma_free_cgc (.en(dma_free_clken), .l1clk(dma_free_clk), .*);
-   rvclkhdr dma_bus_cgc (.en(dma_bus_clk_en), .l1clk(dma_bus_clk), .*);
+
+`ifndef RV_FPGA_OPTIMIZE
+   rvclkhdr dma_bus_cgc (.en(dma_bus_clk_en), .l1clk(dma_bus_clk), .*);  // ifndef FPGA_OPTIMIZE
+`endif
+
+   rvdffsc_fpga  #(1)  wrbuf_vldff     (.din(1'b1), .clear(wrbuf_rst),      .dout(wrbuf_vld),      .en(wrbuf_en),      .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdffsc_fpga  #(1)  wrbuf_data_vldff(.din(1'b1), .clear(wrbuf_data_rst), .dout(wrbuf_data_vld), .en(wrbuf_data_en), .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdffsc_fpga  #(1)  rdbuf_vldff     (.din(1'b1), .clear(rdbuf_rst),      .dout(rdbuf_vld),      .en(rdbuf_en),      .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+
+
+   rvdff_fpga  #(1)  fifo_full_bus_ff     (.din(fifo_full_spec),                .dout(fifo_full_spec_bus),                        .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(1)  dbg_dma_bubble_ff    (.din(dbg_dma_bubble),                .dout(dbg_dma_bubble_bus),                        .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga  #(1)  dec_tlu_stall_dma_ff (.din(dec_tlu_stall_dma),             .dout(dec_tlu_stall_dma_bus),                     .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdffs_fpga #(1) wrbuf_postedff        (.din(1'b0),                          .dout(wrbuf_posted),               .en(wrbuf_en), .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdffs_fpga #(DMA_BUS_TAG) wrbuf_tagff (.din(dma_axi_awid[DMA_BUS_TAG-1:0]), .dout(wrbuf_tag[DMA_BUS_TAG-1:0]), .en(wrbuf_en), .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdffs_fpga #(3) wrbuf_sizeff          (.din(dma_axi_awsize[2:0]),           .dout(wrbuf_size[2:0]),            .en(wrbuf_en), .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdffs_fpga #(8) wrbuf_byteenff        (.din(dma_axi_wstrb[7:0]),            .dout(wrbuf_byteen[7:0]),     .en(wrbuf_data_en), .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdffs_fpga #(DMA_BUS_TAG) rdbuf_tagff (.din(dma_axi_arid[DMA_BUS_TAG-1:0]), .dout(rdbuf_tag[DMA_BUS_TAG-1:0]), .en(rdbuf_en), .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdffs_fpga #(3) rdbuf_sizeff          (.din(dma_axi_arsize[2:0]),           .dout(rdbuf_size[2:0]),            .en(rdbuf_en), .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdffs_fpga #(1) mstr_prtyff           (.din(axi_mstr_prty_in),              .dout(axi_mstr_priority),  .en(axi_mstr_prty_en), .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+
+   rvdff_fpga #(1) axi_mstr_validff       ( .din(axi_mstr_valid), .dout(axi_mstr_valid_q), .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+   rvdff_fpga #(1) axi_slv_sentff         ( .din(axi_slv_sent),   .dout(axi_slv_sent_q),   .clk(dma_bus_clk), .clken(dma_bus_clk_en), .rawclk(clk), .*);
+
+
+   rvdffe   #(32) wrbuf_addrff(.din(dma_axi_awaddr[31:0]), .dout(wrbuf_addr[31:0]), .en(wrbuf_en & dma_bus_clk_en),      .*);
+   rvdffe   #(64) wrbuf_dataff(.din(dma_axi_wdata[63:0]),  .dout(wrbuf_data[63:0]), .en(wrbuf_data_en & dma_bus_clk_en), .*);
+   rvdffe   #(32) rdbuf_addrff(.din(dma_axi_araddr[31:0]), .dout(rdbuf_addr[31:0]), .en(rdbuf_en & dma_bus_clk_en),      .*);
 
    // Write channel buffer
    assign wrbuf_en       = dma_axi_awvalid & dma_axi_awready;
@@ -416,23 +440,11 @@ module dma_ctrl (
    assign wrbuf_rst      = wrbuf_cmd_sent & ~wrbuf_en;
    assign wrbuf_data_rst = wrbuf_cmd_sent & ~wrbuf_data_en;
 
-   rvdffsc  #(.WIDTH(1))  wrbuf_vldff(.din(1'b1), .dout(wrbuf_vld), .en(wrbuf_en), .clear(wrbuf_rst), .clk(dma_bus_clk), .*);
-   rvdffsc  #(.WIDTH(1))  wrbuf_data_vldff(.din(1'b1), .dout(wrbuf_data_vld), .en(wrbuf_data_en), .clear(wrbuf_data_rst), .clk(dma_bus_clk), .*);
-   rvdffs   #(.WIDTH(1)) wrbuf_postedff(.din(1'b0), .dout(wrbuf_posted), .en(wrbuf_en), .clk(dma_bus_clk), .*);
-   rvdffs   #(.WIDTH(DMA_BUS_TAG)) wrbuf_tagff(.din(dma_axi_awid[DMA_BUS_TAG-1:0]), .dout(wrbuf_tag[DMA_BUS_TAG-1:0]), .en(wrbuf_en), .clk(dma_bus_clk), .*);
-   rvdffs   #(.WIDTH(3)) wrbuf_sizeff(.din(dma_axi_awsize[2:0]), .dout(wrbuf_size[2:0]), .en(wrbuf_en), .clk(dma_bus_clk), .*);
-   rvdffe   #(.WIDTH(32)) wrbuf_addrff(.din(dma_axi_awaddr[31:0]), .dout(wrbuf_addr[31:0]), .en(wrbuf_en & dma_bus_clk_en), .*);
-   rvdffe   #(.WIDTH(64)) wrbuf_dataff(.din(dma_axi_wdata[63:0]), .dout(wrbuf_data[63:0]), .en(wrbuf_data_en & dma_bus_clk_en), .*);
-   rvdffs   #(.WIDTH(8)) wrbuf_byteenff(.din(dma_axi_wstrb[7:0]), .dout(wrbuf_byteen[7:0]), .en(wrbuf_data_en), .clk(dma_bus_clk), .*);
    // Read channel buffer
    assign rdbuf_en    = dma_axi_arvalid & dma_axi_arready;
    assign rdbuf_cmd_sent = axi_mstr_valid & ~axi_mstr_write & dma_fifo_ready;
    assign rdbuf_rst   = rdbuf_cmd_sent & ~rdbuf_en;
 
-   rvdffsc  #(.WIDTH(1))  rdbuf_vldff(.din(1'b1), .dout(rdbuf_vld), .en(rdbuf_en), .clear(rdbuf_rst), .clk(dma_bus_clk), .*);
-   rvdffs   #(.WIDTH(DMA_BUS_TAG)) rdbuf_tagff(.din(dma_axi_arid[DMA_BUS_TAG-1:0]), .dout(rdbuf_tag[DMA_BUS_TAG-1:0]), .en(rdbuf_en), .clk(dma_bus_clk), .*);
-   rvdffs   #(.WIDTH(3)) rdbuf_sizeff(.din(dma_axi_arsize[2:0]), .dout(rdbuf_size[2:0]), .en(rdbuf_en), .clk(dma_bus_clk), .*);
-   rvdffe   #(.WIDTH(32)) rdbuf_addrff(.din(dma_axi_araddr[31:0]), .dout(rdbuf_addr[31:0]), .en(rdbuf_en & dma_bus_clk_en), .*);
 
    assign dma_axi_awready = ~(wrbuf_vld & ~wrbuf_cmd_sent);
    assign dma_axi_wready  = ~(wrbuf_data_vld & ~wrbuf_cmd_sent);
@@ -452,10 +464,6 @@ module dma_ctrl (
    assign axi_mstr_sel     = (wrbuf_vld & wrbuf_data_vld & rdbuf_vld) ? axi_mstr_priority : (wrbuf_vld & wrbuf_data_vld);
    assign axi_mstr_prty_in = ~axi_mstr_priority;
    assign axi_mstr_prty_en = axi_mstr_valid;
-   rvdffs #(.WIDTH(1)) mstr_prtyff(.din(axi_mstr_prty_in), .dout(axi_mstr_priority), .en(axi_mstr_prty_en), .clk(dma_bus_clk), .*);
-
-   rvdff #(.WIDTH(1)) axi_mstr_validff (.din(axi_mstr_valid), .dout(axi_mstr_valid_q), .clk(dma_bus_clk), .*);
-   rvdff #(.WIDTH(1)) axi_slv_sentff (.din(axi_slv_sent), .dout(axi_slv_sent_q), .clk(dma_bus_clk), .*);
 
    //assign axi_slv_valid                  = fifo_valid[RspPtr] & ~fifo_rsp_done[RspPtr] & ~fifo_dbg[RspPtr] &
    //                                        ((fifo_write[RspPtr] & fifo_done_bus[RspPtr]) | (~fifo_write[RspPtr] & fifo_data_bus_valid[RspPtr]) | fifo_error_bus[RspPtr]);

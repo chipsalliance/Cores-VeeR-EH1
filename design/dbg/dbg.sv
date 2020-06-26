@@ -161,6 +161,8 @@ module dbg (
    logic         dmcontrol_wren, dmcontrol_wren_Q;
    // command
    logic         command_wren;
+   logic         command_transfer_din;
+   logic         command_postexec_din;
    logic [31:0]  command_din;
    // needed to send the read data back for dmi reads
    logic  [31:0] dmi_reg_rdata_din;
@@ -180,6 +182,7 @@ module dbg (
    logic [2:0]        sbcs_sberror_din;
    logic              sbcs_unaligned;
    logic              sbcs_illegal_size;
+   logic [19:15]      sbcs_reg_int;
 
    // data
    logic              sbdata0_reg_wren0;
@@ -239,7 +242,10 @@ module dbg (
 
    rvoclkhdr dbg_free_cgc     (.en(dbg_free_clken), .l1clk(dbg_free_clk), .*);
    rvoclkhdr sb_free_cgc     (.en(sb_free_clken), .l1clk(sb_free_clk), .*);
-   rvclkhdr bus_cgc (.en(bus_clken), .l1clk(bus_clk), .*);
+
+`ifndef RV_FPGA_OPTIMIZE
+   rvclkhdr bus_cgc (.en(bus_clken), .l1clk(bus_clk), .*);  // ifndef FPGA_OPTIMIZE
+`endif
 
    // end clocking section
 
@@ -251,6 +257,7 @@ module dbg (
    // sbcs[31:29], sbcs - [22]:sbbusyerror, [21]: sbbusy, [20]:sbreadonaddr, [19:17]:sbaccess, [16]:sbautoincrement, [15]:sbreadondata, [14:12]:sberror, sbsize=32, 128=0, 64/32/16/8 are legal
    assign        sbcs_reg[31:29] = 3'b1;
    assign        sbcs_reg[28:23] = '0;
+   assign        sbcs_reg[19:15] = {sbcs_reg_int[19], ~sbcs_reg_int[18], sbcs_reg_int[17:15]};
    assign        sbcs_reg[11:5]  = 7'h20;
    assign        sbcs_reg[4:0]   = 5'b01111;
    assign        sbcs_wren = (dmi_reg_addr ==  7'h38) & dmi_reg_en & dmi_reg_wr_en & (sb_state == SBIDLE); // & (sbcs_reg[14:12] == 3'b000);
@@ -261,7 +268,8 @@ module dbg (
    rvdffs #(1) sbcs_sbbusyerror_reg  (.din(sbcs_sbbusyerror_din),  .dout(sbcs_reg[22]),    .en(sbcs_sbbusyerror_wren), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk));
    rvdffs #(1) sbcs_sbbusy_reg       (.din(sbcs_sbbusy_din),       .dout(sbcs_reg[21]),    .en(sbcs_sbbusy_wren),      .rst_l(dbg_dm_rst_l), .clk(sb_free_clk));
    rvdffs #(1) sbcs_sbreadonaddr_reg (.din(dmi_reg_wdata[20]),     .dout(sbcs_reg[20]),    .en(sbcs_wren),             .rst_l(dbg_dm_rst_l), .clk(sb_free_clk));
-   rvdffs #(5) sbcs_misc_reg         (.din(dmi_reg_wdata[19:15]),  .dout(sbcs_reg[19:15]), .en(sbcs_wren),             .rst_l(dbg_dm_rst_l), .clk(sb_free_clk));
+   rvdffs #(5) sbcs_misc_reg         (.din({dmi_reg_wdata[19],~dmi_reg_wdata[18],dmi_reg_wdata[17:15]}),
+                                      .dout(sbcs_reg_int[19:15]), .en(sbcs_wren),             .rst_l(dbg_dm_rst_l), .clk(sb_free_clk));
    rvdffs #(3) sbcs_error_reg        (.din(sbcs_sberror_din[2:0]), .dout(sbcs_reg[14:12]), .en(sbcs_sberror_wren),     .rst_l(dbg_dm_rst_l), .clk(sb_free_clk));
 
    assign sbcs_unaligned =    ((sbcs_reg[19:17] == 3'b001) &  sbaddress0_reg[0]) |
@@ -354,11 +362,14 @@ module dbg (
    assign        abstractcs_reg[7:4]   = '0;
    assign        abstractcs_reg[3:0]   = 4'h2;    // One data register
    assign        abstractcs_error_sel0 = abstractcs_reg[12] & dmi_reg_en & ((dmi_reg_wr_en & ( (dmi_reg_addr == 7'h16) | (dmi_reg_addr == 7'h17))) |  (dmi_reg_addr == 7'h4));
-   assign        abstractcs_error_sel1 = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h17) & ~((dmi_reg_wdata[31:24] == 8'b0) | (dmi_reg_wdata[31:24] == 8'h2));
+   assign        abstractcs_error_sel1 = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h17) &
+                                         ((~((dmi_reg_wdata[31:24] == 8'b0) | (dmi_reg_wdata[31:24] == 8'h2))) |   // Illegal command
+                                          ((dmi_reg_wdata[22:20] != 3'b010) & ((dmi_reg_wdata[31:24] == 8'h2) | ((dmi_reg_wdata[31:24] == 8'h0) & dmi_reg_wdata[17])))   |   // Illegal size
+                                          ((dmi_reg_wdata[31:24] == 8'h0) & (dmi_reg_wdata[19] | dmi_reg_wdata[18]))  |   //aarpostincrement/postexec for abstract register access
+                                          ((dmi_reg_wdata[31:24] == 8'h2) & dmi_reg_wdata[19]));                          //aampostincrement for abstract memory access
    assign        abstractcs_error_sel2 = core_dbg_cmd_done & core_dbg_cmd_fail;
    assign        abstractcs_error_sel3 = dmi_reg_en & dmi_reg_wr_en & (dmi_reg_addr == 7'h17) & (dbg_state != HALTED);
-   assign        abstractcs_error_sel4 = (dmi_reg_addr ==  7'h17) & dmi_reg_en & dmi_reg_wr_en &
-                                         ((dmi_reg_wdata[22:20] != 3'b010) | ((dmi_reg_wdata[31:24] == 8'h2) && (|data1_reg[1:0])));  // Only word size is allowed
+   assign        abstractcs_error_sel4 = (dmi_reg_addr ==  7'h17) & dmi_reg_en & dmi_reg_wr_en & ((dmi_reg_wdata[31:24] == 8'h2) && (|data1_reg[1:0]));  //Unaligned address for abstract memory
 
    assign        abstractcs_error_sel5 = (dmi_reg_addr ==  7'h16) & dmi_reg_en & dmi_reg_wr_en;
 
@@ -379,7 +390,9 @@ module dbg (
    // command register - implemented all the bits in this register
    // command[16] = 1: write, 0: read
    assign     command_wren = (dmi_reg_addr ==  7'h17) & dmi_reg_en & dmi_reg_wr_en & (dbg_state == HALTED);
-   assign     command_din[31:0] = {dmi_reg_wdata[31:24],1'b0,dmi_reg_wdata[22:20],3'b0,dmi_reg_wdata[16:0]};
+   assign     command_postexec_din = (dmi_reg_wdata[31:24] == 8'h0) & dmi_reg_wdata[18];
+   assign     command_transfer_din = (dmi_reg_wdata[31:24] == 8'h0) & dmi_reg_wdata[17];
+   assign     command_din[31:0] = {dmi_reg_wdata[31:24],1'b0,dmi_reg_wdata[22:19],command_postexec_din,command_transfer_din, dmi_reg_wdata[16:0]};
    rvdffe #(32) dmcommand_reg (.*, .din(command_din[31:0]), .dout(command_reg[31:0]), .en(command_wren), .rst_l(dbg_dm_rst_l));
 
    // data0 reg
@@ -388,7 +401,7 @@ module dbg (
    assign data0_reg_wren    = data0_reg_wren0 | data0_reg_wren1;
 
    assign data0_din[31:0]   = ({32{data0_reg_wren0}} & dmi_reg_wdata[31:0]) |
-                                     ({32{data0_reg_wren1}} & core_dbg_rddata[31:0]);
+                              ({32{data0_reg_wren1}} & core_dbg_rddata[31:0]);
 
    rvdffe #(32) dbg_data0_reg (.*, .din(data0_din[31:0]), .dout(data0_reg[31:0]), .en(data0_reg_wren), .rst_l(dbg_dm_rst_l));
 
@@ -434,8 +447,9 @@ module dbg (
                      dbg_resume_req       = dbg_state_en & (dbg_nxtstate == RESUMING);                       // single cycle pulse to core if resuming
             end
             CMD_START: begin
-                     dbg_nxtstate         = dmcontrol_reg[1] ? IDLE : (|abstractcs_reg[10:8]) ? CMD_DONE : CMD_WAIT;     // new command sent to the core
-                     dbg_state_en         = dbg_cmd_valid | (|abstractcs_reg[10:8]) | dmcontrol_reg[1];
+                     // Don't execute the command if cmderror or transfer=0 for abstract register access
+                     dbg_nxtstate         = dmcontrol_reg[1] ? IDLE : ((|abstractcs_reg[10:8]) | ((command_reg[31:24] == 8'h0) & ~command_reg[17])) ? CMD_DONE : CMD_WAIT;     // new command sent to the core
+                     dbg_state_en         = dbg_cmd_valid | (|abstractcs_reg[10:8]) | ((command_reg[31:24] == 8'h0) & ~command_reg[17]) | dmcontrol_reg[1];
             end
             CMD_WAIT: begin
                      dbg_nxtstate         = dmcontrol_reg[1] ? IDLE : CMD_DONE;
@@ -464,7 +478,7 @@ module dbg (
 
    assign dmi_reg_rdata_din[31:0] = ({32{dmi_reg_addr == 7'h4}}  & data0_reg[31:0])      |
                                     ({32{dmi_reg_addr == 7'h5}}  & data1_reg[31:0])      |
-                                    ({32{dmi_reg_addr == 7'h10}} & dmcontrol_reg[31:0])  |
+                                    ({32{dmi_reg_addr == 7'h10}} & {2'b0,dmcontrol_reg[29],1'b0,dmcontrol_reg[27:0]})  |  // Read0 to Write only bits
                                     ({32{dmi_reg_addr == 7'h11}} & dmstatus_reg[31:0])   |
                                     ({32{dmi_reg_addr == 7'h16}} & abstractcs_reg[31:0]) |
                                     ({32{dmi_reg_addr == 7'h17}} & command_reg[31:0])    |
@@ -483,7 +497,7 @@ module dbg (
    // interface for the core
    assign        dbg_cmd_addr[31:0]    = (command_reg[31:24] == 8'h2) ? {data1_reg[31:2],2'b0}  : {20'b0, command_reg[11:0]};  // Only word addresses for abstract memory
    assign        dbg_cmd_wrdata[31:0]  = data0_reg[31:0];
-   assign        dbg_cmd_valid         = (dbg_state == CMD_START) & ~(|abstractcs_reg[10:8]) & dma_dbg_ready;
+   assign        dbg_cmd_valid         = (dbg_state == CMD_START) & ~((|abstractcs_reg[10:8]) | ((command_reg[31:24] == 8'h0) & ~command_reg[17])) & dma_dbg_ready;
    assign        dbg_cmd_write         = command_reg[16];
    assign        dbg_cmd_type[1:0]     = (command_reg[31:24] == 8'h2) ? 2'b10 : {1'b0, (command_reg[15:12] == 4'b0)};
    assign        dbg_cmd_size[1:0]     = command_reg[21:20];
@@ -554,7 +568,7 @@ module dbg (
                      sb_state_en            = 1'b1;
                      sbcs_sbbusy_wren       = 1'b1;                           // reset the single read
                      sbcs_sbbusy_din        = 1'b0;
-                     sbaddress0_reg_wren1   = sbcs_reg[16];                   // auto increment was set. Update to new address after completing the current command
+                     sbaddress0_reg_wren1   = sbcs_reg[16] & (sbcs_reg[14:12] == 3'b0);    // auto increment was set and no error. Update to new address after completing the current command
             end
             default : begin
                      sb_nxtstate            = SBIDLE;
@@ -572,6 +586,9 @@ module dbg (
 
    //rvdff #(.WIDTH(1)) bus_clken_ff (.din(dbg_bus_clk_en), .dout(dbg_bus_clk_en_q),  .rst_l(dbg_dm_rst_l), .clk(dbg_sb_c2_free_clk), .*);
 
+   rvdff_fpga  #(2) axi_bresp_ff (.din(sb_axi_bresp[1:0]), .dout(sb_axi_bresp_q[1:0]), .rst_l(dbg_dm_rst_l), .clk(bus_clk), .clken(bus_clken), .rawclk(clk), .*);
+   rvdff_fpga  #(2) axi_rresp_ff (.din(sb_axi_rresp[1:0]), .dout(sb_axi_rresp_q[1:0]), .rst_l(dbg_dm_rst_l), .clk(bus_clk), .clken(bus_clken), .rawclk(clk), .*);
+
    rvdffs #(.WIDTH(1)) axi_awvalid_ff (.din(sb_axi_awvalid), .dout(sb_axi_awvalid_q), .en(dbg_bus_clk_en), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk), .*);
    rvdffs #(.WIDTH(1)) axi_awready_ff (.din(sb_axi_awready), .dout(sb_axi_awready_q), .en(dbg_bus_clk_en), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk), .*);
    rvdffs #(.WIDTH(1)) axi_wvalid_ff (.din(sb_axi_wvalid), .dout(sb_axi_wvalid_q), .en(dbg_bus_clk_en), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk), .*);
@@ -581,10 +598,8 @@ module dbg (
 
    rvdffs #(.WIDTH(1)) axi_bvalid_ff (.din(sb_axi_bvalid), .dout(sb_axi_bvalid_q), .en(dbg_bus_clk_en), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk), .*);
    rvdffs #(.WIDTH(1)) axi_bready_ff (.din(sb_axi_bready), .dout(sb_axi_bready_q), .en(dbg_bus_clk_en), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk), .*);
-   rvdff  #(.WIDTH(2)) axi_bresp_ff (.din(sb_axi_bresp[1:0]), .dout(sb_axi_bresp_q[1:0]), .rst_l(dbg_dm_rst_l), .clk(bus_clk), .*);
    rvdffs #(.WIDTH(1)) axi_rvalid_ff (.din(sb_axi_rvalid), .dout(sb_axi_rvalid_q), .en(dbg_bus_clk_en), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk), .*);
    rvdffs #(.WIDTH(1)) axi_rready_ff (.din(sb_axi_rready), .dout(sb_axi_rready_q), .en(dbg_bus_clk_en), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk), .*);
-   rvdff  #(.WIDTH(2)) axi_rresp_ff (.din(sb_axi_rresp[1:0]), .dout(sb_axi_rresp_q[1:0]), .rst_l(dbg_dm_rst_l), .clk(bus_clk), .*);
    rvdffe  #(.WIDTH(64)) axi_rdata_ff (.din(sb_axi_rdata[63:0]), .dout(sb_axi_rdata_q[63:0]), .rst_l(dbg_dm_rst_l), .en(bus_clken), .*);
 
    // AXI Request signals

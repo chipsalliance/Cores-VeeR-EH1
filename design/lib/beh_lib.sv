@@ -72,6 +72,73 @@ module rvdffsc #( parameter WIDTH=1 )
 
 endmodule
 
+// versions with clock enables .clken to assist in RV_FPGA_OPTIMIZE
+module rvdff_fpga #( parameter WIDTH=1 )
+   (
+     input logic [WIDTH-1:0] din,
+     input logic           clk,
+     input logic           clken,
+     input logic           rawclk,
+     input logic           rst_l,
+     input logic           scan_mode,
+
+     output logic [WIDTH-1:0] dout
+     );
+
+`ifdef RV_FPGA_OPTIMIZE
+    rvdffs #(WIDTH) dffs (.clk(rawclk), .en(clken), .*);
+`else
+    rvdff #(WIDTH)  dff (.*);
+`endif
+
+
+
+endmodule
+
+// rvdff with 2:1 input mux to flop din iff sel==1
+module rvdffs_fpga #( parameter WIDTH=1 )
+   (
+     input logic [WIDTH-1:0] din,
+     input logic             en,
+     input logic           clk,
+     input logic           clken,
+     input logic           rawclk,
+     input logic           rst_l,
+     input logic           scan_mode,
+     output logic [WIDTH-1:0] dout
+     );
+
+`ifdef RV_FPGA_OPTIMIZE
+   rvdffs #(WIDTH)   dffs (.clk(rawclk), .en(clken & en), .*);
+`else
+   rvdffs #(WIDTH)   dffs (.*);
+`endif
+
+endmodule
+
+// rvdff with en and clear
+module rvdffsc_fpga #( parameter WIDTH=1 )
+   (
+     input logic [WIDTH-1:0] din,
+     input logic             en,
+     input logic             clear,
+     input logic             clk,
+     input logic             clken,
+     input logic             rawclk,
+     input logic             rst_l,
+     input logic             scan_mode,
+     output logic [WIDTH-1:0] dout
+     );
+
+`ifdef RV_FPGA_OPTIMIZE
+   rvdffs  #(WIDTH)   dffs  (.clk(rawclk), .din(din[WIDTH-1:0] & {WIDTH{~clear}}),.en((en | clear) & clken), .*);
+`else
+   rvdffsc #(WIDTH)   dffsc (.*);
+`endif
+
+endmodule
+
+
 module `TEC_RV_ICG
   (
    input logic TE, E, CP,
@@ -97,6 +164,7 @@ module `TEC_RV_ICG
 
 endmodule
 
+`ifndef RV_FPGA_OPTIMIZE
 module rvclkhdr
   (
    input  logic en,
@@ -110,7 +178,8 @@ module rvclkhdr
 
    `TEC_RV_ICG clkhdr ( .*, .E(en), .CP(clk), .Q(l1clk));
 
-endmodule
+endmodule // rvclkhdr
+`endif
 
 module rvoclkhdr
   (
@@ -131,7 +200,7 @@ module rvoclkhdr
 
 endmodule
 
-module rvdffe #( parameter WIDTH=1 )
+module rvdffe #( parameter WIDTH=1, parameter OVERRIDE=0 )
    (
      input  logic [WIDTH-1:0] din,
      input  logic           en,
@@ -145,7 +214,7 @@ module rvdffe #( parameter WIDTH=1 )
 
 
 `ifndef PHYSICAL
-   if (WIDTH >= 8) begin: genblock
+   if (WIDTH >= 8 || OVERRIDE==1) begin: genblock
 `endif
 
 `ifdef RV_FPGA_OPTIMIZE

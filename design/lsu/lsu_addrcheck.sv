@@ -27,7 +27,10 @@ module lsu_addrcheck
 (
    input logic         lsu_freeze_c2_dc2_clk,       // clock
    input logic         lsu_freeze_c2_dc3_clk,
+   input logic         lsu_freeze_c2_dc2_clken,
+   input logic         lsu_freeze_c2_dc3_clken,
    input logic         rst_l,                       // reset
+   input logic         clk,
 
    input logic [31:0]  start_addr_dc1,              // start address for lsu
    input logic [31:0]  end_addr_dc1,                // end address for lsu
@@ -177,8 +180,9 @@ module lsu_addrcheck
    assign misaligned_fault_dc1 = ((start_addr_dc1[31:28] != end_addr_dc1[31:28]) |
                                   (is_sideeffects_dc1 & ~is_aligned_dc1)) & addr_external_dc1 & lsu_pkt_dc1.valid & ~lsu_pkt_dc1.dma;
 
-   rvdff #(.WIDTH(1)) is_sideeffects_dc2ff (.din(is_sideeffects_dc1), .dout(is_sideeffects_dc2), .clk(lsu_freeze_c2_dc2_clk), .*);
-   rvdff #(.WIDTH(1)) is_sideeffects_dc3ff (.din(is_sideeffects_dc2), .dout(is_sideeffects_dc3), .clk(lsu_freeze_c2_dc3_clk), .*);
+   rvdff_fpga #(.WIDTH(1)) is_sideeffects_dc2ff (.din(is_sideeffects_dc1), .dout(is_sideeffects_dc2), .clk(lsu_freeze_c2_dc2_clk), .clken(lsu_freeze_c2_dc2_clken), .rawclk(clk), .*);
+   rvdff_fpga #(.WIDTH(1)) is_sideeffects_dc3ff (.din(is_sideeffects_dc2), .dout(is_sideeffects_dc3), .clk(lsu_freeze_c2_dc3_clk), .clken(lsu_freeze_c2_dc3_clken), .rawclk(clk), .*);
+
 
 endmodule // lsu_addrcheck
 

@@ -201,7 +201,7 @@ for (i=0; i<TOTAL_INT ; i++) begin  : SETREG
 //     if (GW_CONFIG[i]) begin
 
         rvdffs #(2)                 gw_config_ff   (.*, .en( gw_config_reg_we[i]),   .din (picm_wr_data_ff[1:0]),                  .dout(gw_config_reg[i]),   .clk(gw_config_c1_clk));
-        configurable_gw config_gw_inst(.*, .clk(free_clk),
+        configurable_gw config_gw_inst(.*, .gw_clk(free_clk),
                          .extintsrc_req_sync(extintsrc_req_sync[i]) ,
                          .meigwctrl_polarity(gw_config_reg[i][0]) ,
                          .meigwctrl_type(gw_config_reg[i][1]) ,
@@ -478,7 +478,7 @@ endmodule // cmp_and_mux
 
 
 module configurable_gw (
-                             input logic clk,
+                             input logic gw_clk,
                              input logic rst_l,
 
                              input logic extintsrc_req_sync ,
@@ -493,7 +493,7 @@ module configurable_gw (
   logic  gw_int_pending_in , gw_int_pending ;
 
   assign gw_int_pending_in =  (extintsrc_req_sync ^ meigwctrl_polarity) | (gw_int_pending & ~meigwclr) ;
-  rvdff #(1) int_pend_ff        (.*, .clk(clk), .din (gw_int_pending_in),     .dout(gw_int_pending));
+  rvdff #(1) int_pend_ff        (.*, .clk(gw_clk), .din (gw_int_pending_in),     .dout(gw_int_pending));
 
   assign extintsrc_req_config =  meigwctrl_type ? ((extintsrc_req_sync ^  meigwctrl_polarity) | gw_int_pending) : (extintsrc_req_sync ^  meigwctrl_polarity) ;
 

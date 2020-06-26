@@ -122,7 +122,7 @@ module ifu_mem_ctl
 
 
 //   I$ & ITAG Ports
-   output logic [31:3]               ic_rw_addr,         // Read/Write addresss to the Icache.
+   output logic [31:2]               ic_rw_addr,         // Read/Write addresss to the Icache.
    output logic [3:0]                ic_wr_en,           // Icache write enable, when filling the Icache.
    output logic                      ic_rd_en,           // Icache read  enable.
 
@@ -377,8 +377,7 @@ module ifu_mem_ctl
    assign debug_c1_clken        = ic_debug_rd_en | ic_debug_wr_en ;
    // C1 - 1 clock pulse for data
 
-   rvclkhdr fetch_f1_f2_c1_cgc   ( .en(fetch_f1_f2_c1_clken),     .l1clk(fetch_f1_f2_c1_clk), .* );
-   rvclkhdr debug_c1_cgc         ( .en(debug_c1_clken),     .l1clk(debug_c1_clk), .* );
+
 
 // ------ end clock gating section ------------------------
 
@@ -501,19 +500,19 @@ module ifu_mem_ctl
 
    assign vaddr_f2[3:1] = ifu_fetch_addr_int_f2[3:1] ;
 
-   rvdff #(1)  unc_miss_ff     (.*, .clk(fetch_f1_f2_c1_clk), .din (uncacheable_miss_in), .dout(uncacheable_miss_ff));
-   rvdffe #(31) imb_f2_ff       (.*, .en(fetch_f1_f2_c1_clken), .din ({imb_in[31:1]}), .dout({imb_ff[31:1]}));
-   rvdff #(3)  mb_rep_wayf2_ff (.*, .clk(fetch_f1_f2_c1_clk), .din ({way_status_mb_in[2:0]}), .dout({way_status_mb_ff[2:0]}));
 
-   rvdff #(4)  mb_tagv_ff      (.*, .clk(fetch_f1_f2_c1_clk), .din ({tagv_mb_in[3:0]}), .dout({tagv_mb_ff[3:0]}));
+   rvdff_fpga #(1)  unc_miss_ff        (.*, .clk(fetch_f1_f2_c1_clk), .clken(fetch_f1_f2_c1_clken), .rawclk(clk), .din (uncacheable_miss_in),     .dout(uncacheable_miss_ff));
+   rvdff_fpga #(3)  mb_rep_wayf2_ff    (.*, .clk(fetch_f1_f2_c1_clk), .clken(fetch_f1_f2_c1_clken), .rawclk(clk), .din ({way_status_mb_in[2:0]}), .dout({way_status_mb_ff[2:0]}));
+   rvdff_fpga #(4)  mb_tagv_ff         (.*, .clk(fetch_f1_f2_c1_clk), .clken(fetch_f1_f2_c1_clken), .rawclk(clk), .din ({tagv_mb_in[3:0]}),       .dout({tagv_mb_ff[3:0]}));
+   rvdff_fpga #(1) ifu_iccm_acc_ff     (.*, .clk(fetch_f1_f2_c1_clk), .clken(fetch_f1_f2_c1_clken), .rawclk(clk), .din(ifc_iccm_access_f1),       .dout(ifc_iccm_access_f2));
+   rvdff_fpga #(1) ifu_iccm_reg_acc_ff (.*, .clk(fetch_f1_f2_c1_clk), .clken(fetch_f1_f2_c1_clken), .rawclk(clk), .din(ifc_region_acc_fault_final_f1), .dout(ifc_region_acc_fault_f2));
+
+   rvdffe #(31) imb_f2_ff       (.*, .en(fetch_f1_f2_c1_clken), .din ({imb_in[31:1]}), .dout({imb_ff[31:1]}));
 
    assign ifc_fetch_req_qual_f1  = ifc_fetch_req_f1  & ~((miss_state == CRIT_WRD_RDY) & flush_final_f2) ;// & ~exu_flush_final ;
    rvdff #(1) fetch_req_f2_ff  (.*, .clk(active_clk),  .din(ifc_fetch_req_qual_f1), .dout(ifc_fetch_req_f2_raw));
 
    assign ifc_fetch_req_f2       = ifc_fetch_req_f2_raw & ~exu_flush_final ;
-
-   rvdff #(1) ifu_iccm_acc_ff     (.*, .clk(fetch_f1_f2_c1_clk), .din(ifc_iccm_access_f1),      .dout(ifc_iccm_access_f2));
-   rvdff #(1) ifu_iccm_reg_acc_ff (.*, .clk(fetch_f1_f2_c1_clk), .din(ifc_region_acc_fault_final_f1), .dout(ifc_region_acc_fault_f2));
 
 
    assign ifu_ic_req_addr_f2[31:3] = {imb_ff[31:6] , ic_req_addr_bits_5_3[5:3] };
@@ -584,7 +583,7 @@ module ifu_mem_ctl
 
    rvdff #(1) sel_mb_addr_flop (.*, .clk(free_clk), .din({sel_mb_addr}), .dout({sel_mb_addr_ff}));
 
-  assign ic_rw_addr[31:3]      = ifu_ic_rw_int_addr[31:3] ;
+  assign ic_rw_addr[31:2]      = ifu_ic_rw_int_addr[31:2] ;
 
 
 genvar i ;
@@ -729,9 +728,6 @@ assign ic_fetch_val_f2[0] = fetch_req_f2_qual ;
 
   assign   byp_data_first_c1_clken  = write_byp_first_data;
   assign   byp_data_second_c1_clken = write_byp_second_data;
-
-  rvclkhdr byp_data_first_c1_cgc  ( .en(byp_data_first_c1_clken),    .l1clk(byp_data_first_c1_clk), .* );
-  rvclkhdr byp_data_second_c1_cgc ( .en(byp_data_second_c1_clken),   .l1clk(byp_data_second_c1_clk), .* );
 
   assign byp_tag_ff[IFU_BUS_TAG-1:0]  =  IFU_BUS_TAG'({imb_ff[5:4] , 1'b0});
   assign write_byp_first_data         =   axi_ifu_wr_en_new & ({byp_tag_ff[IFU_BUS_TAG-1:1],1'b0}  == ifu_axi_rid_ff[IFU_BUS_TAG-1:0]);
@@ -1006,8 +1002,6 @@ assign iccm_single_ecc_error                  =  '0;
 
 assign axi_ifu_bus_clk_en =  ifu_bus_clk_en ;
 
-   rvclkhdr axi_clk(.en(axi_ifu_bus_clk_en),
-                   .l1clk(axiclk), .*);
 
 
    rvdff #(1)           axi_clken_ff  (.*, .clk(free_clk), .din(axi_ifu_bus_clk_en), .dout(axi_ifu_bus_clk_en_ff));
@@ -1017,11 +1011,17 @@ assign axi_ifu_bus_clk_en =  ifu_bus_clk_en ;
 
 
    assign  ifc_axi_ic_req_ff_in  = (ic_act_miss_f2 | axi_cmd_req_hold | ifc_axi_ic_req_ff2) & ~((axi_cmd_beat_count==3'b111) & ifu_axi_arvalid & ifu_axi_arready & miss_pending);
-   rvdff #(1) axi_ic_req_ff2(.*, .clk(axiclk), .din(ifc_axi_ic_req_ff_in), .dout(ifc_axi_ic_req_ff2));
 
    assign    axi_cmd_req_in  = (ic_act_miss_f2 | axi_cmd_req_hold) & ~axi_cmd_sent  ; // hold until first command sent
    // changes for making the axi blocking
    rvdff #(1)  axi_cmd_req_ff  (.*,  .clk(free_clk), .din(axi_cmd_req_in), .dout(axi_cmd_req_hold));
+
+`ifndef RV_FPGA_OPTIMIZE
+   rvclkhdr fetch_f1_f2_c1_cgc   ( .en(fetch_f1_f2_c1_clken),     .l1clk(fetch_f1_f2_c1_clk), .* );  // ifndef FPGA_OPTIMIZE
+   rvclkhdr axi_clk(.en(axi_ifu_bus_clk_en),.l1clk(axiclk), .*);                                     // ifndef FPGA_OPTIMIZE
+   rvclkhdr axi_clk_reset(.en(axi_ifu_bus_clk_en | ic_act_miss_f2),   .l1clk(axiclk_reset), .*);     // ifndef FPGA_OPTIMIZE
+`endif
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  logic   axi_cmd_rsp_pend;
@@ -1048,12 +1048,13 @@ assign axi_ifu_bus_clk_en =  ifu_bus_clk_en ;
    assign    ifu_axi_arlock                  = '0;
 
    // IFU Write channels - not needed, so 00 out
-   rvdff #(1)            axi_rdy_ff      (.*, .clk(axiclk), .din(ifu_axi_arready), .dout(ifu_axi_arready_unq_ff));
-   rvdff #(1)            axi_rsp_vld_ff  (.*, .clk(axiclk), .din(ifu_axi_rvalid), .dout(ifu_axi_rvalid_unq_ff));
-   rvdff #(1)            axi_cmd_ff      (.*, .clk(axiclk), .din(ifu_axi_arvalid), .dout(ifu_axi_arvalid_ff));
-   rvdff #(2)            scvi_rsp_cmd_ff  (.*, .clk(axiclk), .din(ifu_axi_rresp[1:0]),  .dout(ifu_axi_rresp_ff[1:0]));
-   rvdff #(IFU_BUS_TAG)  scvi_rsp_tag_ff  (.*, .clk(axiclk), .din(ifu_axi_rid[IFU_BUS_TAG-1:0]),  .dout(ifu_axi_rid_ff[IFU_BUS_TAG-1:0]));
-   rvdff #(64)           axi_data_ff     (.*, .clk(axiclk), .din(ifu_axi_rdata[63:0]), .dout(ifu_axi_rdata_ff[63:0]));
+   rvdff_fpga #(1)            axi_ic_req_ff2   (.*, .clk(axiclk), .clken(axi_ifu_bus_clk_en), .rawclk(clk), .din(ifc_axi_ic_req_ff_in),          .dout(ifc_axi_ic_req_ff2));
+   rvdff_fpga #(1)            axi_rdy_ff       (.*, .clk(axiclk), .clken(axi_ifu_bus_clk_en), .rawclk(clk), .din(ifu_axi_arready),               .dout(ifu_axi_arready_unq_ff));
+   rvdff_fpga #(1)            axi_rsp_vld_ff   (.*, .clk(axiclk), .clken(axi_ifu_bus_clk_en), .rawclk(clk), .din(ifu_axi_rvalid),                .dout(ifu_axi_rvalid_unq_ff));
+   rvdff_fpga #(1)            axi_cmd_ff       (.*, .clk(axiclk), .clken(axi_ifu_bus_clk_en), .rawclk(clk), .din(ifu_axi_arvalid),               .dout(ifu_axi_arvalid_ff));
+   rvdff_fpga #(2)            scvi_rsp_cmd_ff  (.*, .clk(axiclk), .clken(axi_ifu_bus_clk_en), .rawclk(clk), .din(ifu_axi_rresp[1:0]),            .dout(ifu_axi_rresp_ff[1:0]));
+   rvdff_fpga #(IFU_BUS_TAG)  scvi_rsp_tag_ff  (.*, .clk(axiclk), .clken(axi_ifu_bus_clk_en), .rawclk(clk), .din(ifu_axi_rid[IFU_BUS_TAG-1:0]),  .dout(ifu_axi_rid_ff[IFU_BUS_TAG-1:0]));
+   rvdff_fpga #(64)           axi_data_ff      (.*, .clk(axiclk), .clken(axi_ifu_bus_clk_en), .rawclk(clk), .din(ifu_axi_rdata[63:0]),           .dout(ifu_axi_rdata_ff[63:0]));
 
 
 
@@ -1077,7 +1078,9 @@ assign axi_ifu_bus_clk_en =  ifu_bus_clk_en ;
 
    assign axi_new_rd_addr_count[2:0] = ~miss_pending ? {imb_ff[5:4],1'b0} :  axi_inc_rd_addr_cnt ? (axi_rd_addr_count[2:0] + 3'b001) : axi_rd_addr_count[2:0];
 
-   rvdffs #(3)  axi_rd_addr_ff (.*, .en(1'b1), .clk(axiclk_reset), .din ({axi_new_rd_addr_count[2:0]}), .dout({axi_rd_addr_count[2:0]}));
+
+   rvdff_fpga  #(3)  axi_cmd_beat_ff (.*,           .clk(axiclk_reset), .clken(axi_ifu_bus_clk_en | ic_act_miss_f2), .rawclk(clk), .din ({axi_new_cmd_beat_count[2:0]}), .dout({axi_cmd_beat_count[2:0]}));
+   rvdffs_fpga #(3)  axi_rd_addr_ff (.*, .en(1'b1), .clk(axiclk_reset), .clken(axi_ifu_bus_clk_en | ic_act_miss_f2), .rawclk(clk), .din ({axi_new_rd_addr_count[2:0]}), .dout({axi_rd_addr_count[2:0]}));
 
 // command beat Count
    assign axi_inc_cmd_beat_cnt     =  ifu_axi_arvalid         &  ifu_axi_arready & miss_pending;
@@ -1090,12 +1093,6 @@ assign axi_ifu_bus_clk_en =  ifu_bus_clk_en ;
                                           ({3{axi_inc_cmd_beat_cnt}}   & (axi_cmd_beat_count[2:0] + 3'b001)) |
                                           ({3{axi_hold_cmd_beat_cnt}}  &  axi_cmd_beat_count[2:0]) ;
 
-   rvclkhdr axi_clk_reset(.en(axi_ifu_bus_clk_en | ic_act_miss_f2),
-                   .l1clk(axiclk_reset), .*);
-
-
-   rvdff #(3)  axi_cmd_beat_ff (.*, .clk(axiclk_reset), .din ({axi_new_cmd_beat_count[2:0]}),
-                    .dout({axi_cmd_beat_count[2:0]}));
 
    assign    req_addr_count[2:0]    = axi_rd_addr_count[2:0] ;
 
@@ -1235,14 +1232,22 @@ assign ic_write_stall  = ifu_wr_en_new &  ~(((miss_state== CRIT_BYP_OK) & ~(ifu_
    genvar  j;
    for (i=0 ; i<ICACHE_TAG_DEPTH/8 ; i++) begin : CLK_GRP_WAY_STATUS
       assign way_status_clken[i] = (ifu_status_wr_addr_ff[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW+3] == i );
-      rvclkhdr way_status_cgc ( .en(way_status_clken[i]),   .l1clk(way_status_clk[i]), .* );
+
+
+`ifndef RV_FPGA_OPTIMIZE
+   rvclkhdr way_status_cgc ( .en(way_status_clken[i]),   .l1clk(way_status_clk[i]), .* );            // ifndef FPGA_OPTIMIZE
+`endif
 
       for (j=0 ; j<8 ; j++) begin : WAY_STATUS
-         rvdffs #(3) ic_way_status (.*,
+
+         rvdffs_fpga #(3) ic_way_status (.*,
                    .clk(way_status_clk[i]),
+                   .clken(way_status_clken[i]),
+                   .rawclk(clk),
                    .en(((ifu_status_wr_addr_ff[ICACHE_TAG_LOW+2:ICACHE_TAG_LOW] == j) & way_status_wr_en_ff)),
                    .din(way_status_new_ff[2:0]),
                    .dout(way_status_out[8*i+j]));
+
       end  // WAY_STATUS
    end  // CLK_GRP_WAY_STATUS
 
@@ -1297,34 +1302,44 @@ assign ifu_ic_rw_int_addr_w_debug[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW] = ((ic_debug
       assign tag_valid_w3_clken[i] = (((ifu_ic_rw_int_addr_ff[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW+5] == i ) &  ifu_tag_wren_ff[3] ) |
                                       ((perr_ic_index_ff     [ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW+5] == i ) &  perr_err_inv_way[3]) | reset_all_tags);
 
-      rvclkhdr way0_status_cgc ( .en(tag_valid_w0_clken[i]),   .l1clk(tag_valid_w0_clk[i]), .* );
-      rvclkhdr way1_status_cgc ( .en(tag_valid_w1_clken[i]),   .l1clk(tag_valid_w1_clk[i]), .* );
-      rvclkhdr way2_status_cgc ( .en(tag_valid_w2_clken[i]),   .l1clk(tag_valid_w2_clk[i]), .* );
-      rvclkhdr way3_status_cgc ( .en(tag_valid_w3_clken[i]),   .l1clk(tag_valid_w3_clk[i]), .* );
+`ifndef RV_FPGA_OPTIMIZE
+      rvclkhdr way0_status_cgc ( .en(tag_valid_w0_clken[i]),   .l1clk(tag_valid_w0_clk[i]), .* );  // ifndef FPGA_OPTIMIZE
+      rvclkhdr way1_status_cgc ( .en(tag_valid_w1_clken[i]),   .l1clk(tag_valid_w1_clk[i]), .* );  // ifndef FPGA_OPTIMIZE
+      rvclkhdr way2_status_cgc ( .en(tag_valid_w2_clken[i]),   .l1clk(tag_valid_w2_clk[i]), .* );  // ifndef FPGA_OPTIMIZE
+      rvclkhdr way3_status_cgc ( .en(tag_valid_w3_clken[i]),   .l1clk(tag_valid_w3_clk[i]), .* );  // ifndef FPGA_OPTIMIZE
+`endif
 
     for (j=0 ; j<32 ; j++) begin : TAG_VALID
-         rvdffs #(1) ic_way0_tagvalid_dup (.*,
+         rvdffs_fpga #(1) ic_way0_tagvalid_dup (.*,
                    .clk(tag_valid_w0_clk[i]),
+                   .clken(tag_valid_w0_clken[i]),
+                   .rawclk(clk),
                    .en(((ifu_ic_rw_int_addr_ff[ICACHE_TAG_LOW+4:ICACHE_TAG_LOW] == j) & ifu_tag_wren_ff[0] ) |
                         ((perr_ic_index_ff     [ICACHE_TAG_LOW+4:ICACHE_TAG_LOW] == j) & perr_err_inv_way[0]) | reset_all_tags),
                    .din(ic_valid_ff & ~reset_all_tags & ~perr_sel_invalidate),
                    .dout(ic_tag_valid_out[0][32*i+j]));
 
-         rvdffs #(1) ic_way1_tagvalid_dup (.*,
+         rvdffs_fpga #(1) ic_way1_tagvalid_dup (.*,
                    .clk(tag_valid_w1_clk[i]),
+                   .clken(tag_valid_w1_clken[i]),
+                   .rawclk(clk),
                    .en(((ifu_ic_rw_int_addr_ff[ICACHE_TAG_LOW+4:ICACHE_TAG_LOW] == j) & ifu_tag_wren_ff[1] ) |
                         ((perr_ic_index_ff     [ICACHE_TAG_LOW+4:ICACHE_TAG_LOW] == j) & perr_err_inv_way[1]) | reset_all_tags),
                    .din(ic_valid_ff & ~reset_all_tags & ~perr_sel_invalidate),
                    .dout(ic_tag_valid_out[1][32*i+j]));
 
-         rvdffs #(1) ic_way2_tagvalid_dup (.*,
+         rvdffs_fpga #(1) ic_way2_tagvalid_dup (.*,
                    .clk(tag_valid_w2_clk[i]),
+                   .clken(tag_valid_w2_clken[i]),
+                   .rawclk(clk),
                    .en(((ifu_ic_rw_int_addr_ff[ICACHE_TAG_LOW+4:ICACHE_TAG_LOW] == j) & ifu_tag_wren_ff[2] ) |
                         ((perr_ic_index_ff     [ICACHE_TAG_LOW+4:ICACHE_TAG_LOW] == j) & perr_err_inv_way[2]) | reset_all_tags),
                    .din(ic_valid_ff & ~reset_all_tags & ~perr_sel_invalidate),
                    .dout(ic_tag_valid_out[2][32*i+j]));
-         rvdffs #(1) ic_way3_tagvalid_dup (.*,
+         rvdffs_fpga #(1) ic_way3_tagvalid_dup (.*,
                    .clk(tag_valid_w3_clk[i]),
+                   .clken(tag_valid_w3_clken[i]),
+                   .rawclk(clk),
                    .en(((ifu_ic_rw_int_addr_ff[ICACHE_TAG_LOW+4:ICACHE_TAG_LOW] == j) & ifu_tag_wren_ff[3] ) |
                         ((perr_ic_index_ff     [ICACHE_TAG_LOW+4:ICACHE_TAG_LOW] == j) & perr_err_inv_way[3]) | reset_all_tags),
                    .din(ic_valid_ff & ~reset_all_tags & ~perr_sel_invalidate),
@@ -1417,7 +1432,8 @@ assign ic_debug_ic_array_sel_word2_in = (ic_debug_addr[3:2] == 2'b10) & ic_debug
 assign ic_debug_ic_array_sel_word3_in = (ic_debug_addr[3:2] == 2'b11) & ic_debug_rd_en & ~ic_debug_tag_array ;
 assign ic_debug_ict_array_sel_in      =  ic_debug_rd_en & ic_debug_tag_array ;
 
-rvdffe #(09) ifu_debug_sel_ff (.*, .en (debug_c1_clken),
+rvdffe #(09) ifu_debug_sel_ff (.*,
+                    .en (debug_c1_clken),
                     .din ({ic_debug_ic_array_sel_word0_in,
                            ic_debug_ic_array_sel_word1_in,
                            ic_debug_ic_array_sel_word2_in,
@@ -1451,7 +1467,8 @@ assign ifu_ic_debug_rd_data_in[41:0] = ( {42{ic_debug_ict_array_sel_ff   }} &  {
                                        ( {42{ic_debug_ic_array_sel_word2 }} &  {ic_rd_data [125:84]})  |
                                        ( {42{ic_debug_ic_array_sel_word3 }} &  {ic_rd_data [167:126]}) ;
 
-rvdffe #(42) ifu_debug_data_ff (.*, .en (debug_data_clken),
+rvdffe #(42) ifu_debug_data_ff (.*,
+                    .en (debug_data_clken),
                     .din ({
                            ifu_ic_debug_rd_data_in[41:0]
                           }),
@@ -1467,7 +1484,8 @@ assign ifu_ic_debug_rd_data_in[33:0] = ( {34{ic_debug_ict_array_sel_ff   }} &  {
                                        ( {34{ic_debug_ic_array_sel_word2 }} &  {ic_rd_data [101:68]})  |
                                        ( {34{ic_debug_ic_array_sel_word3 }} &  {ic_rd_data [135:102]}) ;
 
-rvdffe #(34) ifu_debug_data_ff (.*, .en (debug_data_clken),
+rvdffe #(34) ifu_debug_data_ff (.*,
+                    .en (debug_data_clken),
                     .din ({
                            ifu_ic_debug_rd_data_in[33:0]
                           }),
@@ -1476,8 +1494,8 @@ rvdffe #(34) ifu_debug_data_ff (.*, .en (debug_data_clken),
                            }));
 
 `endif
+
 assign debug_data_clken  =  ic_debug_rd_en_ff;
-rvclkhdr debug_data_c1_cgc ( .en(debug_data_clken),   .l1clk(debug_data_clk), .* );
 
 rvdff #(1) ifu_debug_valid_ff (.*, .clk(free_clk),
                     .din ({
