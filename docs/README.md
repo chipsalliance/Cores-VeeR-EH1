@@ -1,4 +1,4 @@
-# RISC-V SweRV EH1 1.5 core from Western Digital
+# RISC-V SweRV EH1 1.8 core from Western Digital
 
 ## Documentation
 
