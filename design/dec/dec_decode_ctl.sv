@@ -56,7 +56,7 @@ module dec_decode_ctl
 
    input logic dec_i0_icaf_d,                         // icache access fault
    input logic dec_i1_icaf_d,
-   input logic dec_i0_icaf_f1_d,                      // i0 instruction access fault at decode for f1 fetch group
+   input logic dec_i0_icaf_second_d,                      // i0 instruction access fault on second 2B of 4B inst
    input logic dec_i0_perr_d,                         // icache parity error
    input logic dec_i1_perr_d,
    input logic dec_i0_sbecc_d,                        // icache/iccm single-bit error
@@ -1342,6 +1342,7 @@ end : cam_array
 
    assign i1_block_d = leak1_i1_stall |
                       (i0_jal) |            // no i1 after a jal, will flush
+              (((|dec_i0_trigger_match_d[3:0]) | ((i0_dp.condbr | i0_dp.jal) & i0_secondary_d)) & i1_dp.load ) | // if branch or branch error then don't allow i1 load
                        i0_presync | i0_postsync |
                        i1_dp.presync | i1_dp.postsync |
                        i1_icaf_d |        // instruction access fault is i0 only
@@ -1939,7 +1940,7 @@ end : cam_array
 
    assign dt.legal     =  i0_legal_decode_d                ;
    assign dt.icaf      =  i0_icaf_d & i0_legal_decode_d;            // dbecc is icaf exception
-   assign dt.icaf_f1   =  dec_i0_icaf_f1_d & i0_legal_decode_d;     // this includes icaf and dbecc
+   assign dt.icaf_second   =  dec_i0_icaf_second_d & i0_legal_decode_d;     // this includes icaf and dbecc
    assign dt.perr      =   dec_i0_perr_d & i0_legal_decode_d;
    assign dt.sbecc     =   dec_i0_sbecc_d & i0_legal_decode_d;
    assign dt.fence_i   = (i0_dp.fence_i | debug_fence_i) & i0_legal_decode_d;

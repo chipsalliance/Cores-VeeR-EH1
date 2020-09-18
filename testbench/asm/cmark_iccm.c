@@ -2267,7 +2267,7 @@ whisperPrintInt(int value, int base)
       do
         {
           int digit = uu & 0xf;
-          char c = digit < 10 ? '0' + digit : 'a' + digit;
+          char c = digit < 10 ? '0' + digit : 'a' + digit - 10;
           buffer[charCount++] = c;
           uu >>= 4;
         }

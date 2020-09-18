@@ -351,7 +351,7 @@ module dec_tlu_ctl
    logic request_debug_mode_e4, request_debug_mode_wb, request_debug_mode_done, request_debug_mode_done_f;
    logic take_halt, take_halt_f, halt_taken, halt_taken_f, internal_dbg_halt_mode, dbg_tlu_halted_f, take_reset,
          dbg_tlu_halted, core_empty, lsu_halt_idle_any_f, ifu_miss_state_idle_f, resume_ack_ns,
-          debug_halt_req_f, debug_resume_req_f, enter_debug_halt_req, dcsr_single_step_done, dcsr_single_step_done_f,
+          debug_halt_req_f, debug_resume_req_f_raw, debug_resume_req_f, enter_debug_halt_req, dcsr_single_step_done, dcsr_single_step_done_f,
           debug_halt_req_d1, debug_halt_req_ns, dcsr_single_step_running, dcsr_single_step_running_f, internal_dbg_halt_timers;
 
    logic [3:0] i0_trigger_e4, i1_trigger_e4, trigger_action, trigger_enabled,
@@ -382,6 +382,9 @@ module dec_tlu_ctl
          mpc_debug_halt_ack_f, mpc_debug_run_ack_f, dbg_run_state_f, dbg_halt_state_ff, mpc_debug_halt_req_sync_pulse,
          mpc_debug_run_req_sync_pulse, debug_brkpt_valid, debug_halt_req, debug_resume_req, dec_tlu_mpc_halted_only_ns;
 
+   logic wr_mpmc_wb, set_mie_pmu_fw_halt;
+   logic [1:1] mpmc_b_ns, mpmc, mpmc_b;
+
    // internal timer, isolated for size reasons
    logic [31:0] dec_timer_rddata_d;
    logic dec_timer_read_d, dec_timer_t0_pulse, dec_timer_t1_pulse;
@@ -406,7 +409,7 @@ module dec_tlu_ctl
    rvoclkhdr lsu_e3_e4_cgc ( .en(lsu_error_pkt_dc3.exc_valid | lsu_error_pkt_dc4.exc_valid | lsu_error_pkt_dc3.single_ecc_error | lsu_error_pkt_dc4.single_ecc_error | clk_override), .l1clk(lsu_e3_e4_clk), .* );
    rvoclkhdr lsu_e4_e5_cgc ( .en(lsu_error_pkt_dc4.exc_valid | lsu_exc_valid_wb | clk_override), .l1clk(lsu_e4_e5_clk), .* );
 
-   logic e4e5_clk, e4_valid, e5_valid, e4e5_valid, internal_dbg_halt_mode_f;
+   logic e4e5_clk, e4_valid, e5_valid, e4e5_valid, internal_dbg_halt_mode_f, internal_dbg_halt_mode_f2, internal_dbg_halt_mode_f3;
    assign e4_valid = dec_tlu_i0_valid_e4 | dec_tlu_i1_valid_e4;
    assign e4e5_valid = e4_valid | e5_valid;
    rvoclkhdr e4e5_cgc ( .en(e4e5_valid | clk_override), .l1clk(e4e5_clk), .* );
@@ -414,8 +417,11 @@ module dec_tlu_ctl
 
 
    assign lsu_freeze_pulse_e3 = lsu_freeze_dc3 & ~lsu_freeze_e4;
-   rvdff #(8)  freeff (.*,   .clk(free_clk), .din({lsu_freeze_dc3, lsu_freeze_pulse_e3, e4_valid, lsu_block_interrupts_dc3, internal_dbg_halt_mode, tlu_flush_lower_e4, tlu_i0_kill_writeb_e4, tlu_i1_kill_writeb_e4 }),
-                            .dout({lsu_freeze_e4, lsu_freeze_pulse_e4, e5_valid, lsu_block_interrupts_e4, internal_dbg_halt_mode_f, tlu_flush_lower_wb, dec_tlu_i0_kill_writeb_wb, dec_tlu_i1_kill_writeb_wb}));
+   rvdff #(10)  freeff (.*,   .clk(free_clk),
+                        .din({internal_dbg_halt_mode_f2,internal_dbg_halt_mode_f, lsu_freeze_dc3, lsu_freeze_pulse_e3,
+                              e4_valid, lsu_block_interrupts_dc3, internal_dbg_halt_mode, tlu_flush_lower_e4, tlu_i0_kill_writeb_e4, tlu_i1_kill_writeb_e4 }),
+                        .dout({internal_dbg_halt_mode_f3, internal_dbg_halt_mode_f2, lsu_freeze_e4, lsu_freeze_pulse_e4,
+                               e5_valid, lsu_block_interrupts_e4, internal_dbg_halt_mode_f, tlu_flush_lower_wb, dec_tlu_i0_kill_writeb_wb, dec_tlu_i1_kill_writeb_wb}));
 
 
    rvdff #(2) reset_ff (.*, .clk(free_clk), .din({1'b1, reset_detect}), .dout({reset_detect, reset_detected}));
@@ -552,9 +558,12 @@ module dec_tlu_ctl
                                   dcsr_single_step_done, debug_halt_req,  update_hit_bit_e4[3:0], dec_tlu_wr_pause_wb, dec_pause_state,
                                   request_debug_mode_e4, request_debug_mode_done, dcsr_single_step_running, dcsr_single_step_running_f}),
                            .dout({halt_taken_f, take_halt_f, lsu_halt_idle_any_f, ifu_miss_state_idle_f, dbg_tlu_halted_f,
-                                  dec_tlu_resume_ack, dec_dbg_cmd_done, debug_halt_req_f, debug_resume_req_f, trigger_hit_dmode_wb,
+                                  dec_tlu_resume_ack, dec_dbg_cmd_done, debug_halt_req_f, debug_resume_req_f_raw, trigger_hit_dmode_wb,
                                   dcsr_single_step_done_f, debug_halt_req_d1, update_hit_bit_wb[3:0], dec_tlu_wr_pause_wb_f, dec_pause_state_f,
                                   request_debug_mode_wb, request_debug_mode_done_f, dcsr_single_step_running_f, dcsr_single_step_running_ff}));
+
+   // MPC run collides with DBG halt, fix it here
+   assign debug_resume_req_f = debug_resume_req_f_raw & ~dbg_halt_req;
 
    assign dec_tlu_debug_stall = debug_halt_req_f;
    assign dec_tlu_dbg_halted = dbg_tlu_halted_f;
@@ -884,7 +893,7 @@ module dec_tlu_ctl
    assign       iccm_sbecc_e4 =  dec_tlu_packet_e4.sbecc   & dec_tlu_i0_valid_e4 & ~i0_trigger_hit_e4;
    assign       inst_acc_e4_raw  =  dec_tlu_packet_e4.icaf & dec_tlu_i0_valid_e4;
    assign       inst_acc_e4 = inst_acc_e4_raw & ~rfpc_i0_e4 & ~i0_trigger_hit_e4;
-   assign       inst_acc_second_e4 = dec_tlu_packet_e4.icaf_f1;
+   assign       inst_acc_second_e4 = dec_tlu_packet_e4.icaf_second;
 
    assign       ebreak_to_debug_mode_e4 = (dec_tlu_packet_e4.pmu_i0_itype == EBREAK)  & dec_tlu_i0_valid_e4 & ~i0_trigger_hit_e4 & dcsr[`DCSR_EBREAKM];
 
@@ -1089,11 +1098,15 @@ module dec_tlu_ctl
    assign dec_csr_wen_wb_mod = dec_csr_wen_wb & ~trigger_hit_wb;
    assign wr_mstatus_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MSTATUS);
 
-   assign mstatus_ns[1:0] = ( ({2{~wr_mstatus_wb & exc_or_int_valid_wb}} & {mstatus[`MSTATUS_MIE], 1'b0}) |
+   // set this even if we don't go to fwhalt due to debug halt. We committed the inst, so ...
+   assign set_mie_pmu_fw_halt = ~mpmc_b_ns[1] & wr_mpmc_wb & dec_csr_wrdata_wb[0] & ~internal_dbg_halt_mode_f3;
+
+   assign mstatus_ns[1:0] = ( ({2{~wr_mstatus_wb & exc_or_int_valid_wb}} & {(mstatus[`MSTATUS_MIE] | set_mie_pmu_fw_halt), 1'b0}) |
                               ({2{ wr_mstatus_wb & exc_or_int_valid_wb}} & {dec_csr_wrdata_wb[3], 1'b0}) |
                               ({2{mret_wb & ~exc_or_int_valid_wb}} & {1'b1, mstatus[1]}) |
+                              ({2{set_mie_pmu_fw_halt & ~exc_or_int_valid_wb}} & {mstatus[1], 1'b1}) |
                               ({2{wr_mstatus_wb & ~exc_or_int_valid_wb}} & {dec_csr_wrdata_wb[7], dec_csr_wrdata_wb[3]}) |
-                              ({2{~wr_mstatus_wb & ~exc_or_int_valid_wb & ~mret_wb}} & mstatus[1:0]) );
+                              ({2{~wr_mstatus_wb & ~exc_or_int_valid_wb & ~mret_wb & ~set_mie_pmu_fw_halt}} & mstatus[1:0]) );
 
    // gate MIE if we are single stepping and DCSR[STEPIE] is off
    assign mstatus_mie_ns = mstatus_ns[`MSTATUS_MIE] & (~dcsr_single_step_running_f | dcsr[`DCSR_STEPIE]);
@@ -1444,12 +1457,21 @@ module dec_tlu_ctl
 
    // ----------------------------------------------------------------------
    // MPMC (R0W1)
-   // [0:0] : FW halt
+   // [0] : FW halt
+   // [1] : HALTIE
    //
    `define MPMC 12'h7c6
-   logic wr_mpmc_wb;
-   assign wr_mpmc_wb = dec_csr_wrdata_wb[0] & dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MPMC);
-   assign fw_halt_req = wr_mpmc_wb & ~internal_dbg_halt_mode_f & ~interrupt_valid_wb;
+
+   assign wr_mpmc_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MPMC);
+
+   // allow the cycle of the dbg halt flush that contains the wr_mpmc_wb to
+   // set the mstatus bit potentially, use delayed version of internal dbg halt.
+   // Kill the req when we commit the fwhalt csr write and take an int
+   assign fw_halt_req = wr_mpmc_wb & dec_csr_wrdata_wb[0] & ~internal_dbg_halt_mode_f3 & ~interrupt_valid_wb;
+
+   assign mpmc_b_ns[1] = wr_mpmc_wb ? ~dec_csr_wrdata_wb[1] : ~mpmc[1];
+   rvdff #(1)  mpmc_ff (.*, .clk(csr_wr_clk), .din(mpmc_b_ns[1]), .dout(mpmc_b[1]));
+   assign mpmc[1] = ~mpmc_b[1];
 
    // ----------------------------------------------------------------------
    // MICECT (I-Cache error counter/threshold)
@@ -2427,16 +2449,14 @@ assign postsync = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
     &dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[5]
     &!dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[0]) | (
     !dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]
-    &!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]
-    &dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]
-    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[1]) | (!dec_csr_rdaddr_d[7]
+    &!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[7]
     &dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[1]&dec_csr_rdaddr_d[0]) | (
     dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
     &dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[4]
-    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]) | (
-    !dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[5]
-    &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]);
-
+    &dec_csr_rdaddr_d[2]) | (!dec_csr_rdaddr_d[11]&dec_csr_rdaddr_d[7]
+    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
+    &!dec_csr_rdaddr_d[1]) | (dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[4]
+    &!dec_csr_rdaddr_d[3]&dec_csr_rdaddr_d[1]);
 
 logic legal_csr;
 assign legal_csr = (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[9]
@@ -2533,7 +2553,7 @@ assign dec_csr_legal_d = ( dec_csr_any_unq_d &
 assign dec_csr_rddata_d[31:0] = ( ({32{csr_misa}}      & 32'h40001104) |
                                   ({32{csr_mvendorid}} & 32'h00000045) |
                                   ({32{csr_marchid}}   & 32'h0000000b) |
-                                  ({32{csr_mimpid}}    & 32'h4) |
+                                  ({32{csr_mimpid}}    & 32'h5) |
                                   ({32{csr_mstatus}}   & {19'b0, 2'b11, 3'b0, mstatus[1], 3'b0, mstatus[0], 3'b0}) |
                                   ({32{csr_mtvec}}     & {mtvec[30:1], 1'b0, mtvec[0]}) |
                                   ({32{csr_mip}}       & {1'b0, mip[5:3], 16'b0, mip[2], 3'b0, mip[1], 3'b0, mip[0], 3'b0}) |
@@ -2582,6 +2602,7 @@ assign dec_csr_rddata_d[31:0] = ( ({32{csr_misa}}      & 32'h40001104) |
                                   ({32{csr_mhpme4}}    & {26'b0,mhpme4[5:0]}) |
                                   ({32{csr_mhpme5}}    & {26'b0,mhpme5[5:0]}) |
                                   ({32{csr_mhpme6}}    & {26'b0,mhpme6[5:0]}) |
+                                  ({32{csr_mpmc}}      & {30'b0, mpmc[1], 1'b0}) |
                                   ({32{csr_mgpmc}}     & {31'b0, mgpmc}) |
                                   ({32{dec_timer_read_d}} & dec_timer_rddata_d[31:0])
                                   );

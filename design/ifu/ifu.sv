@@ -180,8 +180,8 @@ module ifu
    output logic  ifu_i1_valid,        // Instruction 1 valid. From Aligner to Decode
    output logic  ifu_i0_icaf,         // Instruction 0 access fault. From Aligner to Decode
    output logic  ifu_i1_icaf,         // Instruction 1 access fault. From Aligner to Decode
-   output logic  ifu_i0_icaf_f1,      // Instruction 0 has access fault on second fetch group
-   output logic  ifu_i1_icaf_f1,      // Instruction 1 has access fault on second fetch group
+   output logic  ifu_i0_icaf_second,      // Instruction 0 has access fault on second 2B of 4B inst
+   output logic  ifu_i1_icaf_second,      // Instruction 1 has access fault on second 2B of 4B inst
    output logic  ifu_i0_perr,         // Instruction 0 parity error. From Aligner to Decode
    output logic  ifu_i1_perr,         // Instruction 1 parity error. From Aligner to Decode
    output logic  ifu_i0_sbecc,        // Instruction 0 has single bit ecc error
@@ -252,7 +252,7 @@ module ifu
    logic        ifc_dma_access_ok;
    logic        ifc_iccm_access_f1;
    logic        ifc_region_acc_fault_f1;
-   logic        ic_access_fault_f2;
+   logic [7:0]  ic_access_fault_f2;
    logic        ifu_ic_mb_empty;
 
 
@@ -289,7 +289,7 @@ module ifu
    logic ifc_fetch_req_f1_raw, ifc_fetch_req_f1, ifc_fetch_req_f2;
    logic ic_rd_parity_final_err;  // This fetch has a  data_cache or tag  parity error.
    logic iccm_rd_ecc_single_err;  // This fetch has an iccm single error.
-   logic iccm_rd_ecc_double_err;  // This fetch has an iccm double error.
+   logic [7:0] iccm_rd_ecc_double_err;  // This fetch has an iccm double error.
 
    icache_err_pkt_t ic_error_f2;
 
@@ -303,7 +303,8 @@ module ifu
    assign ifu_fetch_pc[31:1] = ifc_fetch_addr_f2[31:1];
 
    // aligner
-   ifu_aln_ctl aln (.*);
+   ifu_aln_ctl aln (.*
+                    );
 
    // icache
    ifu_mem_ctl mem_ctl

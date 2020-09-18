@@ -357,7 +357,7 @@ module tb_top;
         nmi_vector   = 32'hee000000;
         nmi_int   = 0;
 
-        $readmemh("data.hex",     lmem.mem);
+        $readmemh("program.hex",  lmem.mem);
         $readmemh("program.hex",  imem.mem);
         tp = $fopen("trace_port.csv","w");
         el = $fopen("exec.log","w");
@@ -808,16 +808,15 @@ axi_slv  lmem(
 
 task preload_iccm;
 bit[31:0] data;
-bit[31:0] addr, eaddr, saddr, faddr;
-int adr;
+bit[31:0] addr, eaddr, saddr;
+
 /*
 addresses:
- 0xffec - ICCM start address to load
- 0xfff0 - ICCM end address to load
- 0xfff4 - imem start address
+ 0xfffffff0 - ICCM start address to load
+ 0xfffffff4 - ICCM end address to load
 */
 
-addr = 'hffec;
+addr = 'hffff_fff0;
 saddr = {lmem.mem[addr+3],lmem.mem[addr+2],lmem.mem[addr+1],lmem.mem[addr]};
 if ( (saddr < `RV_ICCM_SADR) || (saddr > `RV_ICCM_EADR)) return;
 `ifndef RV_ICCM_ENABLE
@@ -826,17 +825,13 @@ if ( (saddr < `RV_ICCM_SADR) || (saddr > `RV_ICCM_EADR)) return;
     $display("********************************************************");
     $finish;
 `endif
-addr = 'hfff0;
+addr += 4;
 eaddr = {lmem.mem[addr+3],lmem.mem[addr+2],lmem.mem[addr+1],lmem.mem[addr]};
-addr = 'hfff4;
-faddr = {lmem.mem[addr+3],lmem.mem[addr+2],lmem.mem[addr+1],lmem.mem[addr]};
 $display("ICCM pre-load from %h to %h", saddr, eaddr);
 
 for(addr= saddr; addr <= eaddr; addr+=4) begin
-    adr = faddr & 'hffff;
-    data = {imem.mem[adr+3],imem.mem[adr+2],imem.mem[adr+1],imem.mem[adr]};
+    data = {imem.mem[addr+3],imem.mem[addr+2],imem.mem[addr+1],imem.mem[addr]};
     slam_iccm_ram(addr, data == 0 ? 0 : {riscv_ecc32(data),data});
-    faddr+=4;
 end
 
 endtask
@@ -844,31 +839,29 @@ endtask
 
 task preload_dccm;
 bit[31:0] data;
-bit[31:0] addr, eaddr;
-int adr;
+bit[31:0] addr, saddr, eaddr;
+
 /*
 addresses:
- 0xfff8 - DCCM start address to load
- 0xfffc - ICCM end address to load
- 0x0    - lmem start addres to load from
+ 0xffff_fff8 - DCCM start address to load
+ 0xffff_fffc - DCCM end address to load
 */
 
-addr = 'hfff8;
-eaddr = {lmem.mem[addr+3],lmem.mem[addr+2],lmem.mem[addr+1],lmem.mem[addr]};
-if (eaddr != `RV_DCCM_SADR) return;
+addr = 'hffff_fff8;
+saddr = {lmem.mem[addr+3],lmem.mem[addr+2],lmem.mem[addr+1],lmem.mem[addr]};
+if (saddr < `RV_DCCM_SADR || saddr > `RV_DCCM_EADR) return;
 `ifndef RV_DCCM_ENABLE
     $display("********************************************************");
     $display("DCCM preload: there is no DCCM in SweRV, terminating !!!");
     $display("********************************************************");
     $finish;
 `endif
-addr = 'hfffc;
+addr += 4;
 eaddr = {lmem.mem[addr+3],lmem.mem[addr+2],lmem.mem[addr+1],lmem.mem[addr]};
-$display("DCCM pre-load from %h to %h", `RV_DCCM_SADR, eaddr);
+$display("DCCM pre-load from %h to %h", saddr, eaddr);
 
-for(addr=`RV_DCCM_SADR; addr <= eaddr; addr+=4) begin
-    adr = addr & 'hffff;
-    data = {lmem.mem[adr+3],lmem.mem[adr+2],lmem.mem[adr+1],lmem.mem[adr]};
+for(addr=saddr; addr <= eaddr; addr+=4) begin
+    data = {lmem.mem[addr+3],lmem.mem[addr+2],lmem.mem[addr+1],lmem.mem[addr]};
     slam_dccm_ram(addr, data == 0 ? 0 : {riscv_ecc32(data),data});
 end
 

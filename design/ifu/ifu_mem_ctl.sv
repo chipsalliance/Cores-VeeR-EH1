@@ -167,10 +167,10 @@ module ifu_mem_ctl
    // IFU control signals
    output logic                      ic_hit_f2,              // Hit in Icache(if Icache access) or ICCM access( ICCM always has ic_hit_f2)
    output logic                      ic_crit_wd_rdy,         // Critical fetch is ready to be bypassed.
-   output logic                      ic_access_fault_f2,     // Access fault (bus error or ICCM access in region but out of offset range).
+   output logic  [7:0]               ic_access_fault_f2,     // Access fault (bus error or ICCM access in region but out of offset range).
    output logic                      ic_rd_parity_final_err, // This fetch has an tag parity error.
    output logic                      iccm_rd_ecc_single_err, // This fetch has a single ICCM ecc  error.
-   output logic                      iccm_rd_ecc_double_err, // This fetch has a double ICCM ecc  error.
+   output logic  [7:0]               iccm_rd_ecc_double_err, // This fetch has a double ICCM ecc  error.
    output logic                      iccm_dma_sb_error,      // Single Bit ECC error from a DMA access
    output logic [7:0]                ic_fetch_val_f2,        // valid bytes for fetch. To the Aligner.
    output logic [127:0]              ic_data_f2,             // Data read from Icache or ICCM. To the Aligner.
@@ -241,7 +241,7 @@ module ifu_mem_ctl
 
    logic           ifu_wr_data_comb_err ;
    logic           ifu_wr_data_error;
-   logic           ifu_byp_data_err;
+   logic  [7:0]    ifu_byp_data_err;
    logic           ifu_wr_cumulative_err_data;
    logic           ifu_wr_cumulative_err;
    logic           ifu_wr_data_comb_err_ff;
@@ -251,7 +251,7 @@ module ifu_mem_ctl
    logic           ifc_dma_access_q_ok;
    logic           ifc_iccm_access_f2 ;
    logic           ifc_region_acc_fault_f2;
-   logic           ifc_bus_acc_fault_f2;
+   logic  [7:0]    ifc_bus_acc_fault_f2;
    logic           ic_act_miss_f2;
    logic           ic_miss_under_miss_f2;
    logic           ic_act_hit_f2;
@@ -626,7 +626,7 @@ end
 `endif
 
 
-  assign sel_byp_data     =  ic_crit_wd_rdy  & ~ifu_byp_data_err;
+  assign sel_byp_data     =  ic_crit_wd_rdy  ;//& ~ifu_byp_data_err;
   assign sel_ic_data      = ~ic_crit_wd_rdy & ~fetch_req_iccm_f2 ;
 `ifdef ICCM_AND_ICACHE
   assign sel_iccm_data    =  fetch_req_iccm_f2  ;
@@ -664,13 +664,13 @@ end
 
  assign ifu_icache_fetch_f2   =  sel_ic_data ;
 
-  assign ifc_bus_acc_fault_f2   =  ic_byp_hit_f2 & ifu_byp_data_err ;
+  assign ifc_bus_acc_fault_f2[7:0]   =  {8{ic_byp_hit_f2}} & ifu_byp_data_err[7:0] ;
   assign ic_data_f2[127:0]      =  ic_final_data[127:0];
 
 
 rvdff #(1) flush_final_ff (.*, .clk(free_clk), .din({exu_flush_final}), .dout({flush_final_f2}));
 assign fetch_req_f2_qual       = ic_hit_f2 & ~exu_flush_final;
-assign ic_access_fault_f2  = (ifc_region_acc_fault_f2 | ifc_bus_acc_fault_f2)  & ~exu_flush_final;
+assign ic_access_fault_f2[7:0]  = ({8{ifc_region_acc_fault_f2}} | ifc_bus_acc_fault_f2[7:0])  & {8{~exu_flush_final}};
 
   // right justified
 assign ic_fetch_val_f2[7] = fetch_req_f2_qual & ifu_bp_inst_mask_f2[7] & ((!vaddr_f2[3]&!vaddr_f2[2]&!vaddr_f2[1]));
@@ -772,8 +772,8 @@ assign ic_fetch_val_f2[0] = fetch_req_f2_qual ;
                     .dout(ifu_byp_data_second_half_valid));
 
   assign ic_byp_data_only[127:0] = { ifu_byp_data_second_half[63:0] , ifu_byp_data_first_half[63:0] } ;
-  assign ifu_byp_data_err        = ifu_byp_data_error_second_half | ifu_byp_data_error_first_half ;
 
+  assign ifu_byp_data_err[7:0]  =  {{4{ ifu_byp_data_error_second_half}} , {4{ifu_byp_data_error_first_half}}} ;
 
 // Critical word ready.
    assign    ic_crit_wd_complete = (write_byp_first_data  & ifu_byp_data_second_half_valid) |
@@ -893,7 +893,7 @@ rvecc_decode  ecc_decode (
 end
 
 assign iccm_rd_ecc_single_err  = (|iccm_single_ecc_error ) & ifc_iccm_access_f2;
-assign iccm_rd_ecc_double_err  = (|iccm_double_ecc_error ) & ifc_iccm_access_f2;
+assign iccm_rd_ecc_double_err[7:0]  = ({{2{iccm_double_ecc_error[3]}}, {2{iccm_double_ecc_error[2]}} , {2{iccm_double_ecc_error[1]}} , {2{iccm_double_ecc_error[0]}}} ) & {8{ifc_iccm_access_f2}};
 
 assign iccm_corrected_data_f2_mux[31:0] = iccm_single_ecc_error[0] ? iccm_corrected_data[0] :
                                           iccm_single_ecc_error[1] ? iccm_corrected_data[1] :
@@ -926,7 +926,7 @@ assign iccm_corrected_ecc_f2_mux[06:0]  = iccm_single_ecc_error[0] ? iccm_correc
 
 `else
 assign iccm_rd_ecc_single_err     = 1'b0 ;
-assign iccm_rd_ecc_double_err     = 1'b0 ;
+assign iccm_rd_ecc_double_err     = '0 ;
 assign iccm_rd_ecc_single_err_ff  = 1'b0 ;
 
 assign iccm_ecc_corr_index_ff[ICCM_BITS-1:2]  =  '0;
@@ -1370,7 +1370,7 @@ assign ifu_ic_rw_int_addr_w_debug[ICACHE_TAG_HIGH-1:ICACHE_TAG_LOW] = ((ic_debug
 
  assign ifu_pmu_ic_miss_in   = ic_act_miss_f2 ;
  assign ifu_pmu_ic_hit_in    = ic_act_hit_f2  ;
- assign ifu_pmu_bus_error_in = ifc_bus_acc_fault_f2;
+ assign ifu_pmu_bus_error_in = |ifc_bus_acc_fault_f2;
  assign ifu_pmu_bus_trxn_in  = axi_cmd_sent ;
  assign ifu_pmu_bus_busy_in  = ifu_axi_arvalid_ff & ~ifu_axi_arready_ff & miss_pending ;
 

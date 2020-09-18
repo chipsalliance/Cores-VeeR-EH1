@@ -28,6 +28,7 @@ module pic_ctrl
                      input  logic                   active_clk,           // active clock
                      input  logic                   rst_l,                // Reset for all flops
                      input  logic                   clk_override,         // Clock over-ride for gating
+                     input  logic                   lsu_freeze_dc3,       // LSU pipeline freeze
                      input  logic [`RV_PIC_TOTAL_INT_PLUS1-1:0]   extintsrc_req,        // Interrupt requests
                      input  logic [31:0]            picm_addr,            // Address of the register
                      input  logic [31:0]            picm_wr_data,         // Data to be written to the register
@@ -121,6 +122,8 @@ logic [ID_BITS-1:0]                          claimid_in ;
 logic [INTPRIORITY_BITS-1:0]                 pl_in ;
 logic [INTPRIORITY_BITS-1:0]                 pl_in_q ;
 
+   logic                                     picm_rden_in, picm_mken_in;
+
 logic [TOTAL_INT-1:0]                        extintsrc_req_sync;
 logic [TOTAL_INT-1:0]                        extintsrc_req_gw;
 
@@ -140,7 +143,7 @@ logic [TOTAL_INT-1:0]                        extintsrc_req_gw;
 
 // ---- Clock gating section ------
 // c1 clock enables
-   assign pic_addr_c1_clken   = picm_mken | picm_rden | picm_wren | clk_override;
+   assign pic_addr_c1_clken   = (picm_mken | picm_rden | picm_wren | clk_override) & ~lsu_freeze_dc3;
    assign pic_data_c1_clken   = picm_wren | clk_override;
    assign pic_pri_c1_clken    = (addr_intpriority_base_match & (picm_wren_ff | picm_rden_ff)) | clk_override;
    assign pic_int_c1_clken    = (addr_intenable_base_match & (picm_wren_ff | picm_rden_ff))   | clk_override;
@@ -162,12 +165,13 @@ assign addr_config_pic_match        = (picm_addr_ff[31:0]            == EXT_INTR
 assign addr_config_gw_base_match    = (picm_addr_ff[31:NUM_LEVELS+2] == EXT_INTR_GW_CONFIG[31:NUM_LEVELS+2]) ;
 assign addr_clear_gw_base_match     = (picm_addr_ff[31:NUM_LEVELS+2] == EXT_INTR_GW_CLEAR[31:NUM_LEVELS+2]) ;
 
-
+assign picm_rden_in = lsu_freeze_dc3 ? picm_rden_ff : picm_rden;
+assign picm_mken_in = lsu_freeze_dc3 ? picm_mken_ff : picm_mken;
 
 rvdff #(32)                picm_add_flop   (.*, .din (picm_addr),                    .dout(picm_addr_ff),         .clk(pic_addr_c1_clk));
 rvdff  #(1)                picm_wre_flop   (.*, .din (picm_wren),                    .dout(picm_wren_ff),         .clk(active_clk));
-rvdff  #(1)                picm_rde_flop   (.*, .din (picm_rden),                    .dout(picm_rden_ff),         .clk(active_clk));
-rvdff  #(1)                picm_mke_flop   (.*, .din (picm_mken),                    .dout(picm_mken_ff),         .clk(active_clk));
+rvdff  #(1)                picm_rde_flop   (.*, .din (picm_rden_in),                 .dout(picm_rden_ff),         .clk(active_clk));
+rvdff  #(1)                picm_mke_flop   (.*, .din (picm_mken_in),                 .dout(picm_mken_ff),         .clk(active_clk));
 rvdff #(32)                picm_dat_flop   (.*, .din (picm_wr_data[31:0]),           .dout(picm_wr_data_ff[31:0]), .clk(pic_data_c1_clk));
 
 rvsyncss  #(TOTAL_INT-1) sync_inst

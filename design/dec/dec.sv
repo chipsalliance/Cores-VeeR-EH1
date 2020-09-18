@@ -106,8 +106,8 @@ module dec
 
    input logic   ifu_i0_icaf,          // icache access fault
    input logic   ifu_i1_icaf,
-   input logic   ifu_i0_icaf_f1,       // i0 has access fault on second fetch group
-   input logic   ifu_i1_icaf_f1,
+   input logic   ifu_i0_icaf_second,       // i0 has access fault on second 2B of 4B inst
+   input logic   ifu_i1_icaf_second,
    input logic   ifu_i0_perr,          // icache parity error
    input logic   ifu_i1_perr,
    input logic   ifu_i0_sbecc,         // icache/iccm single-bit error
@@ -482,7 +482,7 @@ module dec
    logic                      dec_i0_dbecc_d;
    logic                      dec_i1_dbecc_d;
 
-   logic                      dec_i0_icaf_f1_d;
+   logic                      dec_i0_icaf_second_d;
 
    logic                      dec_i0_decode_d;
    logic                      dec_i1_decode_d;

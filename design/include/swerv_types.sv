@@ -130,7 +130,7 @@ typedef struct packed {
 typedef struct packed {
                        logic legal;
                        logic icaf;
-                       logic icaf_f1;
+                       logic icaf_second;
                        logic perr;
                        logic sbecc;
                        logic fence_i;

@@ -33,17 +33,20 @@ output logic HRESP,
 output logic [63:0] HRDATA
 );
 
-parameter MEM_SIZE_DW = 8192;
 parameter MAILBOX_ADDR = 32'hD0580000;
-localparam MEM_SIZE = MEM_SIZE_DW*8;
 
-logic Write;
-logic [31:0] Last_HADDR;
+logic write;
+logic [31:0] laddr, addr;
 logic [7:0] strb_lat;
+logic [63:0] rdata;
 
-bit [7:0] mem [0:MEM_SIZE-1];
-//bit [7:0] mem [int];
-//int kuku[int];
+bit [7:0] mem [bit[31:0]];
+bit [7:0] wscnt;
+int dws = 0;
+int iws = 0;
+bit dws_rand;
+bit iws_rand;
+bit ok;
 
 // Wires
 wire [63:0] WriteData = HWDATA;
@@ -51,50 +54,79 @@ wire [7:0] strb =  HSIZE == 3'b000 ? 8'h1 << HADDR[2:0] :
                    HSIZE == 3'b001 ? 8'h3 << {HADDR[2:1],1'b0} :
                    HSIZE == 3'b010 ? 8'hf << {HADDR[2],2'b0} : 8'hff;
 
-wire[31:0] addr = HADDR & (MEM_SIZE-1);
-wire[31:0] laddr = Last_HADDR & (MEM_SIZE-1);
 
-wire mailbox_write   = Write && Last_HADDR==MAILBOX_ADDR;
-
-wire [63:0] mem_dout =  {mem[{addr[31:3],3'd7}],
-                         mem[{addr[31:3],3'd6}],
-                         mem[{addr[31:3],3'd5}],
-                         mem[{addr[31:3],3'd4}],
-                         mem[{addr[31:3],3'd3}],
-                         mem[{addr[31:3],3'd2}],
-                         mem[{addr[31:3],3'd1}],
-                         mem[{addr[31:3],3'd0}]};
+wire mailbox_write = write && laddr==MAILBOX_ADDR;
 
 
-always @ (negedge HCLK ) begin
-  if (Write) begin
-    if(strb_lat[7]) mem[{laddr[31:3],3'd7}] = HWDATA[63:56];
-    if(strb_lat[6]) mem[{laddr[31:3],3'd6}] = HWDATA[55:48];
-    if(strb_lat[5]) mem[{laddr[31:3],3'd5}] = HWDATA[47:40];
-    if(strb_lat[4]) mem[{laddr[31:3],3'd4}] = HWDATA[39:32];
-    if(strb_lat[3]) mem[{laddr[31:3],3'd3}] = HWDATA[31:24];
-    if(strb_lat[2]) mem[{laddr[31:3],3'd2}] = HWDATA[23:16];
-    if(strb_lat[1]) mem[{laddr[31:3],3'd1}] = HWDATA[15:08];
-    if(strb_lat[0]) mem[{laddr[31:3],3'd0}] = HWDATA[07:00];
-  end
+initial begin
+    if ($value$plusargs("iws=%d", iws));
+    if ($value$plusargs("dws=%d", dws));
+    dws_rand = dws < 0;
+    iws_rand = iws < 0;
 end
 
 
-assign HREADYOUT = 1;
+
+always @ (negedge HCLK ) begin
+    if(HREADY)
+        addr = HADDR;
+    if (write & HREADY) begin
+        if(strb_lat[7]) mem[{laddr[31:3],3'd7}] = HWDATA[63:56];
+        if(strb_lat[6]) mem[{laddr[31:3],3'd6}] = HWDATA[55:48];
+        if(strb_lat[5]) mem[{laddr[31:3],3'd5}] = HWDATA[47:40];
+        if(strb_lat[4]) mem[{laddr[31:3],3'd4}] = HWDATA[39:32];
+        if(strb_lat[3]) mem[{laddr[31:3],3'd3}] = HWDATA[31:24];
+        if(strb_lat[2]) mem[{laddr[31:3],3'd2}] = HWDATA[23:16];
+        if(strb_lat[1]) mem[{laddr[31:3],3'd1}] = HWDATA[15:08];
+        if(strb_lat[0]) mem[{laddr[31:3],3'd0}] = HWDATA[07:00];
+    end
+    if(HREADY & HSEL & |HTRANS) begin
+`ifdef VERILATOR
+        if(iws_rand & ~HPROT[0])
+            iws = $random & 15;
+        if(dws_rand & HPROT[0])
+            dws = $random & 15;
+`else
+        if(iws_rand & ~HPROT[0])
+            ok = std::randomize(iws) with {iws dist {0:=10, [1:3]:/2, [4:15]:/1};};
+        if(dws_rand & HPROT[0])
+            ok = std::randomize(dws) with {dws dist {0:=10, [1:3]:/2, [4:15]:/1};};
+`endif
+    end
+end
+
+
+assign HRDATA = HREADY ? rdata : ~rdata;
+assign HREADYOUT = wscnt == 0;
 assign HRESP = 0;
 
 always @(posedge HCLK or negedge HRESETn) begin
-  if(~HRESETn) begin
-    Last_HADDR  <= 32'b0;
-    Write <= 1'b0;
-    HRDATA <= '0;
-  end else begin
-    Last_HADDR  <= HADDR;
-    Write <= HWRITE & |HTRANS;
-    if(|HTRANS & ~HWRITE)
-        HRDATA <= mem_dout;
-    strb_lat    <= strb;
-  end
+    if(~HRESETn) begin
+        laddr <= 32'b0;
+        write <= 1'b0;
+        rdata <= '0;
+        wscnt <= 0;
+    end
+    else begin
+        if(HREADY & HSEL) begin
+            laddr <= HADDR;
+            write <= HWRITE & |HTRANS;
+            if(|HTRANS & ~HWRITE)
+                rdata <= {mem[{addr[31:3],3'd7}],
+                          mem[{addr[31:3],3'd6}],
+                          mem[{addr[31:3],3'd5}],
+                          mem[{addr[31:3],3'd4}],
+                          mem[{addr[31:3],3'd3}],
+                          mem[{addr[31:3],3'd2}],
+                          mem[{addr[31:3],3'd1}],
+                          mem[{addr[31:3],3'd0}]};
+            strb_lat <= strb;
+        end
+    end
+    if(HREADY & HSEL & |HTRANS)
+        wscnt <= HPROT[0] ? dws[7:0] : iws[7:0];
+    else if(wscnt != 0)
+        wscnt <= wscnt-1;
 end
 
 
@@ -142,14 +174,11 @@ output reg [TAGW-1:0]   bid
 parameter MAILBOX_ADDR = 32'hD0580000;
 parameter MEM_SIZE_DW = 8192;
 
-bit [7:0] mem [0:MEM_SIZE_DW*8-1];
+bit [7:0] mem [bit[31:0]];
 bit [63:0] memdata;
-wire [31:0] waddr, raddr;
 wire [63:0] WriteData;
 wire mailbox_write;
 
-assign raddr = araddr & (MEM_SIZE_DW*8-1);
-assign waddr = awaddr & (MEM_SIZE_DW*8-1);
 
 assign mailbox_write = awvalid && awaddr==MAILBOX_ADDR && rst_l;
 assign WriteData = wdata;
@@ -169,17 +198,17 @@ always @ ( posedge aclk or negedge rst_l) begin
 end
 
 always @ ( negedge aclk) begin
-    if(arvalid) memdata <= {mem[raddr+7], mem[raddr+6], mem[raddr+5], mem[raddr+4],
-                            mem[raddr+3], mem[raddr+2], mem[raddr+1], mem[raddr]};
+    if(arvalid) memdata <= {mem[araddr+7], mem[araddr+6], mem[araddr+5], mem[araddr+4],
+                            mem[araddr+3], mem[araddr+2], mem[araddr+1], mem[araddr]};
     if(awvalid) begin
-        if(wstrb[7]) mem[waddr+7] = wdata[63:56];
-        if(wstrb[6]) mem[waddr+6] = wdata[55:48];
-        if(wstrb[5]) mem[waddr+5] = wdata[47:40];
-        if(wstrb[4]) mem[waddr+4] = wdata[39:32];
-        if(wstrb[3]) mem[waddr+3] = wdata[31:24];
-        if(wstrb[2]) mem[waddr+2] = wdata[23:16];
-        if(wstrb[1]) mem[waddr+1] = wdata[15:08];
-        if(wstrb[0]) mem[waddr+0] = wdata[07:00];
+        if(wstrb[7]) mem[awaddr+7] = wdata[63:56];
+        if(wstrb[6]) mem[awaddr+6] = wdata[55:48];
+        if(wstrb[5]) mem[awaddr+5] = wdata[47:40];
+        if(wstrb[4]) mem[awaddr+4] = wdata[39:32];
+        if(wstrb[3]) mem[awaddr+3] = wdata[31:24];
+        if(wstrb[2]) mem[awaddr+2] = wdata[23:16];
+        if(wstrb[1]) mem[awaddr+1] = wdata[15:08];
+        if(wstrb[0]) mem[awaddr+0] = wdata[07:00];
     end
 end
 
@@ -193,3 +222,4 @@ assign rlast   = 1'b1;
 
 endmodule
 `endif
+

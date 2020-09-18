@@ -159,6 +159,10 @@ module dma_ctrl (
    logic [DEPTH_PTR-1:0]    RdPtr_Q1, RdPtr_Q2, RdPtr_Q3;
    logic                    WrPtrEn, RdPtrEn, RspPtrEn;
 
+   logic [1:0]              dma_dbg_sz;
+   logic [1:0]              dma_dbg_addr;
+   logic [31:0]             dma_dbg_mem_rddata;
+   logic [31:0]             dma_dbg_mem_wrdata;
    logic                    dma_dbg_cmd_error_in;
    logic                    dma_dbg_cmd_done_q;
 
@@ -237,9 +241,6 @@ module dma_ctrl (
    assign fifo_write_in         = dbg_cmd_valid ? dbg_cmd_write : axi_mstr_write;
    assign fifo_posted_write_in  = axi_mstr_valid & axi_mstr_posted_write;
    assign fifo_dbg_in           = dbg_cmd_valid;
-   //assign fifo_error_in[1:0]    = dccm_dma_rvalid ? {1'b0,dccm_dma_ecc_error} : iccm_dma_rvalid ? {1'b0,iccm_dma_ecc_error} : {(dma_address_error | dma_alignment_error | dma_dbg_cmd_error_in), dma_alignment_error};
-   //assign fifo_data_in[63:0]    = dccm_dma_rvalid ? dccm_dma_rdata[63:0] : (iccm_dma_rvalid ? iccm_dma_rdata[63:0] :
-   //                                                                                     (dbg_cmd_valid ? {2{dbg_cmd_wrdata[31:0]}} : axi_mstr_wdata[63:0]));
 
    for (genvar i=0 ;i<DEPTH; i++) begin: GenFifo
       assign fifo_valid_en[i] = axi_mstr_valid & (i == WrPtr[DEPTH_PTR-1:0]);
@@ -255,14 +256,12 @@ module dma_ctrl (
       assign fifo_done_en[i] = (((|fifo_error[i]) | ((dma_dccm_req | dma_iccm_req) & dma_mem_write)) & (i == RdPtr[DEPTH_PTR-1:0])) |
                                ((dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0])) | (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])));
       assign fifo_done_bus_en[i] = (fifo_done_en[i] | fifo_done[i]) & dma_bus_clk_en;
-      //assign fifo_rsp_done_en[i] = fifo_valid[i] & ((axi_slv_sent & dma_bus_clk_en) | dma_dbg_cmd_done) & (i == RspPtr[DEPTH_PTR-1:0]);
-      //assign fifo_reset[i]   = (fifo_done[i] | fifo_done_en[i]) & (fifo_rsp_done[i] | fifo_rsp_done_en[i]);
       assign fifo_reset[i]   = ((axi_slv_sent & dma_bus_clk_en) | dma_dbg_cmd_done) & (i == RspPtr[DEPTH_PTR-1:0]);
       assign fifo_error_in[i]  = (dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0])) ? {1'b0,dccm_dma_ecc_error} : (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])) ? {1'b0,iccm_dma_ecc_error}  :
                                                                                                                                                 {(dma_address_error | dma_alignment_error | dma_dbg_cmd_error_in), dma_alignment_error};
       assign fifo_data_in[i]   = (fifo_error_en[i] & (|fifo_error_in[i])) ? (fifo_cmd_en[i] ? {32'b0,axi_mstr_addr[31:0]} : {32'b0,fifo_addr[i]}) :
                                                                             ((dccm_dma_rvalid & (i == RdPtr_Q3[DEPTH_PTR-1:0]))  ? dccm_dma_rdata[63:0] : (iccm_dma_rvalid & (i == RdPtr_Q2[DEPTH_PTR-1:0])) ? iccm_dma_rdata[63:0] :
-                                                                                                                                                       (dbg_cmd_valid ? {2{dbg_cmd_wrdata[31:0]}} : axi_mstr_wdata[63:0]));
+                                                                                                                                                       (dbg_cmd_valid ? {2{dma_dbg_mem_wrdata[31:0]}} : axi_mstr_wdata[63:0]));
 
       rvdffsc #(1) fifo_valid_dff (.din(1'b1), .dout(fifo_valid[i]), .en(fifo_cmd_en[i]), .clear(fifo_reset[i]), .clk(dma_free_clk), .*);
       rvdffsc #(2) fifo_error_dff (.din(fifo_error_in[i]), .dout(fifo_error[i]), .en(fifo_error_en[i]), .clear(fifo_reset[i]), .clk(dma_free_clk), .*);
@@ -274,7 +273,6 @@ module dma_ctrl (
       rvdffsc #(1) fifo_rpend_dff (.din(1'b1), .dout(fifo_rpend[i]), .en(fifo_pend_en[i]), .clear(fifo_reset[i]), .clk(dma_free_clk), .*);
       rvdffsc #(1) fifo_done_dff (.din(1'b1), .dout(fifo_done[i]), .en(fifo_done_en[i]), .clear(fifo_reset[i]), .clk(dma_free_clk), .*);
       rvdffsc #(1) fifo_done_bus_dff (.din(1'b1), .dout(fifo_done_bus[i]), .en(fifo_done_bus_en[i]), .clear(fifo_reset[i]), .clk(dma_free_clk), .*);
-      //rvdffsc #(1) fifo_rsp_done_dff (.din(1'b1), .dout(fifo_rsp_done[i]), .en(fifo_rsp_done_en[i]), .clear(fifo_reset[i]), .clk(dma_free_clk), .*);
       rvdffe  #(32) fifo_addr_dff (.din(fifo_addr_in[31:0]), .dout(fifo_addr[i]), .en(fifo_cmd_en[i]), .*);
       rvdffs  #(3) fifo_sz_dff (.din(fifo_sz_in[2:0]), .dout(fifo_sz[i]), .en(fifo_cmd_en[i]), .clk(dma_buffer_c1_clk), .*);
       rvdffs  #(1) fifo_write_dff (.din(fifo_write_in), .dout(fifo_write[i]), .en(fifo_cmd_en[i]), .clk(dma_buffer_c1_clk), .*);
@@ -289,21 +287,13 @@ module dma_ctrl (
    assign NxtRdPtr[DEPTH_PTR-1:0] = RdPtr[DEPTH_PTR-1:0] + 1'b1;
    assign NxtRspPtr[DEPTH_PTR-1:0] = RspPtr[DEPTH_PTR-1:0] + 1'b1;
 
-   // Don't increment the ptr for posted writes if 1)fifo error (it will increment only with response) 2) response done (this is the full case)
-   //assign RspPtr[DEPTH_PTR-1:0]   = (dma_dbg_cmd_done_q | axi_slv_sent_q) ? (PrevRspPtr[DEPTH_PTR-1:0] + 1'b1) : PrevRspPtr[DEPTH_PTR-1:0];
-   //assign RspPtr[DEPTH_PTR-1:0]   = (dma_dbg_cmd_done_q | axi_slv_sent_q |
-   //                                  (fifo_valid[PrevRspPtr] & fifo_write[PrevRspPtr] & fifo_posted_write[PrevRspPtr] & ~(|fifo_error[PrevRspPtr]) & ~fifo_rsp_done[PrevRspPtr])) ? (PrevRspPtr[DEPTH_PTR-1:0] + 1'b1) : PrevRspPtr[DEPTH_PTR-1:0];
-
    assign WrPtrEn = |fifo_cmd_en[DEPTH-1:0];
    assign RdPtrEn = (dma_dccm_req | dma_iccm_req) | ((|fifo_error[RdPtr]) & ~fifo_done[RdPtr]);
-   //assign RdPtrEn = |(fifo_done_en[DEPTH-1:0] & ~fifo_done[DEPTH-1:0]);
    assign RspPtrEn = (dma_dbg_cmd_done | (axi_slv_sent & dma_bus_clk_en));
-   //assign RspPtrEn = dma_bus_clk_en | dma_dbg_cmd_done_q;
 
    rvdffs #(DEPTH_PTR) WrPtr_dff(.din(NxtWrPtr[DEPTH_PTR-1:0]), .dout(WrPtr[DEPTH_PTR-1:0]), .en(WrPtrEn), .clk(dma_free_clk), .*);
    rvdffs #(DEPTH_PTR) RdPtr_dff(.din(NxtRdPtr[DEPTH_PTR-1:0]), .dout(RdPtr[DEPTH_PTR-1:0]), .en(RdPtrEn), .clk(dma_free_clk), .*);
    rvdffs #(DEPTH_PTR) RspPtr_dff(.din(NxtRspPtr[DEPTH_PTR-1:0]), .dout(RspPtr[DEPTH_PTR-1:0]), .en(RspPtrEn), .clk(dma_free_clk), .*);
-   //rvdffs #(DEPTH_PTR) RspPtr_dff(.din(RspPtr[DEPTH_PTR-1:0]), .dout(PrevRspPtr[DEPTH_PTR-1:0]), .en(RspPtrEn), .clk(dma_free_clk), .*);
 
    rvdff #(DEPTH_PTR) RdPtrQ1_dff(.din(RdPtr[DEPTH_PTR-1:0]),    .dout(RdPtr_Q1[DEPTH_PTR-1:0]), .clk(dma_free_clk), .*);
    rvdff #(DEPTH_PTR) RdPtrQ2_dff(.din(RdPtr_Q1[DEPTH_PTR-1:0]), .dout(RdPtr_Q2[DEPTH_PTR-1:0]), .clk(dma_free_clk), .*);
@@ -334,12 +324,22 @@ module dma_ctrl (
    //Dbg outputs
    assign dma_dbg_ready    = fifo_empty & dbg_dma_bubble;
    assign dma_dbg_cmd_done = (fifo_valid[RspPtr] & fifo_dbg[RspPtr] & (fifo_write[RspPtr] | fifo_data_valid[RspPtr] | (|fifo_error[RspPtr])));
-   assign dma_dbg_rddata[31:0] = fifo_addr[RspPtr][2] ? fifo_data[RspPtr][63:32] : fifo_data[RspPtr][31:0];
    assign dma_dbg_cmd_fail     = |fifo_error[RspPtr];
 
+   assign dma_dbg_sz[1:0]          = fifo_sz[RspPtr][1:0];
+   assign dma_dbg_addr[1:0]        = fifo_addr[RspPtr][1:0];
+   assign dma_dbg_mem_rddata[31:0] = fifo_addr[RspPtr][2] ? fifo_data[RspPtr][63:32] : fifo_data[RspPtr][31:0];
+   assign dma_dbg_rddata[31:0]     = ({32{(dma_dbg_sz[1:0] == 2'h0)}} & ((dma_dbg_mem_rddata[31:0] >> 8*dma_dbg_addr[1:0]) & 32'hff)) |
+                                     ({32{(dma_dbg_sz[1:0] == 2'h1)}} & ((dma_dbg_mem_rddata[31:0] >> 16*dma_dbg_addr[1]) & 32'hffff)) |
+                                     ({32{(dma_dbg_sz[1:0] == 2'h2)}} & dma_dbg_mem_rddata[31:0]);
+
    assign dma_dbg_cmd_error_in = dbg_cmd_valid & (dbg_cmd_type[1:0] == 2'b10) &
-                                 ((~(dma_addr_in_dccm | dma_addr_in_iccm | dma_addr_in_pic)) | (dbg_cmd_size[1:0] != 2'b10));  // Only word accesses allowed
-                                  //(dma_addr_in_iccm & ~((dbg_cmd_size[1:0] == 2'b10) | (dbg_cmd_size[1:0] == 2'b11))));
+                                 ((~(dma_addr_in_dccm | dma_addr_in_iccm | dma_addr_in_pic)) |             // Address outside of ICCM/DCCM/PIC
+                                  ((dma_addr_in_iccm | dma_addr_in_pic) & (dbg_cmd_size[1:0] != 2'b10)));  // Only word accesses allowed for ICCM/PIC
+
+   assign dma_dbg_mem_wrdata[31:0] = ({32{dbg_cmd_size[1:0] == 2'h0}} & {4{dbg_cmd_wrdata[7:0]}}) |
+                                     ({32{dbg_cmd_size[1:0] == 2'h1}} & {2{dbg_cmd_wrdata[15:0]}}) |
+                                     ({32{dbg_cmd_size[1:0] == 2'h2}} & dbg_cmd_wrdata[31:0]);
 
 
    // Block the decode if fifo full
@@ -465,11 +465,8 @@ module dma_ctrl (
    assign axi_mstr_prty_in = ~axi_mstr_priority;
    assign axi_mstr_prty_en = axi_mstr_valid;
 
-   //assign axi_slv_valid                  = fifo_valid[RspPtr] & ~fifo_rsp_done[RspPtr] & ~fifo_dbg[RspPtr] &
-   //                                        ((fifo_write[RspPtr] & fifo_done_bus[RspPtr]) | (~fifo_write[RspPtr] & fifo_data_bus_valid[RspPtr]) | fifo_error_bus[RspPtr]);
    assign axi_slv_valid                  = fifo_valid[RspPtr] & ~fifo_dbg[RspPtr] & fifo_done_bus[RspPtr];
    assign axi_slv_tag[DMA_BUS_TAG-1:0]   = fifo_tag[RspPtr];
-   //assign axi_slv_rdata[63:0]            = (|fifo_error[RspPtr]) ? {32'b0,fifo_addr[RspPtr]} : fifo_data[RspPtr];
    assign axi_slv_rdata[63:0]            = fifo_data[RspPtr];
    assign axi_slv_write                  = fifo_write[RspPtr];
    assign axi_slv_posted_write           = axi_slv_write & fifo_posted_write[RspPtr];
@@ -489,6 +486,7 @@ module dma_ctrl (
 
    assign axi_slv_sent       = (dma_axi_bvalid & dma_axi_bready) | (dma_axi_rvalid & dma_axi_rready);
    assign dma_slv_algn_err   = fifo_error[RspPtr][1];
+
 `ifdef ASSERT_ON
 
    //assert_nack_count:   assert #0 (dma_nack_count[2:0] < 3'h4);

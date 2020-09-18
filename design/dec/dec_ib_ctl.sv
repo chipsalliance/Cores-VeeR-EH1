@@ -42,8 +42,8 @@ module dec_ib_ctl
 
    input logic   ifu_i0_icaf,                  // i0 instruction access fault
    input logic   ifu_i1_icaf,
-   input logic   ifu_i0_icaf_f1,               // i0 has access fault on second fetch group
-   input logic   ifu_i1_icaf_f1,
+   input logic   ifu_i0_icaf_second,               // i0 has access fault on second 2B of 4B inst
+   input logic   ifu_i1_icaf_second,
    input logic   ifu_i0_perr,                  // i0 instruction parity error
    input logic   ifu_i1_perr,
    input logic   ifu_i0_sbecc,                 // i0 single-bit error
@@ -85,7 +85,7 @@ module dec_ib_ctl
 
    output logic dec_i0_icaf_d,                 // i0 instruction access fault at decode
    output logic dec_i1_icaf_d,
-   output logic dec_i0_icaf_f1_d,              // i0 instruction access fault at decode for f1 fetch group
+   output logic dec_i0_icaf_second_d,              // i0 instruction access fault on second 2B of 4B inst
    output logic dec_i0_perr_d,                 // i0 instruction parity error at decode
    output logic dec_i1_perr_d,
    output logic dec_i0_sbecc_d,                // i0 single-bit error at decode
@@ -239,9 +239,9 @@ module dec_ib_ctl
 
    logic [36:0]  ifu_i1_pcdata, ifu_i0_pcdata;
 
-   assign ifu_i1_pcdata[36:0] = { ifu_i1_icaf_f1, ifu_i1_dbecc, ifu_i1_sbecc, ifu_i1_perr, ifu_i1_icaf,
+   assign ifu_i1_pcdata[36:0] = { ifu_i1_icaf_second, ifu_i1_dbecc, ifu_i1_sbecc, ifu_i1_perr, ifu_i1_icaf,
                                   ifu_i1_pc[31:1], ifu_i1_pc4 };
-   assign ifu_i0_pcdata[36:0] = { ifu_i0_icaf_f1, ifu_i0_dbecc, ifu_i0_sbecc, ifu_i0_perr, ifu_i0_icaf,
+   assign ifu_i0_pcdata[36:0] = { ifu_i0_icaf_second, ifu_i0_dbecc, ifu_i0_sbecc, ifu_i0_perr, ifu_i0_icaf,
                                   ifu_i0_pc[31:1], ifu_i0_pc4 };
 
    if (DEC_INSTBUF_DEPTH==4) begin
@@ -275,7 +275,7 @@ module dec_ib_ctl
 
    rvdffe #(37) pc0ff (.*, .en(ibwrite[0]), .din(pc0_in[36:0]), .dout(pc0[36:0]));
 
-   assign dec_i0_icaf_f1_d = pc0[36];   // icaf's can only decode as i0
+   assign dec_i0_icaf_second_d = pc0[36];   // icaf's can only decode as i0
 
    assign dec_i1_dbecc_d = pc1[35];
    assign dec_i0_dbecc_d = pc0[35];

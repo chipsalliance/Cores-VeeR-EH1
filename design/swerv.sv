@@ -837,8 +837,8 @@ module swerv
 
    logic        ifu_i0_icaf;
    logic        ifu_i1_icaf;
-   logic        ifu_i0_icaf_f1;
-   logic        ifu_i1_icaf_f1;
+   logic        ifu_i0_icaf_second;
+   logic        ifu_i1_icaf_second;
    logic        ifu_i0_perr;
    logic        ifu_i1_perr;
    logic        ifu_i0_sbecc;

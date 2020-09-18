@@ -141,8 +141,7 @@ riviera: program.hex riviera-build
 ifeq ($(shell which $(GCC_PREFIX)-gcc 2> /dev/null),)
 program.hex: ${BUILD_DIR}/defines.h
 	@echo " !!! No $(GCC_PREFIX)-gcc in path, using canned hex files !!"
-	cp ${HEX_DIR}/$(TEST).program.hex program.hex
-	cp ${HEX_DIR}/$(TEST).data.hex data.hex
+	cp ${HEX_DIR}/$(TEST).hex program.hex
 else
 ifneq (,$(wildcard $(TEST_DIR)/$(TEST).makefile))
 program.hex:
@@ -151,10 +150,8 @@ else
 program.hex: $(TEST).o $(LINK)
 	@echo Building $(TEST)
 	$(GCC_PREFIX)-ld -m elf32lriscv --discard-none -T$(LINK) -o $(TEST).exe $(TEST).o
-	$(GCC_PREFIX)-objcopy -O verilog --only-section ".data*" --change-section-lma .data=0 $(TEST).exe data.hex
-	$(GCC_PREFIX)-objcopy -O verilog --only-section ".text*"  $(TEST).exe program.hex
+	$(GCC_PREFIX)-objcopy -O verilog $(TEST).exe program.hex
 	$(GCC_PREFIX)-objdump -S  $(TEST).exe > $(TEST).dis
-	$(GCC_PREFIX)-nm -f posix -C $(TEST).exe > $(TEST).tbl
 	@echo Completed building $(TEST)
 
 %.o : %.s ${BUILD_DIR}/defines.h

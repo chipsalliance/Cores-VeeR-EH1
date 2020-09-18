@@ -25,12 +25,12 @@ module ifu_aln_ctl
    input logic        active_clk,
 
    input logic        iccm_rd_ecc_single_err,         // This fetch has a single ICCM ecc  error.
-   input logic        iccm_rd_ecc_double_err,         // This fetch has a double ICCM ecc  error.
+   input logic [7:0]  iccm_rd_ecc_double_err,         // This fetch has a double ICCM ecc  error.
    input logic        ic_rd_parity_final_err,         // for tag parity errors
 
    input logic        ifu_icache_fetch_f2,
 
-   input logic        ic_access_fault_f2,             // Instruction access fault for the current fetch.
+   input logic [7:0]  ic_access_fault_f2,             // Instruction access fault for the current fetch.
    input logic [`RV_BHT_GHR_RANGE]  ifu_bp_fghr_f2,   // fetch GHR
    input logic [31:1] ifu_bp_btb_target_f2,           //  predicted RET target
    input logic [11:0] ifu_bp_poffset_f2,              // predicted target offset
@@ -72,8 +72,8 @@ module ifu_aln_ctl
    output logic ifu_i1_valid,            // Instruction 1 is valid
    output logic ifu_i0_icaf,             // Instruction 0 has access fault
    output logic ifu_i1_icaf,             // Instruction 1 has access fault
-   output logic ifu_i0_icaf_f1,          // Instruction 0 has access fault on second fetch group
-   output logic ifu_i1_icaf_f1,          // Instruction 1 has access fault on second fetch group
+   output logic ifu_i0_icaf_second,      // Instruction 0 has access fault on second 2B of 4B inst
+   output logic ifu_i1_icaf_second,      // Instruction 1 has access fault on second 2B of 4B inst
    output logic ifu_i0_perr,             // Instruction 0 has parity error
    output logic ifu_i1_perr,             // Instruction 1 has parity error
    output logic ifu_i0_sbecc,            // Instruction 0 has single bit ecc error
@@ -187,16 +187,16 @@ module ifu_aln_ctl
 
    logic [31:1]  f1prett;
    logic [31:1]  f0prett;
-   logic         f1dbecc;
-   logic         f0dbecc;
+   logic [7:0]   f1dbecc;
+   logic [7:0]   f0dbecc;
    logic         f1sbecc;
    logic         f0sbecc;
    logic         f1perr;
    logic         f0perr;
    logic         f1icfetch;
    logic         f0icfetch;
-   logic         f1icaf;
-   logic         f0icaf;
+   logic [7:0]   f1icaf;
+   logic [7:0]   f0icaf;
 
    logic [3:0]   alignicfetch;
    logic [3:0]   aligntagperr;
@@ -252,7 +252,7 @@ module ifu_aln_ctl
    logic [2:0]   qren;
 
    logic         consume_fb1, consume_fb0;
-   logic [3:1]   icaf_eff;
+   logic [3:0]   icaf_eff;
 
 `ifdef RV_ICACHE_ECC
    logic [39:0]          q0ecc, q1ecc, q2ecc;
@@ -360,17 +360,17 @@ module ifu_aln_ctl
 
    // misc data that is associated with each fetch buffer
 
-   localparam MHI   = 47+`RV_BHT_GHR_SIZE;
-   localparam MSIZE = 48+`RV_BHT_GHR_SIZE;
+   localparam MHI   = 45+`RV_BHT_GHR_SIZE;
+   localparam MSIZE = 46+`RV_BHT_GHR_SIZE;
 
    logic [MHI:0] misc_data_in, misc2, misc1, misc0;
    logic [MHI:0] misc1eff, misc0eff;
 
-   assign misc_data_in[MHI:0] = { iccm_rd_ecc_double_err,
+   assign misc_data_in[MHI:0] = {
                                   iccm_rd_ecc_single_err,
                                   ifu_icache_fetch_f2,
                                   ic_rd_parity_final_err,
-                                  ic_access_fault_f2,
+
                                   ifu_bp_btb_target_f2[31:1],
                                   ifu_bp_poffset_f2[11:0],
                                   ifu_bp_fghr_f2[`RV_BHT_GHR_RANGE]
@@ -384,21 +384,21 @@ module ifu_aln_ctl
    assign {misc1eff[MHI:0],misc0eff[MHI:0]} = (({MSIZE*2{qren[0]}} & {misc1[MHI:0],misc0[MHI:0]}) |
                                                ({MSIZE*2{qren[1]}} & {misc2[MHI:0],misc1[MHI:0]}) |
                                                ({MSIZE*2{qren[2]}} & {misc0[MHI:0],misc2[MHI:0]}));
-   assign { f1dbecc,
+   assign {
             f1sbecc,
             f1icfetch,
             f1perr,
-            f1icaf,
+
             f1prett[31:1],
             f1poffset[11:0],
             f1fghr[`RV_BHT_GHR_RANGE]
             } = misc1eff[MHI:0];
 
-   assign { f0dbecc,
+   assign {
             f0sbecc,
             f0icfetch,
             f0perr,
-            f0icaf,
+
             f0prett[31:1],
             f0poffset[11:0],
             f0fghr[`RV_BHT_GHR_RANGE]
@@ -406,24 +406,24 @@ module ifu_aln_ctl
 
 
 `ifdef RV_BTB_48
-   localparam BRDATA_SIZE=56;
-   localparam BRDATA_WIDTH = 7;
+   localparam BRDATA_SIZE=72;
+   localparam BRDATA_WIDTH = 9;
 `else
-   localparam BRDATA_SIZE=48;
-   localparam BRDATA_WIDTH = 6;
+   localparam BRDATA_SIZE=64;
+   localparam BRDATA_WIDTH = 8;
 `endif
    logic [BRDATA_SIZE-1:0] brdata_in, brdata2, brdata1, brdata0;
    logic [BRDATA_SIZE-1:0] brdata1eff, brdata0eff;
    logic [BRDATA_SIZE-1:0] brdata1final, brdata0final;
    assign brdata_in[BRDATA_SIZE-1:0] = {
-                              ifu_bp_hist1_f2[7],ifu_bp_hist0_f2[7],ifu_bp_pc4_f2[7],ifu_bp_way_f2[7],ifu_bp_valid_f2[7],ifu_bp_ret_f2[7],
-                              ifu_bp_hist1_f2[6],ifu_bp_hist0_f2[6],ifu_bp_pc4_f2[6],ifu_bp_way_f2[6],ifu_bp_valid_f2[6],ifu_bp_ret_f2[6],
-                              ifu_bp_hist1_f2[5],ifu_bp_hist0_f2[5],ifu_bp_pc4_f2[5],ifu_bp_way_f2[5],ifu_bp_valid_f2[5],ifu_bp_ret_f2[5],
-                              ifu_bp_hist1_f2[4],ifu_bp_hist0_f2[4],ifu_bp_pc4_f2[4],ifu_bp_way_f2[4],ifu_bp_valid_f2[4],ifu_bp_ret_f2[4],
-                              ifu_bp_hist1_f2[3],ifu_bp_hist0_f2[3],ifu_bp_pc4_f2[3],ifu_bp_way_f2[3],ifu_bp_valid_f2[3],ifu_bp_ret_f2[3],
-                              ifu_bp_hist1_f2[2],ifu_bp_hist0_f2[2],ifu_bp_pc4_f2[2],ifu_bp_way_f2[2],ifu_bp_valid_f2[2],ifu_bp_ret_f2[2],
-                              ifu_bp_hist1_f2[1],ifu_bp_hist0_f2[1],ifu_bp_pc4_f2[1],ifu_bp_way_f2[1],ifu_bp_valid_f2[1],ifu_bp_ret_f2[1],
-                              ifu_bp_hist1_f2[0],ifu_bp_hist0_f2[0],ifu_bp_pc4_f2[0],ifu_bp_way_f2[0],ifu_bp_valid_f2[0],ifu_bp_ret_f2[0]
+                              iccm_rd_ecc_double_err[7],ic_access_fault_f2[7],ifu_bp_hist1_f2[7],ifu_bp_hist0_f2[7],ifu_bp_pc4_f2[7],ifu_bp_way_f2[7],ifu_bp_valid_f2[7],ifu_bp_ret_f2[7],
+                              iccm_rd_ecc_double_err[6],ic_access_fault_f2[6],ifu_bp_hist1_f2[6],ifu_bp_hist0_f2[6],ifu_bp_pc4_f2[6],ifu_bp_way_f2[6],ifu_bp_valid_f2[6],ifu_bp_ret_f2[6],
+                              iccm_rd_ecc_double_err[5],ic_access_fault_f2[5],ifu_bp_hist1_f2[5],ifu_bp_hist0_f2[5],ifu_bp_pc4_f2[5],ifu_bp_way_f2[5],ifu_bp_valid_f2[5],ifu_bp_ret_f2[5],
+                              iccm_rd_ecc_double_err[4],ic_access_fault_f2[4],ifu_bp_hist1_f2[4],ifu_bp_hist0_f2[4],ifu_bp_pc4_f2[4],ifu_bp_way_f2[4],ifu_bp_valid_f2[4],ifu_bp_ret_f2[4],
+                              iccm_rd_ecc_double_err[3],ic_access_fault_f2[3],ifu_bp_hist1_f2[3],ifu_bp_hist0_f2[3],ifu_bp_pc4_f2[3],ifu_bp_way_f2[3],ifu_bp_valid_f2[3],ifu_bp_ret_f2[3],
+                              iccm_rd_ecc_double_err[2],ic_access_fault_f2[2],ifu_bp_hist1_f2[2],ifu_bp_hist0_f2[2],ifu_bp_pc4_f2[2],ifu_bp_way_f2[2],ifu_bp_valid_f2[2],ifu_bp_ret_f2[2],
+                              iccm_rd_ecc_double_err[1],ic_access_fault_f2[1],ifu_bp_hist1_f2[1],ifu_bp_hist0_f2[1],ifu_bp_pc4_f2[1],ifu_bp_way_f2[1],ifu_bp_valid_f2[1],ifu_bp_ret_f2[1],
+                              iccm_rd_ecc_double_err[0],ic_access_fault_f2[0],ifu_bp_hist1_f2[0],ifu_bp_hist0_f2[0],ifu_bp_pc4_f2[0],ifu_bp_way_f2[0],ifu_bp_valid_f2[0],ifu_bp_ret_f2[0]
                               };
 //
    rvdffe #(BRDATA_SIZE) brdata2ff (.*, .en(qwen[2]), .din(brdata_in[BRDATA_SIZE-1:0]), .dout(brdata2[BRDATA_SIZE-1:0]));
@@ -435,7 +435,7 @@ module ifu_aln_ctl
                                                                        ({BRDATA_SIZE*2{qren[1]}} & {brdata2[BRDATA_SIZE-1:0],brdata1[BRDATA_SIZE-1:0]}) |
                                                                        ({BRDATA_SIZE*2{qren[2]}} & {brdata0[BRDATA_SIZE-1:0],brdata2[BRDATA_SIZE-1:0]}));
 
-   assign brdata0final[BRDATA_SIZE-1:0] = (({BRDATA_SIZE{q0sel[0]}} & {            brdata0eff[8*6-1:0*6]}) |
+   assign brdata0final[BRDATA_SIZE-1:0] = (({BRDATA_SIZE{q0sel[0]}} & {            brdata0eff[BRDATA_SIZE-1:0]}) |
                                 ({BRDATA_SIZE{q0sel[1]}} & {{1*BRDATA_WIDTH{1'b0}},brdata0eff[BRDATA_SIZE-1:1*BRDATA_WIDTH]}) |
                                 ({BRDATA_SIZE{q0sel[2]}} & {{2*BRDATA_WIDTH{1'b0}},brdata0eff[BRDATA_SIZE-1:2*BRDATA_WIDTH]}) |
                                 ({BRDATA_SIZE{q0sel[3]}} & {{3*BRDATA_WIDTH{1'b0}},brdata0eff[BRDATA_SIZE-1:3*BRDATA_WIDTH]}) |
@@ -444,7 +444,7 @@ module ifu_aln_ctl
                                 ({BRDATA_SIZE{q0sel[6]}} & {{6*BRDATA_WIDTH{1'b0}},brdata0eff[BRDATA_SIZE-1:6*BRDATA_WIDTH]}) |
                                 ({BRDATA_SIZE{q0sel[7]}} & {{7*BRDATA_WIDTH{1'b0}},brdata0eff[BRDATA_SIZE-1:7*BRDATA_WIDTH]}));
 
-   assign brdata1final[BRDATA_SIZE-1:0] = (({BRDATA_SIZE{q1sel[0]}} & {            brdata1eff[8*6-1:0*6]}) |
+   assign brdata1final[BRDATA_SIZE-1:0] = (({BRDATA_SIZE{q1sel[0]}} & {            brdata1eff[BRDATA_SIZE-1:0]}) |
                                 ({BRDATA_SIZE{q1sel[1]}} & {{1*BRDATA_WIDTH{1'b0}},brdata1eff[BRDATA_SIZE-1:1*BRDATA_WIDTH]}) |
                                 ({BRDATA_SIZE{q1sel[2]}} & {{2*BRDATA_WIDTH{1'b0}},brdata1eff[BRDATA_SIZE-1:2*BRDATA_WIDTH]}) |
                                 ({BRDATA_SIZE{q1sel[3]}} & {{3*BRDATA_WIDTH{1'b0}},brdata1eff[BRDATA_SIZE-1:3*BRDATA_WIDTH]}) |
@@ -454,25 +454,25 @@ module ifu_aln_ctl
                                 ({BRDATA_SIZE{q1sel[7]}} & {{7*BRDATA_WIDTH{1'b0}},brdata1eff[BRDATA_SIZE-1:7*BRDATA_WIDTH]}));
 
    assign {
-            f0hist1[7],f0hist0[7],f0pc4[7],f0way[7],f0brend[7],f0ret[7],
-            f0hist1[6],f0hist0[6],f0pc4[6],f0way[6],f0brend[6],f0ret[6],
-            f0hist1[5],f0hist0[5],f0pc4[5],f0way[5],f0brend[5],f0ret[5],
-            f0hist1[4],f0hist0[4],f0pc4[4],f0way[4],f0brend[4],f0ret[4],
-            f0hist1[3],f0hist0[3],f0pc4[3],f0way[3],f0brend[3],f0ret[3],
-            f0hist1[2],f0hist0[2],f0pc4[2],f0way[2],f0brend[2],f0ret[2],
-            f0hist1[1],f0hist0[1],f0pc4[1],f0way[1],f0brend[1],f0ret[1],
-            f0hist1[0],f0hist0[0],f0pc4[0],f0way[0],f0brend[0],f0ret[0]
+            f0dbecc[7],f0icaf[7],f0hist1[7],f0hist0[7],f0pc4[7],f0way[7],f0brend[7],f0ret[7],
+            f0dbecc[6],f0icaf[6],f0hist1[6],f0hist0[6],f0pc4[6],f0way[6],f0brend[6],f0ret[6],
+            f0dbecc[5],f0icaf[5],f0hist1[5],f0hist0[5],f0pc4[5],f0way[5],f0brend[5],f0ret[5],
+            f0dbecc[4],f0icaf[4],f0hist1[4],f0hist0[4],f0pc4[4],f0way[4],f0brend[4],f0ret[4],
+            f0dbecc[3],f0icaf[3],f0hist1[3],f0hist0[3],f0pc4[3],f0way[3],f0brend[3],f0ret[3],
+            f0dbecc[2],f0icaf[2],f0hist1[2],f0hist0[2],f0pc4[2],f0way[2],f0brend[2],f0ret[2],
+            f0dbecc[1],f0icaf[1],f0hist1[1],f0hist0[1],f0pc4[1],f0way[1],f0brend[1],f0ret[1],
+            f0dbecc[0],f0icaf[0],f0hist1[0],f0hist0[0],f0pc4[0],f0way[0],f0brend[0],f0ret[0]
             } = brdata0final[BRDATA_SIZE-1:0];
 
    assign {
-            f1hist1[7],f1hist0[7],f1pc4[7],f1way[7],f1brend[7],f1ret[7],
-            f1hist1[6],f1hist0[6],f1pc4[6],f1way[6],f1brend[6],f1ret[6],
-            f1hist1[5],f1hist0[5],f1pc4[5],f1way[5],f1brend[5],f1ret[5],
-            f1hist1[4],f1hist0[4],f1pc4[4],f1way[4],f1brend[4],f1ret[4],
-            f1hist1[3],f1hist0[3],f1pc4[3],f1way[3],f1brend[3],f1ret[3],
-            f1hist1[2],f1hist0[2],f1pc4[2],f1way[2],f1brend[2],f1ret[2],
-            f1hist1[1],f1hist0[1],f1pc4[1],f1way[1],f1brend[1],f1ret[1],
-            f1hist1[0],f1hist0[0],f1pc4[0],f1way[0],f1brend[0],f1ret[0]
+            f1dbecc[7],f1icaf[7],f1hist1[7],f1hist0[7],f1pc4[7],f1way[7],f1brend[7],f1ret[7],
+            f1dbecc[6],f1icaf[6],f1hist1[6],f1hist0[6],f1pc4[6],f1way[6],f1brend[6],f1ret[6],
+            f1dbecc[5],f1icaf[5],f1hist1[5],f1hist0[5],f1pc4[5],f1way[5],f1brend[5],f1ret[5],
+            f1dbecc[4],f1icaf[4],f1hist1[4],f1hist0[4],f1pc4[4],f1way[4],f1brend[4],f1ret[4],
+            f1dbecc[3],f1icaf[3],f1hist1[3],f1hist0[3],f1pc4[3],f1way[3],f1brend[3],f1ret[3],
+            f1dbecc[2],f1icaf[2],f1hist1[2],f1hist0[2],f1pc4[2],f1way[2],f1brend[2],f1ret[2],
+            f1dbecc[1],f1icaf[1],f1hist1[1],f1hist0[1],f1pc4[1],f1way[1],f1brend[1],f1ret[1],
+            f1dbecc[0],f1icaf[0],f1hist1[0],f1hist0[0],f1pc4[0],f1way[0],f1brend[0],f1ret[0]
             } = brdata1final[BRDATA_SIZE-1:0];
 
 
@@ -711,11 +711,10 @@ module ifu_aln_ctl
                             ({4{(f0val[1]&~f0val[2])}} &        {f1val[1:0],2'b11}) |
                             ({4{(f0val[0]&~f0val[1])}} &        {f1val[2:0],1'b1});
 
-   assign alignicaf[3:0] =   ({4{(f0val[3])}} &                  {4{f0icaf}}) |
-                             ({4{(f0val[2]&~f0val[3])}} &        {{1{f1icaf}},{3{f0icaf}}}) |
-                             ({4{(f0val[1]&~f0val[2])}} &        {{2{f1icaf}},{2{f0icaf}}}) |
-                             ({4{(f0val[0]&~f0val[1])}} &        {{3{f1icaf}},{1{f0icaf}}});
-
+   assign alignicaf[3:0] =   ({4{(f0val[3])}} &                   f0icaf[3:0]) |
+                             ({4{(f0val[2]&~f0val[3])}} &        {f1icaf[0],f0icaf[2:0]}) |
+                             ({4{(f0val[1]&~f0val[2])}} &        {f1icaf[1:0],f0icaf[1:0]}) |
+                             ({4{(f0val[0]&~f0val[1])}} &        {f1icaf[2:0],f0icaf[0]});
 
    assign alignsbecc[3:0] =   ({4{(f0val[3])}} &                  {4{f0sbecc}}) |
                               ({4{(f0val[2]&~f0val[3])}} &        {{1{f1sbecc}},{3{f0sbecc}}}) |
@@ -723,10 +722,10 @@ module ifu_aln_ctl
                               ({4{(f0val[0]&~f0val[1])}} &        {{3{f1sbecc}},{1{f0sbecc}}});
 
 
-   assign aligndbecc[3:0] =   ({4{(f0val[3])}} &                  {4{f0dbecc}}) |
-                              ({4{(f0val[2]&~f0val[3])}} &        {{1{f1dbecc}},{3{f0dbecc}}}) |
-                              ({4{(f0val[1]&~f0val[2])}} &        {{2{f1dbecc}},{2{f0dbecc}}}) |
-                              ({4{(f0val[0]&~f0val[1])}} &        {{3{f1dbecc}},{1{f0dbecc}}});
+   assign aligndbecc[3:0] =   ({4{(f0val[3])}} &                   f0dbecc[3:0]) |
+                              ({4{(f0val[2]&~f0val[3])}} &        {f1dbecc[0],f0dbecc[2:0]}) |
+                              ({4{(f0val[1]&~f0val[2])}} &        {f1dbecc[1:0],f0dbecc[1:0]}) |
+                              ({4{(f0val[0]&~f0val[1])}} &        {f1dbecc[2:0],f0dbecc[0]});
 
    // for branch prediction
    assign alignbrend[3:0] =   ({4{(f0val[3])}} &                   f0brend[3:0]) |
@@ -865,7 +864,6 @@ module ifu_aln_ctl
 
  `endif // !`ifdef RV_ICACHE_ECC
 
-
    // logic for trace
    assign ifu_i0_cinst[15:0] = aligndata[15:0];
    assign ifu_i1_cinst[15:0] = (first4B) ? aligndata[47:32] : aligndata[31:16];
@@ -896,19 +894,17 @@ module ifu_aln_ctl
 
 
 
-   assign icaf_eff[3:1] = alignicaf[3:1] | aligndbecc[3:1];
+   assign icaf_eff[3:0] = alignicaf[3:0] | aligndbecc[3:0];
 
-   assign ifu_i0_icaf_f1 = first4B & icaf_eff[1] & alignfromf1[1];
+   assign ifu_i0_icaf_second = first4B & ~icaf_eff[0] & icaf_eff[1];
 
    assign ifu_i1_icaf = ((first4B & third4B &  (|alignicaf[3:2])) |
                          (first4B & third2B &    alignicaf[2])    |
                          (first2B & second4B & (|alignicaf[2:1])) |
                          (first2B & second2B &   alignicaf[1])) & ~exu_flush_final;
 
-   assign ifu_i1_icaf_f1 = (first4B & third4B  & icaf_eff[2] & alignfromf1[2]) |
-                           (first4B & third4B  & icaf_eff[3] & alignfromf1[3] & ~icaf_eff[2]) |
-                           (first2B & second4B & icaf_eff[1] & alignfromf1[1]) |
-                           (first2B & second4B & icaf_eff[2] & alignfromf1[2] & ~icaf_eff[1]);
+   assign ifu_i1_icaf_second = (first4B & third4B  & ~icaf_eff[2] & icaf_eff[3]) |
+                               (first2B & second4B & ~icaf_eff[1] & icaf_eff[2]);
 
    // inst parity error on any byte of inst results in parity error for the inst
 
