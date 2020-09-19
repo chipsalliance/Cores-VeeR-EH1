@@ -1,8 +1,8 @@
 # SweRV RISC-V Core<sup>TM</sup> 1.8 from Western Digital
 ## Release Notes
 
-* Enhanced Debug module to support access to system bus via abstract memory commands (see PRM chapter 9)
-* Enhanced mpmc firmware halt CSR to add atomic MSTATUS.IE enable to mpmc CSR (see PRM section 5.5.1)
+* Enhanced Debug module to support access to system bus via access memory abstract commands (see PRM chapter 9)
+* Enhanced mpmc firmware halt CSR to add atomic MSTATUS.MIE enable to mpmc CSR (see PRM section 5.5.1)
 * Fixed 3 debug module issues reported by Codasip
 * Fixed bug with IO load speculation
 * Fixed issue with PIC ld/st access following a pipe freeze
