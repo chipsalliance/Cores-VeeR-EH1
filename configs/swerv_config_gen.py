@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from fusesoc.capi2.generator import Generator
 import os
 import shutil
@@ -12,16 +12,17 @@ else:
 
 class SwervConfigGenerator(Generator):
     def run(self):
+        build_path="swerv_config"
         script_root = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..'))
         files = [
-            {"snapshots/default/common_defines.vh" : {
+            {os.path.join(build_path, "common_defines.vh") : {
                 "copyto"    : "config/common_defines.vh",
                 "file_type" : "systemVerilogSource"}},
-            {"snapshots/default/pic_ctrl_verilator_unroll.sv" : {
+            {os.path.join(build_path, "pic_ctrl_verilator_unroll.sv") : {
                 "copyto" : "config/pic_ctrl_verilator_unroll.sv",
                 "is_include_file" : True,
                 "file_type" : "systemVerilogSource"}},
-            {"snapshots/default/pic_map_auto.h" : {
+            {os.path.join(build_path, "pic_map_auto.h") : {
                 "copyto" : "config/pic_map_auto.h",
                 "is_include_file" : True,
                 "file_type" : "systemVerilogSource"}}]
@@ -33,6 +34,7 @@ class SwervConfigGenerator(Generator):
 
         env = os.environ.copy()
         env['RV_ROOT'] = tmp_dir
+        env['BUILD_PATH'] = build_path
         args = ['configs/swerv.config'] + self.config.get('args', [])
         rc = subprocess.call(args, cwd=cwd, env=env, stdout=devnull)
         if rc:
