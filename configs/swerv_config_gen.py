@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from fusesoc.capi2.generator import Generator
 import os
 import shutil

@@ -142,7 +142,7 @@ generate:
 
 generators:
   swerv_config:
-    interpreter: python
+    interpreter: python3
     command: configs/swerv_config_gen.py
     description : Create a SweRV configuration. Note! Only supports the default config
 
