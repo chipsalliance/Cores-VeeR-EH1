@@ -22,7 +22,6 @@
 //-------------------------------------------------------------------------------------
 
 module dmi_wrapper(
-  input              scan_mode,           // scan mode
 
   // JTAG signals
   input              trst_n,              // JTAG reset
