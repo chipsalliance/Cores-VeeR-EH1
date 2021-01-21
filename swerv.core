@@ -113,7 +113,7 @@ targets:
 
   synth:
     default_tool : vivado
-    filesets : [includes, rtl, vivado_tcl]
+    filesets : [includes, rtl, "tool_vivado ? (vivado_tcl)"]
     generate : [swerv_fpga_config]
     tools:
       vivado:
