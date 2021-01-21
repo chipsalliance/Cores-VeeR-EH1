@@ -414,7 +414,6 @@ module swerv_wrapper
 
   // Instantiate the JTAG/DMI
    dmi_wrapper  dmi_wrapper (
-           .scan_mode(scan_mode),           // scan mode
 
            // JTAG signals
            .trst_n(jtag_trst_n),           // JTAG reset
