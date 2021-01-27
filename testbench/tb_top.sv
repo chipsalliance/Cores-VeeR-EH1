@@ -288,9 +288,33 @@ module tb_top;
     wire [1:0]                  dma_axi_rresp;
     wire                        dma_axi_rlast;
 
-`endif
-    wire[63:0] WriteData;
+    wire                        lmem_axi_arvalid;
+    wire                        lmem_axi_arready;
 
+    wire                        lmem_axi_rvalid;
+    wire [`RV_LSU_BUS_TAG-1:0]  lmem_axi_rid;
+    wire [1:0]                  lmem_axi_rresp;
+    wire [63:0]                 lmem_axi_rdata;
+    wire                        lmem_axi_rlast;
+    wire                        lmem_axi_rready;
+
+    wire                        lmem_axi_awvalid;
+    wire                        lmem_axi_awready;
+
+    wire                        lmem_axi_wvalid;
+    wire                        lmem_axi_wready;
+
+    wire [1:0]                  lmem_axi_bresp;
+    wire                        lmem_axi_bvalid;
+    wire [`RV_LSU_BUS_TAG-1:0]  lmem_axi_bid;
+    wire                        lmem_axi_bready;
+
+
+`endif
+    wire[63:0]                  WriteData;
+    string                      abi_reg[32]; // ABI register names
+
+`define DEC rvtop.swerv.dec
 
     assign mailbox_write = lmem.mailbox_write;
     assign WriteData = lmem.WriteData;
@@ -314,7 +338,7 @@ module tb_top;
         end
         // End Of test monitor
         if(mailbox_write && WriteData[7:0] == 8'hff) begin
-            $display("\nFinished : minstret = %0d, mcycle = %0d", rvtop.swerv.dec.tlu.minstretl[31:0],rvtop.swerv.dec.tlu.mcyclel[31:0]);
+            $display("\nFinished : minstret = %0d, mcycle = %0d", `DEC.tlu.minstretl[31:0],`DEC.tlu.mcyclel[31:0]);
             $display("See \"exec.log\" for execution trace with register updates..\n");
             $display("TEST_PASSED");
             $finish;
@@ -328,9 +352,9 @@ module tb_top;
 
     // trace monitor
     always @(posedge core_clk) begin
-        wb_valid[1:0]  <= '{rvtop.swerv.dec.dec_i1_wen_wb, rvtop.swerv.dec.dec_i0_wen_wb};
-        wb_dest[1:0]   <= '{rvtop.swerv.dec.dec_i1_waddr_wb, rvtop.swerv.dec.dec_i0_waddr_wb};
-        wb_data[1:0]   <= '{rvtop.swerv.dec.dec_i1_wdata_wb, rvtop.swerv.dec.dec_i0_wdata_wb};
+        wb_valid[1:0]  <= '{`DEC.dec_i1_wen_wb, `DEC.dec_i0_wen_wb};
+        wb_dest[1:0]   <= '{`DEC.dec_i1_waddr_wb, `DEC.dec_i0_waddr_wb};
+        wb_data[1:0]   <= '{`DEC.dec_i1_wdata_wb, `DEC.dec_i0_wdata_wb};
         if (trace_rv_i_valid_ip !== 0) begin
            $fwrite(tp,"%b,%h,%h,%0h,%0h,3,%b,%h,%h,%b\n", trace_rv_i_valid_ip, trace_rv_i_address_ip[63:32], trace_rv_i_address_ip[31:0],
                   trace_rv_i_insn_ip[63:32], trace_rv_i_insn_ip[31:0],trace_rv_i_exception_ip,trace_rv_i_ecause_ip,
@@ -340,15 +364,53 @@ module tb_top;
            for (int i=0; i<2; i++)
                if (trace_rv_i_valid_ip[i]==1) begin
                    commit_count++;
-                   $fwrite (el, "%10d : %6s 0 %h %h %s\n", cycleCnt, $sformatf("#%0d",commit_count),
-                          trace_rv_i_address_ip[31+i*32 -:32], trace_rv_i_insn_ip[31+i*32-:32],
-                          (wb_dest[i] !=0 && wb_valid[i]) ?  $sformatf("r%0d=%h", wb_dest[i], wb_data[i]) : "");
+                   $fwrite (el, "%10d : %8s %0d %h %h%13s ; %s\n",cycleCnt, $sformatf("#%0d",commit_count), 0,
+                           trace_rv_i_address_ip[31+i*32 -:32], trace_rv_i_insn_ip[31+i*32-:32],
+                           (wb_dest[i] !=0 && wb_valid[i]) ?  $sformatf("%s=%h", abi_reg[wb_dest[i]], wb_data[i]) : "             ",
+                           dasm(trace_rv_i_insn_ip[31+i*32 -:32], trace_rv_i_address_ip[31+i*32-:32], wb_dest[i] & {5{wb_valid[i]}}, wb_data[i])
+                           );
                end
+        end
+        if(`DEC.dec_nonblock_load_wen) begin
+            $fwrite (el, "%10d : %10d%22s=%h ; nbL\n", cycleCnt, 0, abi_reg[`DEC.dec_nonblock_load_waddr], `DEC.lsu_nonblock_load_data);
+            tb_top.gpr[0][`DEC.dec_nonblock_load_waddr] = `DEC.lsu_nonblock_load_data;
         end
     end
 
 
     initial begin
+        abi_reg[0] = "zero";
+        abi_reg[1] = "ra";
+        abi_reg[2] = "sp";
+        abi_reg[3] = "gp";
+        abi_reg[4] = "tp";
+        abi_reg[5] = "t0";
+        abi_reg[6] = "t1";
+        abi_reg[7] = "t2";
+        abi_reg[8] = "s0";
+        abi_reg[9] = "s1";
+        abi_reg[10] = "a0";
+        abi_reg[11] = "a1";
+        abi_reg[12] = "a2";
+        abi_reg[13] = "a3";
+        abi_reg[14] = "a4";
+        abi_reg[15] = "a5";
+        abi_reg[16] = "a6";
+        abi_reg[17] = "a7";
+        abi_reg[18] = "s2";
+        abi_reg[19] = "s3";
+        abi_reg[20] = "s4";
+        abi_reg[21] = "s5";
+        abi_reg[22] = "s6";
+        abi_reg[23] = "s7";
+        abi_reg[24] = "s8";
+        abi_reg[25] = "s9";
+        abi_reg[26] = "s10";
+        abi_reg[27] = "s11";
+        abi_reg[28] = "t3";
+        abi_reg[29] = "t4";
+        abi_reg[30] = "t5";
+        abi_reg[31] = "t6";
     // tie offs
         jtag_id[31:28] = 4'b1;
         jtag_id[27:12] = '0;
@@ -361,7 +423,8 @@ module tb_top;
         $readmemh("program.hex",  imem.mem);
         tp = $fopen("trace_port.csv","w");
         el = $fopen("exec.log","w");
-        $fwrite (el, "//Cycle : #inst 0  pc opcode reg regnum value\n");
+        $fwrite (el, "//   Cycle : #inst  hart   pc    opcode    reg=value   ; mnemonic\n");
+        $fwrite (el, "//---------------------------------------------------------------\n");
         fd = $fopen("console.log","w");
         commit_count = 0;
         preload_dccm();
@@ -595,40 +658,40 @@ swerv_wrapper rvtop (
 
     //-------------------------- DMA AXI signals--------------------------
     // AXI Write Channels
-    .dma_axi_awvalid        (1'b0),
+    .dma_axi_awvalid        (dma_axi_awvalid),
     .dma_axi_awready        (dma_axi_awready),
-    .dma_axi_awid           (dma_axi_awid),
-    .dma_axi_awaddr         (dma_axi_awaddr),
-    .dma_axi_awsize         (dma_axi_awsize),
-    .dma_axi_awprot         (dma_axi_awprot),
-    .dma_axi_awlen          (dma_axi_awlen),
-    .dma_axi_awburst        (dma_axi_awburst),
+    .dma_axi_awid           ('0),               // ids are not used on DMA since it always responses in order
+    .dma_axi_awaddr         (lsu_axi_awaddr),
+    .dma_axi_awsize         (lsu_axi_awsize),
+    .dma_axi_awprot         ('0),
+    .dma_axi_awlen          ('0),
+    .dma_axi_awburst        ('0),
 
 
-    .dma_axi_wvalid         (1'b0),
+    .dma_axi_wvalid         (dma_axi_wvalid),
     .dma_axi_wready         (dma_axi_wready),
-    .dma_axi_wdata          (dma_axi_wdata),
-    .dma_axi_wstrb          (dma_axi_wstrb),
-    .dma_axi_wlast          (dma_axi_wlast),
+    .dma_axi_wdata          (lsu_axi_wdata),
+    .dma_axi_wstrb          (lsu_axi_wstrb),
+    .dma_axi_wlast          (1'b1),
 
     .dma_axi_bvalid         (dma_axi_bvalid),
-    .dma_axi_bready         (1'b0),
+    .dma_axi_bready         (dma_axi_bready),
     .dma_axi_bresp          (dma_axi_bresp),
-    .dma_axi_bid            (dma_axi_bid),
+    .dma_axi_bid            (),
 
 
-    .dma_axi_arvalid        (1'b0),
+    .dma_axi_arvalid        (dma_axi_arvalid),
     .dma_axi_arready        (dma_axi_arready),
-    .dma_axi_arid           (dma_axi_arid),
-    .dma_axi_araddr         (dma_axi_araddr),
-    .dma_axi_arsize         (dma_axi_arsize),
-    .dma_axi_arprot         (dma_axi_arprot),
-    .dma_axi_arlen          (dma_axi_arlen),
-    .dma_axi_arburst        (dma_axi_arburst),
+    .dma_axi_arid           ('0),
+    .dma_axi_araddr         (lsu_axi_araddr),
+    .dma_axi_arsize         (lsu_axi_arsize),
+    .dma_axi_arprot         ('0),
+    .dma_axi_arlen          ('0),
+    .dma_axi_arburst        ('0),
 
     .dma_axi_rvalid         (dma_axi_rvalid),
-    .dma_axi_rready         (1'b0),
-    .dma_axi_rid            (dma_axi_rid),
+    .dma_axi_rready         (dma_axi_rready),
+    .dma_axi_rid            (),
     .dma_axi_rdata          (dma_axi_rdata),
     .dma_axi_rresp          (dma_axi_rresp),
     .dma_axi_rlast          (dma_axi_rlast),
@@ -636,10 +699,10 @@ swerv_wrapper rvtop (
     .timer_int              ( 1'b0     ),
     .extintsrc_req          ( '0  ),
 
-    .lsu_bus_clk_en         ( 1'b1  ),// Clock ratio b/w cpu core clk & AHB master interface
-    .ifu_bus_clk_en         ( 1'b1  ),// Clock ratio b/w cpu core clk & AHB master interface
-    .dbg_bus_clk_en         ( 1'b1  ),// Clock ratio b/w cpu core clk & AHB Debug master interface
-    .dma_bus_clk_en         ( 1'b1  ),// Clock ratio b/w cpu core clk & AHB slave interface
+    .lsu_bus_clk_en         ( 1'b1  ),
+    .ifu_bus_clk_en         ( 1'b1  ),
+    .dbg_bus_clk_en         ( 1'b1  ),
+    .dma_bus_clk_en         ( 1'b1  ),
 
     .trace_rv_i_insn_ip     (trace_rv_i_insn_ip),
     .trace_rv_i_address_ip  (trace_rv_i_address_ip),
@@ -659,23 +722,23 @@ swerv_wrapper rvtop (
     .mpc_debug_halt_req     ( 1'b0),
     .mpc_debug_run_ack      ( mpc_debug_run_ack),
     .mpc_debug_run_req      ( 1'b1),
-    .mpc_reset_run_req      ( 1'b1),             // Start running after reset
+    .mpc_reset_run_req      ( 1'b1),
      .debug_brkpt_status    (debug_brkpt_status),
 
-    .i_cpu_halt_req         ( 1'b0  ),    // Async halt req to CPU
-    .o_cpu_halt_ack         ( o_cpu_halt_ack ),    // core response to halt
-    .o_cpu_halt_status      ( o_cpu_halt_status ), // 1'b1 indicates core is halted
-    .i_cpu_run_req          ( 1'b0  ),     // Async restart req to CPU
+    .i_cpu_halt_req         ( 1'b0  ),
+    .o_cpu_halt_ack         ( o_cpu_halt_ack ),
+    .o_cpu_halt_status      ( o_cpu_halt_status ),
+    .i_cpu_run_req          ( 1'b0  ),
     .o_debug_mode_status    (o_debug_mode_status),
-    .o_cpu_run_ack          ( o_cpu_run_ack ),     // Core response to run req
+    .o_cpu_run_ack          ( o_cpu_run_ack ),
 
     .dec_tlu_perfcnt0       (dec_tlu_perfcnt0),
     .dec_tlu_perfcnt1       (dec_tlu_perfcnt1),
     .dec_tlu_perfcnt2       (dec_tlu_perfcnt2),
     .dec_tlu_perfcnt3       (dec_tlu_perfcnt3),
 
-    .scan_mode              ( 1'b0 ),         // To enable scan mode
-    .mbist_mode             ( 1'b0 )        // to enable mbist
+    .scan_mode              ( 1'b0 ),
+    .mbist_mode             ( 1'b0 )
 
 );
 
@@ -771,23 +834,23 @@ defparam lmem.TAGW =`RV_LSU_BUS_TAG;
 axi_slv  lmem(
     .aclk(core_clk),
     .rst_l(rst_l),
-    .arvalid(lsu_axi_arvalid),
-    .arready(lsu_axi_arready),
+    .arvalid(lmem_axi_arvalid),
+    .arready(lmem_axi_arready),
     .araddr(lsu_axi_araddr),
     .arid(lsu_axi_arid),
     .arlen(lsu_axi_arlen),
     .arburst(lsu_axi_arburst),
     .arsize(lsu_axi_arsize),
 
-    .rvalid(lsu_axi_rvalid),
-    .rready(lsu_axi_rready),
-    .rdata(lsu_axi_rdata),
-    .rresp(lsu_axi_rresp),
-    .rid(lsu_axi_rid),
-    .rlast(lsu_axi_rlast),
+    .rvalid(lmem_axi_rvalid),
+    .rready(lmem_axi_rready),
+    .rdata(lmem_axi_rdata),
+    .rresp(lmem_axi_rresp),
+    .rid(lmem_axi_rid),
+    .rlast(lmem_axi_rlast),
 
-    .awvalid(lsu_axi_awvalid),
-    .awready(lsu_axi_awready),
+    .awvalid(lmem_axi_awvalid),
+    .awready(lmem_axi_awready),
     .awaddr(lsu_axi_awaddr),
     .awid(lsu_axi_awid),
     .awlen(lsu_axi_awlen),
@@ -796,14 +859,86 @@ axi_slv  lmem(
 
     .wdata(lsu_axi_wdata),
     .wstrb(lsu_axi_wstrb),
-    .wvalid(lsu_axi_wvalid),
-    .wready(lsu_axi_wready),
+    .wvalid(lmem_axi_wvalid),
+    .wready(lmem_axi_wready),
 
-    .bvalid(lsu_axi_bvalid),
-    .bready(lsu_axi_bready),
-    .bresp(lsu_axi_bresp),
-    .bid(lsu_axi_bid)
+    .bvalid(lmem_axi_bvalid),
+    .bready(lmem_axi_bready),
+    .bresp(lmem_axi_bresp),
+    .bid(lmem_axi_bid)
 );
+
+axi_lsu_dma_bridge # (`RV_LSU_BUS_TAG,`RV_LSU_BUS_TAG ) bridge(
+    .clk(core_clk),
+    .reset_l(rst_l),
+
+    .m_arvalid(lsu_axi_arvalid),
+    .m_arid(lsu_axi_arid),
+    .m_araddr(lsu_axi_araddr),
+    .m_arready(lsu_axi_arready),
+
+    .m_rvalid(lsu_axi_rvalid),
+    .m_rready(lsu_axi_rready),
+    .m_rdata(lsu_axi_rdata),
+    .m_rid(lsu_axi_rid),
+    .m_rresp(lsu_axi_rresp),
+    .m_rlast(lsu_axi_rlast),
+
+    .m_awvalid(lsu_axi_awvalid),
+    .m_awid(lsu_axi_awid),
+    .m_awaddr(lsu_axi_awaddr),
+    .m_awready(lsu_axi_awready),
+
+    .m_wvalid(lsu_axi_wvalid),
+    .m_wready(lsu_axi_wready),
+
+    .m_bresp(lsu_axi_bresp),
+    .m_bvalid(lsu_axi_bvalid),
+    .m_bid(lsu_axi_bid),
+    .m_bready(lsu_axi_bready),
+
+    .s0_arvalid(lmem_axi_arvalid),
+    .s0_arready(lmem_axi_arready),
+
+    .s0_rvalid(lmem_axi_rvalid),
+    .s0_rid(lmem_axi_rid),
+    .s0_rresp(lmem_axi_rresp),
+    .s0_rdata(lmem_axi_rdata),
+    .s0_rlast(lmem_axi_rlast),
+    .s0_rready(lmem_axi_rready),
+
+    .s0_awvalid(lmem_axi_awvalid),
+    .s0_awready(lmem_axi_awready),
+
+    .s0_wvalid(lmem_axi_wvalid),
+    .s0_wready(lmem_axi_wready),
+    .s0_bresp(lmem_axi_bresp),
+    .s0_bvalid(lmem_axi_bvalid),
+    .s0_bid(lmem_axi_bid),
+    .s0_bready(lmem_axi_bready),
+
+
+    .s1_arvalid(dma_axi_arvalid),
+    .s1_arready(dma_axi_arready),
+
+    .s1_rvalid(dma_axi_rvalid),
+    .s1_rresp(dma_axi_rresp),
+    .s1_rdata(dma_axi_rdata),
+    .s1_rlast(dma_axi_rlast),
+    .s1_rready(dma_axi_rready),
+
+    .s1_awvalid(dma_axi_awvalid),
+    .s1_awready(dma_axi_awready),
+
+    .s1_wvalid(dma_axi_wvalid),
+    .s1_wready(dma_axi_wready),
+
+    .s1_bresp(dma_axi_bresp),
+    .s1_bvalid(dma_axi_bvalid),
+    .s1_bready(dma_axi_bready)
+
+);
+
 `endif
 
 task preload_iccm;
@@ -967,4 +1102,14 @@ function int get_iccm_bank(input int addr,  output int bank_idx);
 `endif
 endfunction
 
+/* verilator lint_off WIDTH */
+/* verilator lint_off CASEINCOMPLETE */
+`include "dasm.svi"
+/* verilator lint_on CASEINCOMPLETE */
+/* verilator lint_on WIDTH */
+
+
 endmodule
+`ifdef RV_BUILD_AXI4
+`include "axi_lsu_dma_bridge.sv"
+`endif

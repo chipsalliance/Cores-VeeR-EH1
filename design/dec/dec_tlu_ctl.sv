@@ -70,6 +70,7 @@ module dec_tlu_ctl
    input logic       lsu_pmu_bus_error,      // D side bus error
    input logic       lsu_pmu_bus_busy,       // D side bus busy
 
+   input logic        dma_mem_dccm_req,
 
    input logic       iccm_dma_sb_error,      // I side dma single bit error
 
@@ -232,6 +233,7 @@ module dec_tlu_ctl
    output logic  dec_tlu_dual_issue_disable, // disable dual issue
    output logic  dec_tlu_core_ecc_disable, // disable core ECC
    output logic  dec_tlu_sec_alu_disable, // disable secondary ALU
+   output logic  dec_tlu_dccm_nonblock_dma_disable, // disable dma nonblock
    output logic  dec_tlu_non_blocking_disable,    // disable non blocking loads
    output logic  dec_tlu_fast_div_disable,        // disable fast divider
    output logic  dec_tlu_bpred_disable,           // disable branch prediction
@@ -256,7 +258,8 @@ module dec_tlu_ctl
    logic         dec_csr_wen_wb_mod, clk_override, e4e5_int_clk, nmi_lsu_load_type, nmi_lsu_store_type, nmi_int_detected_f, nmi_lsu_load_type_f,
                  nmi_lsu_store_type_f, allow_dbg_halt_csr_write, dbg_cmd_done_ns, i_cpu_run_req_d1_raw, debug_mode_status, lsu_single_ecc_error_wb,
                  i0_mp_e4, i1_mp_e4, sel_npc_e4, sel_npc_wb, ce_int, mtval_capture_lsu_wb, wr_mdeau_wb, micect_cout_nc, miccmect_cout_nc,
-                 mdccmect_cout_nc, nmi_in_debug_mode, dpc_capture_npc, dpc_capture_pc, tdata_load, tdata_opcode, tdata_action, perfcnt_halted;
+                 mdccmect_cout_nc, nmi_in_debug_mode, dpc_capture_npc, dpc_capture_pc, tdata_load, tdata_opcode, tdata_action, perfcnt_halted, tdata_chain,
+                 tdata_kill_write;
 
 
    logic reset_delayed, reset_detect, reset_detected;
@@ -359,7 +362,7 @@ module dec_tlu_ctl
    logic [2:0] trigger_chain;
    logic       i0_trigger_hit_e4, i0_trigger_hit_raw_e4, i0_trigger_action_e4,
                trigger_hit_e4, trigger_hit_wb, i0_trigger_hit_wb,
-               mepc_trigger_hit_sel_pc_e4,
+               mepc_trigger_hit_sel_pc_e4, i0_trigger_set_hit_e4, i1_trigger_set_hit_e4,
                mepc_trigger_hit_sel_pc_wb;
    logic       i1_trigger_hit_e4, i1_trigger_hit_raw_e4, i1_trigger_action_e4;
    logic [3:0] update_hit_bit_e4, update_hit_bit_wb, i0_iside_trigger_has_pri_e4, i1_iside_trigger_has_pri_e4,
@@ -370,7 +373,7 @@ module dec_tlu_ctl
    logic wr_mcgc_wb, wr_mfdc_wb;
    logic [8:0] mcgc;
    logic [18:0] mfdc;
-   logic [13:0] mfdc_int, mfdc_ns;
+   logic [14:0] mfdc_int, mfdc_ns;
    logic i_cpu_halt_req_sync_qual, i_cpu_run_req_sync_qual, pmu_fw_halt_req_ns, pmu_fw_halt_req_f, int_timer_stalled,
          fw_halt_req, enter_pmu_fw_halt_req, pmu_fw_tlu_halted, pmu_fw_tlu_halted_f, internal_pmu_fw_halt_mode,
          internal_pmu_fw_halt_mode_f, int_timer0_int_hold, int_timer1_int_hold, int_timer0_int_hold_f, int_timer1_int_hold_f;
@@ -409,9 +412,11 @@ module dec_tlu_ctl
    rvoclkhdr lsu_e3_e4_cgc ( .en(lsu_error_pkt_dc3.exc_valid | lsu_error_pkt_dc4.exc_valid | lsu_error_pkt_dc3.single_ecc_error | lsu_error_pkt_dc4.single_ecc_error | clk_override), .l1clk(lsu_e3_e4_clk), .* );
    rvoclkhdr lsu_e4_e5_cgc ( .en(lsu_error_pkt_dc4.exc_valid | lsu_exc_valid_wb | clk_override), .l1clk(lsu_e4_e5_clk), .* );
 
+   logic freeze_rfpc_e4, rfpc_postsync_in, rfpc_postsync, dma_mem_dccm_req_f;
+
    logic e4e5_clk, e4_valid, e5_valid, e4e5_valid, internal_dbg_halt_mode_f, internal_dbg_halt_mode_f2, internal_dbg_halt_mode_f3;
    assign e4_valid = dec_tlu_i0_valid_e4 | dec_tlu_i1_valid_e4;
-   assign e4e5_valid = e4_valid | e5_valid;
+   assign e4e5_valid = e4_valid | e5_valid | freeze_rfpc_e4;
    rvoclkhdr e4e5_cgc ( .en(e4e5_valid | clk_override), .l1clk(e4e5_clk), .* );
    rvoclkhdr e4e5_int_cgc ( .en(e4e5_valid | internal_dbg_halt_mode_f | i_cpu_run_req_d1 | interrupt_valid | interrupt_valid_wb | reset_delayed | pause_expired_e4 | pause_expired_wb | clk_override), .l1clk(e4e5_int_clk), .* );
 
@@ -496,7 +501,7 @@ module dec_tlu_ctl
 
    // acks back to interface
    assign mpc_debug_halt_ack_ns = mpc_halt_state_f & internal_dbg_halt_mode_f & mpc_debug_halt_req_sync & core_empty;
-   assign mpc_debug_run_ack_ns = (mpc_debug_run_req_sync & ~dbg_halt_state_ns & ~mpc_debug_halt_req_sync) | (mpc_debug_run_ack_f & mpc_debug_run_req_sync) ;
+   assign mpc_debug_run_ack_ns = (mpc_debug_run_req_sync & ~internal_dbg_halt_mode & ~mpc_debug_halt_req_sync) | (mpc_debug_run_ack_f & mpc_debug_run_req_sync) ;
 
    // Pins
    assign mpc_debug_halt_ack = mpc_debug_halt_ack_f;
@@ -580,7 +585,7 @@ module dec_tlu_ctl
    assign pause_expired_e4 = ~dec_pause_state & dec_pause_state_f & ~(ext_int_ready | ce_int_ready | timer_int_ready | int_timer0_int_hold_f | int_timer1_int_hold_f | nmi_int_detected) & ~interrupt_valid_wb & ~debug_halt_req_f & ~pmu_fw_halt_req_f & ~halt_taken_f;
 
    // stall dma fifo if a fence is pending, decode is waiting for lsu to idle before decoding the fence inst.
-   assign dec_tlu_stall_dma = dec_fence_pending;
+   assign dec_tlu_stall_dma = dec_fence_pending  & dec_tlu_dccm_nonblock_dma_disable; // Stall the DMA for fences when chicken bit is set;
    assign dec_tlu_flush_leak_one_wb = dec_tlu_flush_lower_wb  & dcsr[`DCSR_STEP] & (dec_tlu_resume_ack | dcsr_single_step_running);
    assign dec_tlu_flush_err_wb = dec_tlu_flush_lower_wb & (ic_perr_wb | iccm_sbecc_wb);
 
@@ -661,13 +666,18 @@ module dec_tlu_ctl
    // Actions include breakpoint, or dmode. Dmode is only possible if the DMODE bit is set.
    // Otherwise, take a breakpoint.
    assign trigger_action[3:0] = {mtdata1_t3[`MTDATA1_ACTION] & mtdata1_t3[`MTDATA1_DMODE],
-                                 mtdata1_t2[`MTDATA1_ACTION] & mtdata1_t2[`MTDATA1_DMODE],
+                                 mtdata1_t2[`MTDATA1_ACTION] & mtdata1_t2[`MTDATA1_DMODE] & ~mtdata1_t2[`MTDATA1_CHAIN],
                                  mtdata1_t1[`MTDATA1_ACTION] & mtdata1_t1[`MTDATA1_DMODE],
-                                 mtdata1_t0[`MTDATA1_ACTION] & mtdata1_t0[`MTDATA1_DMODE]};
+                                 mtdata1_t0[`MTDATA1_ACTION] & mtdata1_t0[`MTDATA1_DMODE] & ~mtdata1_t0[`MTDATA1_CHAIN]};
 
    // this is needed to set the HIT bit in the triggers
-   assign update_hit_bit_e4[3:0] = ({4{i0_trigger_hit_e4                     }} & i0_trigger_chain_masked_e4[3:0]) |
-                                   ({4{i1_trigger_hit_e4 & ~i0_trigger_hit_e4}} & i1_trigger_chain_masked_e4[3:0]);
+   assign i0_trigger_set_hit_e4 = |i0_trigger_e4[3:0] & ~(dec_tlu_flush_lower_wb | dec_tlu_dbg_halted | rfpc_i0_e4);
+   assign i1_trigger_set_hit_e4 = |i1_trigger_e4[3:0] & ~(dec_tlu_flush_lower_wb | dec_tlu_dbg_halted |
+                                                          ~tlu_i0_commit_cmt | exu_i0_br_mp_e4 | dec_tlu_dbg_halted |
+                                                          lsu_freeze_pulse_e4 | lsu_i0_rfnpc_dc4 | rfpc_i1_e4);
+
+   assign update_hit_bit_e4[3:0] = ({4{i0_trigger_set_hit_e4}} & {i0_trigger_chain_masked_e4[3], i0_trigger_e4[2], i0_trigger_chain_masked_e4[1], i0_trigger_e4[0]} ) |
+                                   ({4{i1_trigger_set_hit_e4}} & {i1_trigger_chain_masked_e4[3], i1_trigger_e4[2], i1_trigger_chain_masked_e4[1], i1_trigger_e4[0]} );
 
    // action, 1 means dmode. Simultaneous triggers with at least 1 set for dmode force entire action to dmode.
    assign i0_trigger_action_e4 = |(i0_trigger_chain_masked_e4[3:0] & trigger_action[3:0]);
@@ -730,7 +740,7 @@ module dec_tlu_ctl
 
    assign cpu_halt_ack = i_cpu_halt_req_d1 & pmu_fw_tlu_halted_f;
    assign cpu_halt_status = (pmu_fw_tlu_halted_f & ~i_cpu_run_req_d1) | (o_cpu_halt_status & ~i_cpu_run_req_d1 & ~internal_dbg_halt_mode_f);
-   assign cpu_run_ack = (o_cpu_halt_status & i_cpu_run_req_sync_qual) | (o_cpu_run_ack & i_cpu_run_req_sync_qual);
+   assign cpu_run_ack = (o_cpu_halt_status & i_cpu_run_req_d1_raw) | (o_cpu_run_ack & i_cpu_run_req_sync);
    assign debug_mode_status = internal_dbg_halt_mode_f;
    assign o_debug_mode_status = debug_mode_status;// & ~mpc_debug_run_ack_f;
 
@@ -813,10 +823,21 @@ module dec_tlu_ctl
    assign tlu_i0_kill_writeb_e4 = rfpc_i0_e4 | lsu_i0_exc_dc4 | inst_acc_e4 | (illegal_e4 & dec_tlu_dbg_halted) | i0_trigger_hit_e4 ;
    assign tlu_i1_kill_writeb_e4 = rfpc_i0_e4 | rfpc_i1_e4 | lsu_exc_valid_e4 | exu_i0_br_mp_e4 | inst_acc_e4 | (illegal_e4 & dec_tlu_dbg_halted) | trigger_hit_e4 | lsu_i0_rfnpc_dc4;
 
+   // Auto postsync loads that freeze when DMA requests are stalled, if not disabled with MFDC[13].
+   assign freeze_rfpc_e4 = (lsu_block_interrupts_e4 | (dma_mem_dccm_req_f & lsu_freeze_e4)) & ~dec_tlu_flush_lower_wb & mfdc[13];
+   assign rfpc_postsync_in = (freeze_rfpc_e4 | rfpc_postsync) & ~tlu_i0_commit_cmt;
+   assign dec_tlu_dccm_nonblock_dma_disable = ~mfdc[13];
+
+   rvdff #(2)  freezerfpc_ff (.*,   .clk(free_clk),
+                              .din({rfpc_postsync_in, dma_mem_dccm_req}),
+                              .dout({rfpc_postsync, dma_mem_dccm_req_f}));
+
+
    // refetch PC, microarch flush
    // ic errors only in pipe0
-   assign rfpc_i0_e4 = dec_tlu_i0_valid_e4 & ~tlu_flush_lower_wb & (exu_i0_br_error_e4 | exu_i0_br_start_error_e4 | ic_perr_e4 | iccm_sbecc_e4 | lsu_i0_rfpc_dc4) & ~i0_trigger_hit_e4;
-   assign rfpc_i1_e4 = dec_tlu_i1_valid_e4 & ~tlu_flush_lower_wb & ~i0_exception_valid_e4 & ~exu_i0_br_mp_e4 & ~lsu_i0_exc_dc4 & ~lsu_i0_rfnpc_dc4 &
+   assign rfpc_i0_e4 = freeze_rfpc_e4 | (
+                       dec_tlu_i0_valid_e4 & ~tlu_flush_lower_wb & (exu_i0_br_error_e4 | exu_i0_br_start_error_e4 | ic_perr_e4 | iccm_sbecc_e4 | lsu_i0_rfpc_dc4) & ~i0_trigger_hit_e4);
+    assign rfpc_i1_e4 = dec_tlu_i1_valid_e4 & ~tlu_flush_lower_wb & ~i0_exception_valid_e4 & ~exu_i0_br_mp_e4 & ~lsu_i0_exc_dc4 & ~lsu_i0_rfnpc_dc4 &
                        ~(exu_i0_br_error_e4 | exu_i0_br_start_error_e4 | ic_perr_e4 | iccm_sbecc_e4 | lsu_i0_rfpc_dc4) &
                        (exu_i1_br_error_e4 | exu_i1_br_start_error_e4 | lsu_i1_rfpc_dc4) &
                        ~trigger_hit_e4;
@@ -1355,13 +1376,15 @@ module dec_tlu_ctl
    // MFDC (RW) Feature Disable Control
    // [31:19] : Reserved, reads 0x0
    // [18:16] : DMA QoS Prty
-   // [15:11] : Reserved, reads 0x0
+   // [15:14] : Reserved, reads 0x0
+   // [13]    : Disable blocking DMA
+   // [12:11] : Reserved, reads 0x0
    // [10]   : Disable dual issue
    // [9]    : Disable pic multiple ints
    // [8]    : Disable core ecc
    // [7]    : Disable secondary alu?s
    // [6]    : Disable multiple outstanding sideeffect accesses to bus
-   // [5]    : Disable non-blocking loads/divides
+   // [5]    : Disable non-blocking divides
    // [4]    : Disable fast divide
    // [3]    : Disable branch prediction and return stack
    // [2]    : Disable write buffer coalescing
@@ -1372,15 +1395,15 @@ module dec_tlu_ctl
 
    assign wr_mfdc_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MFDC);
 
-   rvdffe #(14)  mfdc_ff (.*, .en(wr_mfdc_wb), .din(mfdc_ns[13:0]), .dout(mfdc_int[13:0]));
+   rvdffe #(15)  mfdc_ff (.*, .en(wr_mfdc_wb), .din(mfdc_ns[14:0]), .dout(mfdc_int[14:0]));
 
    `ifdef RV_BUILD_AXI4
    // flip poweron value of bit 6 for AXI build
-   assign mfdc_ns[13:0] = {~dec_csr_wrdata_wb[18:16],dec_csr_wrdata_wb[10:7], ~dec_csr_wrdata_wb[6], dec_csr_wrdata_wb[5:0]};
-   assign mfdc[18:0] = {~mfdc_int[13:11], 5'b0, mfdc_int[10:7], ~mfdc_int[6], mfdc_int[5:0]};
+   assign mfdc_ns[14:0] = {~dec_csr_wrdata_wb[18:16],dec_csr_wrdata_wb[13], dec_csr_wrdata_wb[10:7], ~dec_csr_wrdata_wb[6], dec_csr_wrdata_wb[5:0]};
+   assign mfdc[18:0] = {~mfdc_int[14:12], 2'b0, mfdc_int[11], 2'b0, mfdc_int[10:7], ~mfdc_int[6], mfdc_int[5:0]};
    `else
-   assign mfdc_ns[13:0] = {~dec_csr_wrdata_wb[18:16],dec_csr_wrdata_wb[10:0]};
-   assign mfdc[18:0] = {~mfdc_int[13:11], 5'b0, mfdc_int[10:0]};
+   assign mfdc_ns[14:0] = {~dec_csr_wrdata_wb[18:16],dec_csr_wrdata_wb[13],dec_csr_wrdata_wb[10:0]};
+   assign mfdc[18:0] = {~mfdc_int[14:12], 2'b0, mfdc_int[11], 2'b0, mfdc_int[10:0]};
    `endif
 
    assign dec_tlu_dma_qos_prty[2:0] = mfdc[18:16];
@@ -1451,7 +1474,7 @@ module dec_tlu_ctl
    // only capture error bus if the MDSEAC reg is not locked
    assign mdseac_locked_ns = mdseac_en | (mdseac_locked_f & ~wr_mdeau_wb);
 
-   assign mdseac_en = (lsu_imprecise_error_store_any | lsu_imprecise_error_load_any) & ~mdseac_locked_f;
+   assign mdseac_en = (lsu_imprecise_error_store_any | lsu_imprecise_error_load_any) & ~nmi_int_detected_f & ~mdseac_locked_f;
 
    rvdffe #(32)  mdseac_ff (.*, .en(mdseac_en), .din(lsu_imprecise_error_addr_any[31:0]), .dout(mdseac[31:0]));
 
@@ -1783,10 +1806,19 @@ module dec_tlu_ctl
    // don't allow clearing DMODE and action=1
    assign tdata_action = (dec_csr_wrdata_wb[27] & dbg_tlu_halted_f) & dec_csr_wrdata_wb[12];
 
+   // Chain bit has conditions: WARL for triggers without chains. Force to zero if dmode is 0 but next trigger dmode is 1.
+   assign tdata_chain = mtsel[0] ? 1'b0 : // triggers 1 and 3 chain bit is always zero
+                        mtsel[1] ?  dec_csr_wrdata_wb[11] & ~(mtdata1_t3[`MTDATA1_DMODE] & ~dec_csr_wrdata_wb[27]) : // trigger 2
+                                    dec_csr_wrdata_wb[11] & ~(mtdata1_t1[`MTDATA1_DMODE] & ~dec_csr_wrdata_wb[27]);  // trigger 0
+
+   // Kill mtdata1 write if dmode=1 but prior trigger has dmode=0/chain=1. Only applies to T1 and T3
+   assign tdata_kill_write = mtsel[1] ? dec_csr_wrdata_wb[27] & (~mtdata1_t2[`MTDATA1_DMODE] & mtdata1_t2[`MTDATA1_CHAIN]) : // trigger 3
+                                        dec_csr_wrdata_wb[27] & (~mtdata1_t0[`MTDATA1_DMODE] & mtdata1_t0[`MTDATA1_CHAIN]) ; // trigger 1
+
    assign tdata_wrdata_wb[9:0]  = {dec_csr_wrdata_wb[27] & dbg_tlu_halted_f,
                                    dec_csr_wrdata_wb[20:19],
                                    tdata_action,
-                                   dec_csr_wrdata_wb[11],
+                                   tdata_chain,
                                    dec_csr_wrdata_wb[7:6],
                                    tdata_opcode,
                                    dec_csr_wrdata_wb[1],
@@ -1797,7 +1829,7 @@ module dec_tlu_ctl
    assign mtdata1_t0_ns[9:0] = wr_mtdata1_t0_wb ? tdata_wrdata_wb[9:0] :
                                 {mtdata1_t0[9], update_hit_bit_wb[0] | mtdata1_t0[8], mtdata1_t0[7:0]};
 
-   assign wr_mtdata1_t1_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MTDATA1) & (mtsel[1:0] == 2'b01) & (~mtdata1_t1[`MTDATA1_DMODE] | dbg_tlu_halted_f);
+   assign wr_mtdata1_t1_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MTDATA1) & (mtsel[1:0] == 2'b01) & (~mtdata1_t1[`MTDATA1_DMODE] | dbg_tlu_halted_f) & ~tdata_kill_write;
    assign mtdata1_t1_ns[9:0] = wr_mtdata1_t1_wb ? tdata_wrdata_wb[9:0] :
                                 {mtdata1_t1[9], update_hit_bit_wb[1] | mtdata1_t1[8], mtdata1_t1[7:0]};
 
@@ -1805,7 +1837,7 @@ module dec_tlu_ctl
    assign mtdata1_t2_ns[9:0] = wr_mtdata1_t2_wb ? tdata_wrdata_wb[9:0] :
                                 {mtdata1_t2[9], update_hit_bit_wb[2] | mtdata1_t2[8], mtdata1_t2[7:0]};
 
-   assign wr_mtdata1_t3_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MTDATA1) & (mtsel[1:0] == 2'b11) & (~mtdata1_t3[`MTDATA1_DMODE] | dbg_tlu_halted_f);
+   assign wr_mtdata1_t3_wb = dec_csr_wen_wb_mod & (dec_csr_wraddr_wb[11:0] == `MTDATA1) & (mtsel[1:0] == 2'b11) & (~mtdata1_t3[`MTDATA1_DMODE] | dbg_tlu_halted_f) & ~tdata_kill_write;
    assign mtdata1_t3_ns[9:0] = wr_mtdata1_t3_wb ? tdata_wrdata_wb[9:0] :
                                 {mtdata1_t3[9], update_hit_bit_wb[3] | mtdata1_t3[8], mtdata1_t3[7:0]};
 
@@ -2438,12 +2470,13 @@ assign presync = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
     &dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]) | (
     !dec_csr_rdaddr_d[6]&!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]
     &!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]) | (
+    dec_csr_rdaddr_d[10]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
+    &dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[4]
+    &!dec_csr_rdaddr_d[3]&dec_csr_rdaddr_d[1]&!dec_csr_rdaddr_d[0]) | (
     dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
-    &dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]) | (dec_csr_rdaddr_d[11]
-    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&dec_csr_rdaddr_d[1]
-    &!dec_csr_rdaddr_d[0]) | (dec_csr_rdaddr_d[7]&!dec_csr_rdaddr_d[5]
-    &!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]&!dec_csr_rdaddr_d[2]
-    &dec_csr_rdaddr_d[1]);
+    &dec_csr_rdaddr_d[2]&!dec_csr_rdaddr_d[1]) | (dec_csr_rdaddr_d[7]
+    &!dec_csr_rdaddr_d[5]&!dec_csr_rdaddr_d[4]&!dec_csr_rdaddr_d[3]
+    &!dec_csr_rdaddr_d[2]&dec_csr_rdaddr_d[1]);
 
 assign postsync = (dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d[4]&dec_csr_rdaddr_d[3]
     &dec_csr_rdaddr_d[0]) | (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[5]
@@ -2542,7 +2575,7 @@ assign legal_csr = (!dec_csr_rdaddr_d[11]&!dec_csr_rdaddr_d[10]&dec_csr_rdaddr_d
 
 
 assign dec_tlu_presync_d = presync & dec_csr_any_unq_d & ~dec_csr_wen_unq_d;
-assign dec_tlu_postsync_d = postsync & dec_csr_any_unq_d;
+assign dec_tlu_postsync_d = (postsync & dec_csr_any_unq_d) | rfpc_postsync;
 assign valid_csr = ( legal_csr & (~(csr_dcsr | csr_dpc | csr_dmst | csr_dicawics | csr_dicad0 | csr_dicad1 | csr_dicago) | dbg_tlu_halted_f));
 
 assign dec_csr_legal_d = ( dec_csr_any_unq_d &
@@ -2553,7 +2586,7 @@ assign dec_csr_legal_d = ( dec_csr_any_unq_d &
 assign dec_csr_rddata_d[31:0] = ( ({32{csr_misa}}      & 32'h40001104) |
                                   ({32{csr_mvendorid}} & 32'h00000045) |
                                   ({32{csr_marchid}}   & 32'h0000000b) |
-                                  ({32{csr_mimpid}}    & 32'h5) |
+                                  ({32{csr_mimpid}}    & 32'h6) |
                                   ({32{csr_mstatus}}   & {19'b0, 2'b11, 3'b0, mstatus[1], 3'b0, mstatus[0], 3'b0}) |
                                   ({32{csr_mtvec}}     & {mtvec[30:1], 1'b0, mtvec[0]}) |
                                   ({32{csr_mip}}       & {1'b0, mip[5:3], 16'b0, mip[2], 3'b0, mip[1], 3'b0, mip[0], 3'b0}) |

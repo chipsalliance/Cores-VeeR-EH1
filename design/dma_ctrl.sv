@@ -105,6 +105,8 @@ module dma_ctrl (
    input logic         dec_tlu_stall_dma, // stall dma accesses, tlu is attempting to enter halt/debug mode
    input logic [2:0]   dec_tlu_dma_qos_prty,    // DMA QoS priority coming from MFDC [18:15]
 
+   output logic        dma_mem_dccm_req,        // Used by TLU to do rfpc in case of freeze
+
    input logic         scan_mode
 );
 
@@ -236,8 +238,8 @@ module dma_ctrl (
    //------------------------LOGIC STARTS HERE---------------------------------
 
    // FIFO inputs
-   assign fifo_addr_in[31:0]    = dbg_cmd_valid ? dbg_cmd_addr[31:0] : axi_mstr_addr[31:0];
-   assign fifo_sz_in[2:0]       = dbg_cmd_valid ? {1'b0,dbg_cmd_size[1:0]} : axi_mstr_size[2:0];
+   assign fifo_addr_in[31:0]    = dbg_cmd_valid ? dbg_cmd_addr[31:0] : (axi_mstr_write & (axi_mstr_wstrb[7:0] == 8'hf0)) ? {axi_mstr_addr[31:3],1'b1,axi_mstr_addr[1:0]} : axi_mstr_addr[31:0];
+   assign fifo_sz_in[2:0]       = dbg_cmd_valid ? {1'b0,dbg_cmd_size[1:0]} : (axi_mstr_write & ((axi_mstr_wstrb[7:0] == 8'h0f) | (axi_mstr_wstrb[7:0] == 8'hf0))) ? 3'h2 : axi_mstr_size[2:0];
    assign fifo_write_in         = dbg_cmd_valid ? dbg_cmd_write : axi_mstr_write;
    assign fifo_posted_write_in  = axi_mstr_valid & axi_mstr_posted_write;
    assign fifo_dbg_in           = dbg_cmd_valid;
@@ -315,11 +317,13 @@ module dma_ctrl (
    // Error logic
    assign dma_address_error = axi_mstr_valid & (~(dma_addr_in_dccm | dma_addr_in_iccm));    // request not for ICCM or DCCM
    assign dma_alignment_error = axi_mstr_valid & ~dma_address_error &
-                                (((axi_mstr_size[2:0] == 3'h1) & (axi_mstr_addr[0]      | (axi_mstr_write & (axi_mstr_wstrb[axi_mstr_addr[2:0]+:2] != 2'b11))))  |    // HW size but unaligned
-                                 ((axi_mstr_size[2:0] == 3'h2) & ((|axi_mstr_addr[1:0]) | (axi_mstr_write & (axi_mstr_wstrb[axi_mstr_addr[2:0]+:4] != 4'hf))))   |    // W size but unaligned
-                                 ((axi_mstr_size[2:0] == 3'h3) & ((|axi_mstr_addr[2:0]) | (axi_mstr_write & (axi_mstr_wstrb[7:0] != 8'hff))))                    |    // DW size but unaligned
-                                 (dma_addr_in_iccm & ~((axi_mstr_size[1:0] == 2'b10) | (axi_mstr_size[1:0] == 2'b11)))                                           |    // ICCM access not word size
-                                 (dma_addr_in_dccm & axi_mstr_write & ~((axi_mstr_size[1:0] == 2'b10) | (axi_mstr_size[1:0] == 2'b11))));                             // DCCM write not word size
+                                (((axi_mstr_size[2:0] == 3'h1) & axi_mstr_addr[0])                                                          |    // HW size but unaligned
+                                 ((axi_mstr_size[2:0] == 3'h2) & (|axi_mstr_addr[1:0]))                                                     |    // W size but unaligned
+                                 ((axi_mstr_size[2:0] == 3'h3) & (|axi_mstr_addr[2:0]))                                                     |    // DW size but unaligned
+                                 (dma_addr_in_iccm & ~((axi_mstr_size[1:0] == 2'b10) | (axi_mstr_size[1:0] == 2'b11)))                      |    // ICCM access not word size
+                                 (dma_addr_in_dccm & axi_mstr_write & ~((axi_mstr_size[1:0] == 2'b10) | (axi_mstr_size[1:0] == 2'b11)))     |    // DCCM write not word size
+                                 (axi_mstr_write & (axi_mstr_size[2:0] == 3'h2) & (axi_mstr_wstrb[axi_mstr_addr[2:0]+:4] != 4'hf))          |    // Write byte enables not aligned for word store
+                                 (axi_mstr_write & (axi_mstr_size[2:0] == 3'h3) & ~((axi_mstr_wstrb[7:0] == 8'h0f) | (axi_mstr_wstrb[7:0] == 8'hf0) | (axi_mstr_wstrb[7:0] == 8'hff)))); // Write byte enables not aligned for dword store
 
    //Dbg outputs
    assign dma_dbg_ready    = fifo_empty & dbg_dma_bubble;
@@ -357,12 +361,13 @@ module dma_ctrl (
    rvdffs #(3) nack_count_dff(.din(dma_nack_count_d[2:0]), .dout(dma_nack_count[2:0]), .en(dma_mem_req), .clk(dma_free_clk), .*);
 
    // Core outputs
-   assign dma_mem_req = fifo_valid[RdPtr] & ~fifo_rpend[RdPtr] & ~fifo_done[RdPtr] & ~(|fifo_error[RdPtr]) & (~fifo_write[RdPtr] | fifo_data_valid[RdPtr]);
+   assign dma_mem_req  = fifo_valid[RdPtr] & ~fifo_rpend[RdPtr] & ~fifo_done[RdPtr] & ~(|fifo_error[RdPtr]) & (~fifo_write[RdPtr] | fifo_data_valid[RdPtr]);
+   assign dma_mem_dccm_req = dma_mem_req & fifo_dccm_valid[RdPtr];     // Only used by TLU for rfpc
    assign dma_dccm_req = dma_mem_req & fifo_dccm_valid[RdPtr] & dccm_ready;
    assign dma_iccm_req = dma_mem_req & fifo_iccm_valid[RdPtr] & iccm_ready;
-   assign dma_mem_addr[31:0] = fifo_addr[RdPtr];
-   assign dma_mem_sz[2:0]    = fifo_sz[RdPtr];
-   assign dma_mem_write      = fifo_write[RdPtr];
+   assign dma_mem_addr[31:0]  = fifo_addr[RdPtr];
+   assign dma_mem_sz[2:0]     = fifo_sz[RdPtr];
+   assign dma_mem_write       = fifo_write[RdPtr];
    assign dma_mem_wdata[63:0] = fifo_data[RdPtr];
 
    // Address check  dccm

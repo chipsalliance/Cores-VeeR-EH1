@@ -401,6 +401,7 @@ module swerv_wrapper
    logic [31:0] dmi_reg_rdata;
    logic        dmi_hard_reset;
 
+
    // Instantiate the swerv core
    swerv swerv (
           .*
@@ -414,7 +415,6 @@ module swerv_wrapper
 
   // Instantiate the JTAG/DMI
    dmi_wrapper  dmi_wrapper (
-
            // JTAG signals
            .trst_n(jtag_trst_n),           // JTAG reset
            .tck   (jtag_tck),              // JTAG clock
@@ -433,7 +433,7 @@ module swerv_wrapper
            .reg_en      (dmi_reg_en),     // 1 bit  Write interface bit to Processor
            .reg_wr_en   (dmi_reg_wr_en),   // 1 bit  Write enable to Processor
            .dmi_hard_reset   (dmi_hard_reset)   //a hard reset of the DTM, causing the DTM to forget about any outstanding DMI transactions
-);
+   );
 
 endmodule
 

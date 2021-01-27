@@ -41,7 +41,7 @@ module lsu
    input logic                             dec_tlu_cancel_e4,         // cancel the bus load in dc4 and reset the freeze
 
    // chicken signals
-   input logic                             dec_tlu_non_blocking_disable,    // disable the non block
+   input logic                             dec_tlu_dccm_nonblock_dma_disable, // disable dma nonblock
    input logic                             dec_tlu_wb_coalescing_disable,   // disable the write buffer coalesce
    input logic                             dec_tlu_ld_miss_byp_wb_disable,  // disable the miss bypass in the write buffer
    input logic                             dec_tlu_sideeffect_posted_disable,  // disable posted writes to sideeffect addr to the bus

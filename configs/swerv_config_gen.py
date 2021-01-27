@@ -1,42 +1,34 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 from fusesoc.capi2.generator import Generator
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
-if sys.version[0] == '2':
-    devnull = open(os.devnull, 'w')
-else:
-    from subprocess import DEVNULL as devnull
 
 class SwervConfigGenerator(Generator):
     def run(self):
-        build_path="swerv_config"
-        script_root = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..'))
         files = [
-            {os.path.join(build_path, "common_defines.vh") : {
+            {"configs/snapshots/default/common_defines.vh" : {
                 "copyto"    : "config/common_defines.vh",
                 "file_type" : "systemVerilogSource"}},
-            {os.path.join(build_path, "pic_ctrl_verilator_unroll.sv") : {
+            {"configs/snapshots/default/pic_ctrl_verilator_unroll.sv" : {
                 "copyto" : "config/pic_ctrl_verilator_unroll.sv",
                 "is_include_file" : True,
                 "file_type" : "systemVerilogSource"}},
-            {os.path.join(build_path, "pic_map_auto.h") : {
+            {"configs/snapshots/default/pic_map_auto.h" : {
                 "copyto" : "config/pic_map_auto.h",
                 "is_include_file" : True,
                 "file_type" : "systemVerilogSource"}}]
 
         tmp_dir = os.path.join(tempfile.mkdtemp(), 'core')
-        shutil.copytree(script_root, tmp_dir)
+        shutil.copytree(self.files_root, tmp_dir)
 
         cwd = tmp_dir
 
         env = os.environ.copy()
         env['RV_ROOT'] = tmp_dir
-        env['BUILD_PATH'] = build_path
         args = ['configs/swerv.config'] + self.config.get('args', [])
-        rc = subprocess.call(args, cwd=cwd, env=env, stdout=devnull)
+        rc = subprocess.call(args, cwd=cwd, env=env)
         if rc:
             exit(1)
 

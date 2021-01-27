@@ -1,0 +1,1 @@
+OFILES = crt0.o printf.o cmark.o

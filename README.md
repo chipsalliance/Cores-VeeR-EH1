@@ -1,6 +1,6 @@
-# EH1 SweRV RISC-V Core<sup>TM</sup> 1.8 from Western Digital
+# EH1 RISC-V SweRV Core<sup>TM</sup> 1.9 from Western Digital
 
-This repository contains the SweRV EH1 Core<sup>TM</sup>  design RTL
+This repository contains the EH1 SweRV Core<sup>TM</sup>  design RTL
 
 ## License
 
@@ -16,7 +16,7 @@ Files under the [tools](tools/) directory may be available under a different lic
     │   ├── dec                 # Decode, Registers and Exceptions
     │   ├── dmi                 # DMI block
     │   ├── exu                 # EXU (ALU/MUL/DIV)
-    │   ├── ifu                 # Fetch & Branch Prediction
+    │   ├── ifu                 # Fetch & Branch Predictor
     │   ├── include             
     │   ├── lib
     │   └── lsu                 # Load/Store
@@ -28,7 +28,7 @@ Files under the [tools](tools/) directory may be available under a different lic
  
 ## Dependencies
 
-- Verilator **(4.030 or later)** must be installed on the system if running with verilator
+- Verilator **(4.102 or later)** must be installed on the system if running with verilator
 - If adding/removing instructions, espresso must be installed (used by *tools/coredecode*)
 - RISCV tool chain (based on gcc version 7.3 or higher) must be
 installed so that it can be used to prepare RISCV binaries to run.
@@ -61,7 +61,7 @@ the `-target=name` option to swerv.config.
 
 This script derives the following consistent set of include files :  
 
-    $RV_ROOT/configs/snapshots/default
+    snapshots/default
     ├── common_defines.vh                       # `defines for testbench or design
     ├── defines.h                               # #defines for C/assembly headers
     ├── pd_defines.vh                           # `defines for physical design
@@ -87,13 +87,10 @@ Example for csh or its derivatives:
     *(Name your snapshot to distinguish it from the default. Without an explicit name, it will update/override the __default__ snapshot)* 
     For example if `mybuild` is the name for the snapshot:
 
-    set BUILD_PATH environment variable:
-    
-    `setenv BUILD_PATH snapshots/mybuild`
      
     `$RV_ROOT/configs/swerv.config [configuration options..] -snapshot=mybuild`  
     
-    Snapshots are placed in `$BUILD_PATH` directory
+    Snapshots are placed in ./snapshots directory
 
 **Building an FPGA speed optimized model:**  
 Use ``-fpga_optimize=1`` option to ``swerv.config`` to build a model that removes clock gating logic from flop model so that the FPGA builds can run at higher speeds. **This is now the default option for
@@ -191,10 +188,13 @@ The  `$RV_ROOT/testbench/asm` directory contains following tests ready to simula
 ```
 hello_world       - default test to run, prints Hello World message to screen and console.log
 hello_world_dccm  - the same as above, but takes the string from preloaded DCCM.
+hello_world_iccm  - the same as above, but CPU copies the code from external memory to ICCM via AXI LSU to DMA bridge
+                    and then jumps there. The test runs only on CPU configurations with ICCM and AXI bus.
 cmark             - coremark benchmark running with code and data in external memories
 cmark_dccm        - the same as above, running data and stack from DCCM (faster)
 cmark_iccm        - the same as above, but with code preloaded to iccm - runs only on CPU with ICCM
                     use CONF_PARAMS=-set=iccm_enable argument to `make` to build CPU with ICCM
+dhry              - dhrystone benchmark - example of multi source files program
 ```
 
 The `$RV_ROOT/testbench/hex` directory contains precompiled hex files of the tests, ready for simulation in case RISCV SW tools are not installed.

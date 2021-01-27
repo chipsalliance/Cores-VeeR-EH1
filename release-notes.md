@@ -1,3 +1,20 @@
+# SweRV RISC-V Core<sup>TM</sup> 1.9 from Western Digital
+## Release Notes
+
+* Removed unused scan_mode input from dmi_wrapper (PR#89)
+* Enhanced DMA/Side-Effect-load interlock to conditionally allow Side-Effect loads to be non-blocking
+    * See PRM for new enable bit in MFDC[13]
+* Bug fixes for NMI, MPC, PMU corner cases, MPC ack timing fixes
+* Trigger chaining compliance fixes for 0.13.2 missing cases
+* Fixed qualification in DCCM access fault equation
+* Updated reset hookup for AHB gasket
+* Demo TB updates: 
+   * added AXI LSU/DMA bridge and ICCM preload by CPU test,
+   * dhrystone test,
+   * exec.log shows instruction mnemonics
+
+
+
 # SweRV RISC-V Core<sup>TM</sup> 1.8 from Western Digital
 ## Release Notes
 

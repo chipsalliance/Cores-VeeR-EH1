@@ -1,0 +1,7 @@
+This is dhrystone, compiled according to the spec:
+ 1. Files dhry_1.c and dhry2_.c compiled separately.
+ 2. No inlining.
+ to run in demo TB:
+
+  make -f $RV_ROOT/tools/Makefile [<simulator>] TEST=dhry
+

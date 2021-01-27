@@ -22,7 +22,6 @@
 //-------------------------------------------------------------------------------------
 
 module dmi_wrapper(
-
   // JTAG signals
   input              trst_n,              // JTAG reset
   input              tck,                 // JTAG clock

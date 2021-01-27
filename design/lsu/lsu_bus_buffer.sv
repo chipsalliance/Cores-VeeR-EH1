@@ -42,7 +42,7 @@ module lsu_bus_buffer
    input logic                          clk,
    input logic                          rst_l,
    input logic                          scan_mode,
-   input logic                          dec_tlu_non_blocking_disable,     // disable non block
+   input logic                          dec_tlu_dccm_nonblock_dma_disable, // disable dma nonblock
    input logic                          dec_tlu_wb_coalescing_disable,    // disable write buffer coalescing
    input logic                          dec_tlu_ld_miss_byp_wb_disable,   // disable ld miss bypass of the write buffer
    input logic                          dec_tlu_sideeffect_posted_disable,  // disable posted writes to sideeffect addr to the bus
@@ -752,7 +752,7 @@ module lsu_bus_buffer
 
    // Freeze logic
    assign FreezePtrEn  = lsu_busreq_dc3 & lsu_pkt_dc3.load & ld_freeze_dc3;
-   assign ld_freeze_en = (is_sideeffects_dc2 | dec_nonblock_load_freeze_dc2 | dec_tlu_non_blocking_disable) & lsu_busreq_dc2 & lsu_pkt_dc2.load & ~lsu_freeze_dc3 & ~flush_dc2_up & ~ld_full_hit_dc2;
+   assign ld_freeze_en = (dec_nonblock_load_freeze_dc2 | (dec_tlu_dccm_nonblock_dma_disable & is_sideeffects_dc2)) & lsu_busreq_dc2 & lsu_pkt_dc2.load & ~lsu_freeze_dc3 & ~flush_dc2_up & ~ld_full_hit_dc2;
    always_comb begin
       ld_freeze_rst = flush_dc3 | (dec_tlu_cancel_e4 & ld_freeze_dc3);
       for (int i=0; i<DEPTH; i++) begin
@@ -766,7 +766,7 @@ module lsu_bus_buffer
    assign ld_bus_error_addr_dc3[31:0]  = buf_addr[FreezePtr][31:0];
 
    // Non blocking ports
-   assign lsu_nonblock_load_valid_dc3 = lsu_busreq_dc3 & lsu_pkt_dc3.valid & lsu_pkt_dc3.load & ~flush_dc3 & ~dec_nonblock_load_freeze_dc3 & ~lsu_freeze_dc3 & ~dec_tlu_non_blocking_disable;
+   assign lsu_nonblock_load_valid_dc3 = lsu_busreq_dc3 & lsu_pkt_dc3.valid & lsu_pkt_dc3.load & ~flush_dc3 & ~dec_nonblock_load_freeze_dc3 & ~lsu_freeze_dc3;
    assign lsu_nonblock_load_tag_dc3[DEPTH_LOG2-1:0] = WrPtr0_dc3[DEPTH_LOG2-1:0];
    assign lsu_nonblock_load_inv_dc5 = lsu_nonblock_load_valid_dc5 & ~lsu_commit_dc5;
    assign lsu_nonblock_load_inv_tag_dc5[DEPTH_LOG2-1:0] = WrPtr0_dc5[DEPTH_LOG2-1:0];      // dc5 tag needs to be accurate even if there is no invalidate
@@ -781,10 +781,10 @@ module lsu_bus_buffer
       lsu_nonblock_load_data_hi[31:0] = '0;
       for (int i=0; i<DEPTH; i++) begin
           // Use buf_rst[i] instead of buf_state_en[i] for timing
-          lsu_nonblock_load_data_valid_hi      |= lsu_bus_clk_en_q & (buf_state[i] == DONE) & buf_rst[i] & ~dec_tlu_non_blocking_disable & buf_nb[i] & ~buf_error[i] & (buf_dual[i] & buf_dualhi[i]);
-          lsu_nonblock_load_data_valid_lo      |= lsu_bus_clk_en_q & (buf_state[i] == DONE) & buf_rst[i] & ~dec_tlu_non_blocking_disable & buf_nb[i] & ~buf_error[i] & (~buf_dual[i] | ~buf_dualhi[i]);
-          lsu_nonblock_load_data_error_hi      |= lsu_bus_clk_en_q & (buf_state[i] == DONE) & buf_rst[i] & ~dec_tlu_non_blocking_disable & buf_error[i] & buf_nb[i] & (buf_dual[i] & buf_dualhi[i]);
-          lsu_nonblock_load_data_error_lo      |= lsu_bus_clk_en_q & (buf_state[i] == DONE) & buf_rst[i] & ~dec_tlu_non_blocking_disable & buf_error[i] & buf_nb[i] & (~buf_dual[i] | ~buf_dualhi[i]);
+          lsu_nonblock_load_data_valid_hi      |= lsu_bus_clk_en_q & (buf_state[i] == DONE) & buf_rst[i] & buf_nb[i] & ~buf_error[i] & (buf_dual[i] & buf_dualhi[i]);
+          lsu_nonblock_load_data_valid_lo      |= lsu_bus_clk_en_q & (buf_state[i] == DONE) & buf_rst[i] & buf_nb[i] & ~buf_error[i] & (~buf_dual[i] | ~buf_dualhi[i]);
+          lsu_nonblock_load_data_error_hi      |= lsu_bus_clk_en_q & (buf_state[i] == DONE) & buf_rst[i] & buf_error[i] & buf_nb[i] & (buf_dual[i] & buf_dualhi[i]);
+          lsu_nonblock_load_data_error_lo      |= lsu_bus_clk_en_q & (buf_state[i] == DONE) & buf_rst[i] & buf_error[i] & buf_nb[i] & (~buf_dual[i] | ~buf_dualhi[i]);
           lsu_nonblock_load_data_tag[DEPTH_LOG2-1:0]   |= DEPTH_LOG2'(i) & {DEPTH_LOG2{((buf_state[i] == DONE) & buf_nb[i] & buf_rst[i] & (~buf_dual[i] | ~buf_dualhi[i]))}};
           lsu_nonblock_load_data_lo[31:0]      |= buf_data[i][31:0] & {32{((buf_state[i] == DONE) & buf_nb[i] & buf_rst[i] & (~buf_dual[i] | ~buf_dualhi[i]))}};
           lsu_nonblock_load_data_hi[31:0]      |= buf_data[i][31:0] & {32{((buf_state[i] == DONE) & buf_nb[i] & buf_rst[i] & (buf_dual[i] & buf_dualhi[i]))}};

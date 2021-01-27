@@ -28,7 +28,7 @@ module lsu_bus_intf
    input logic                          clk,
    input logic                          rst_l,
    input logic                          scan_mode,
-   input logic                          dec_tlu_non_blocking_disable,     // disable non block
+   input logic                          dec_tlu_dccm_nonblock_dma_disable, // disable dma nonblock
    input logic                          dec_tlu_wb_coalescing_disable,    // disable write buffer coalescing
    input logic                          dec_tlu_ld_miss_byp_wb_disable,   // disable ld miss bypass of the write buffer
    input logic                          dec_tlu_sideeffect_posted_disable,  // disable posted writes to sideeffect addr to the bus

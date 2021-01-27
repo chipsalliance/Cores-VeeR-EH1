@@ -158,7 +158,7 @@ module lsu_addrcheck
    // 3. DCCM -> PIC offset cross when DCCM/PIC in same region (PIC access are always word aligned so no cross possible from PIC->DCCM)
    // 4. Ld/St access to picm are not word aligned
    // 5. Address not in protected space or dccm/pic region
-   if (DCCM_REGION == PIC_REGION) begin
+   if (DCCM_ENABLE & (DCCM_REGION == PIC_REGION)) begin
       assign access_fault_dc1  = ((start_addr_in_dccm_region_dc1 & ~(start_addr_in_dccm_dc1 | start_addr_in_pic_dc1)) |
                                   (end_addr_in_dccm_region_dc1 & ~(end_addr_in_dccm_dc1 | end_addr_in_pic_dc1))       |
                                   (start_addr_in_dccm_dc1 & end_addr_in_pic_dc1)                                      |

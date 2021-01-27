@@ -811,6 +811,8 @@ module swerv
    logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] exu_i0_br_index_e4;
    logic [`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO] exu_i1_br_index_e4;
 
+   logic                    dma_mem_dccm_req;
+
    logic        dma_dccm_req;
    logic        dma_iccm_req;
    logic [31:0] dma_mem_addr;
@@ -865,6 +867,7 @@ module swerv
 
    // feature disable from mfdc
    logic  dec_tlu_sec_alu_disable;
+   logic  dec_tlu_dccm_nonblock_dma_disable; // disable dma nonblock
    logic  dec_tlu_non_blocking_disable;
    logic  dec_tlu_fast_div_disable;
    logic  dec_tlu_bpred_disable;
@@ -970,6 +973,7 @@ module swerv
    assign core_dbg_rddata[31:0] = dma_dbg_cmd_done ? dma_dbg_rddata[31:0] : dec_dbg_rddata[31:0];
 
    dbg dbg (
+      .rst_l(core_rst_l),
       .clk_override(dec_tlu_misc_clk_override),
       .*
    );
@@ -1034,6 +1038,7 @@ module swerv
 
    // AXI4 -> AHB Gasket for LSU
    axi4_to_ahb #(.TAG(LSU_BUS_TAG)) lsu_axi4_to_ahb (
+      .rst_l(core_rst_l),
       .clk_override(dec_tlu_bus_clk_override),
       .bus_clk_en(lsu_bus_clk_en),
 
@@ -1089,6 +1094,7 @@ module swerv
 
    // AXI4 -> AHB Gasket for System Bus
    axi4_to_ahb #(.TAG(SB_BUS_TAG)) sb_axi4_to_ahb (
+      .rst_l(dbg_rst_l),
       .clk_override(dec_tlu_bus_clk_override),
       .bus_clk_en(dbg_bus_clk_en),
 
@@ -1144,6 +1150,7 @@ module swerv
 
    axi4_to_ahb #(.TAG(IFU_BUS_TAG)) ifu_axi4_to_ahb (
       .clk(clk),
+      .rst_l(core_rst_l),
       .clk_override(dec_tlu_bus_clk_override),
       .bus_clk_en(ifu_bus_clk_en),
 
@@ -1199,6 +1206,7 @@ module swerv
 
    //AHB -> AXI4 Gasket for DMA
    ahb_to_axi4 #(.TAG(DMA_BUS_TAG)) dma_ahb_to_axi4 (
+      .rst_l(core_rst_l),
       .clk_override(dec_tlu_bus_clk_override),
       .bus_clk_en(dma_bus_clk_en),
 

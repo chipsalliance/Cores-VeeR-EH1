@@ -1171,7 +1171,7 @@ MAIN_RETURN_TYPE main(int argc, char *argv[]) {
         ee_printf("Total time (secs): %d\n",time_in_secs(total_time));
         if (time_in_secs(total_time) > 0)
 //              ee_printf("Iterations/Sec   : %d\n",default_num_contexts*results[0].iterations/time_in_secs(total_time));
-                ee_printf("Iterat/Sec/MHz   : %d.%02d\n",1000*default_num_contexts*results[0].iterations/time_in_secs(total_time),
+                ee_printf("Iterat/Sec/MHz   : %d.%d\n",1000*default_num_contexts*results[0].iterations/time_in_secs(total_time),
                              100000*default_num_contexts*results[0].iterations/time_in_secs(total_time) % 100);
 #endif
         if (time_in_secs(total_time) < 10) {

@@ -109,7 +109,7 @@ module dbg (
    // general inputs
    input logic                         clk,
    input logic                         free_clk,
-   input logic                         rst_l,
+   input logic                         rst_l,            // This includes both top rst and dbg rst
    input logic                         dbg_rst_l,
    input logic                         clk_override,
    input logic                         scan_mode
@@ -165,13 +165,12 @@ module dbg (
    logic         dmstatus_dmerr_wren;
    logic         dmstatus_resumeack_wren;
    logic         dmstatus_resumeack_din;
-   logic         dmstatus_havereset_wren;
-   logic         dmstatus_havereset_rst;
+   logic         dmstatus_haveresetn_wren;
    logic         dmstatus_resumeack;
    logic         dmstatus_unavail;
    logic         dmstatus_running;
    logic         dmstatus_halted;
-   logic         dmstatus_havereset;
+   logic         dmstatus_havereset, dmstatus_haveresetn;
 
    // dmcontrol
    logic         resumereq;
@@ -297,7 +296,7 @@ module dbg (
 
    // Reset logic
    assign dbg_dm_rst_l = dbg_rst_l & (dmcontrol_reg[0] | scan_mode);
-   assign dbg_core_rst_l = ~dmcontrol_reg[1];
+   assign dbg_core_rst_l = ~dmcontrol_reg[1] | scan_mode;
 
    // system bus register
    // sbcs[31:29], sbcs - [22]:sbbusyerror, [21]: sbbusy, [20]:sbreadonaddr, [19:17]:sbaccess, [16]:sbautoincrement, [15]:sbreadondata, [14:12]:sberror, sbsize=32, 128=0, 64/32/16/8 are legal
@@ -308,7 +307,7 @@ module dbg (
    assign        sbcs_reg[4:0]   = 5'b01111;
    assign        sbcs_wren = (dmi_reg_addr ==  7'h38) & dmi_reg_en & dmi_reg_wr_en & (sb_state == SBIDLE); // & (sbcs_reg[14:12] == 3'b000);
    assign        sbcs_sbbusyerror_wren = (sbcs_wren & dmi_reg_wdata[22]) |
-                                         ((sb_state != SBIDLE) & dmi_reg_en & ((dmi_reg_addr == 7'h39) | (dmi_reg_addr == 7'h3c) | (dmi_reg_addr == 7'h3d)));
+                                         (sbcs_reg[21] & dmi_reg_en & ((dmi_reg_wr_en & (dmi_reg_addr == 7'h39)) | (dmi_reg_addr == 7'h3c) | (dmi_reg_addr == 7'h3d)));
    assign        sbcs_sbbusyerror_din = ~(sbcs_wren & dmi_reg_wdata[22]);   // Clear when writing one
 
    rvdffs #(1) sbcs_sbbusyerror_reg  (.din(sbcs_sbbusyerror_din),  .dout(sbcs_reg[22]),    .en(sbcs_sbbusyerror_wren), .rst_l(dbg_dm_rst_l), .clk(sb_free_clk));
@@ -387,15 +386,15 @@ module dbg (
    assign dmstatus_resumeack_wren = ((dbg_state == RESUMING) & dec_tlu_resume_ack) | (dmstatus_resumeack & resumereq & dmstatus_halted);
    assign dmstatus_resumeack_din  = (dbg_state == RESUMING) & dec_tlu_resume_ack;
 
-   assign dmstatus_havereset_wren = (dmi_reg_addr == 7'h10) & dmi_reg_wdata[1] & dmi_reg_en & dmi_reg_wr_en;
-   assign dmstatus_havereset_rst  = (dmi_reg_addr == 7'h10) & dmi_reg_wdata[28] & dmi_reg_en & dmi_reg_wr_en;
+   assign dmstatus_haveresetn_wren  = (dmi_reg_addr == 7'h10) & dmi_reg_wdata[28] & dmi_reg_en & dmi_reg_wr_en & dmcontrol_reg[0];   // clear the havereset
+   assign dmstatus_havereset        = ~dmstatus_haveresetn;
 
    assign dmstatus_unavail = dmcontrol_reg[1] | ~rst_l;
    assign dmstatus_running = ~(dmstatus_unavail | dmstatus_halted);
 
    rvdffs  #(1) dmstatus_resumeack_reg (.din(dmstatus_resumeack_din), .dout(dmstatus_resumeack), .en(dmstatus_resumeack_wren), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
    rvdff   #(1) dmstatus_halted_reg    (.din(dec_tlu_dbg_halted & ~dec_tlu_mpc_halted_only),     .dout(dmstatus_halted), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
-   rvdffsc #(1) dmstatus_havereset_reg (.din(1'b1), .dout(dmstatus_havereset), .en(dmstatus_havereset_wren), .clear(dmstatus_havereset_rst), .rst_l(dbg_dm_rst_l), .clk(dbg_free_clk));
+   rvdffs  #(1) dmstatus_haveresetn_reg (.din(1'b1), .dout(dmstatus_haveresetn), .en(dmstatus_haveresetn_wren), .rst_l(rst_l), .clk(dbg_free_clk));
 
    // haltsum0 register
    assign haltsum0_reg[31:1] = '0;
@@ -631,7 +630,7 @@ module dbg (
       case (sb_state)
             SBIDLE: begin
                      sb_nxtstate            = sbdata0wr_access ? WAIT_WR : WAIT_RD;
-                     sb_state_en            = (sbdata0wr_access | sbreadondata_access | sbreadonaddr_access) & ~(|sbcs_reg[14:12]);
+                     sb_state_en            = (sbdata0wr_access | sbreadondata_access | sbreadonaddr_access) & ~(|sbcs_reg[14:12]) & ~sbcs_reg[22];
                      sbcs_sbbusy_wren       = sb_state_en;                                                 // set the single read bit if it is a singlread command
                      sbcs_sbbusy_din        = 1'b1;
                      sbcs_sberror_wren      = sbcs_wren & (|dmi_reg_wdata[14:12]);                                            // write to clear the error bits
