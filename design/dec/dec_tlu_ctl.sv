@@ -409,6 +409,10 @@ module dec_tlu_ctl
    logic csr_wr_clk;
    rvoclkhdr csrwr_wb_cgc ( .en(dec_csr_wen_wb_mod | clk_override), .l1clk(csr_wr_clk), .* );
    logic lsu_e3_e4_clk, lsu_e4_e5_clk;
+
+   // LSU exceptions (LSU responsible for prioritizing simultaneous cases)
+   lsu_error_pkt_t lsu_error_pkt_dc4;
+
    rvoclkhdr lsu_e3_e4_cgc ( .en(lsu_error_pkt_dc3.exc_valid | lsu_error_pkt_dc4.exc_valid | lsu_error_pkt_dc3.single_ecc_error | lsu_error_pkt_dc4.single_ecc_error | clk_override), .l1clk(lsu_e3_e4_clk), .* );
    rvoclkhdr lsu_e4_e5_cgc ( .en(lsu_error_pkt_dc4.exc_valid | lsu_exc_valid_wb | clk_override), .l1clk(lsu_e4_e5_clk), .* );
 
@@ -753,9 +757,6 @@ module dec_tlu_ctl
 
    //--------------------------------------------------------------------------------
    //--------------------------------------------------------------------------------
-
-   // LSU exceptions (LSU responsible for prioritizing simultaneous cases)
-   lsu_error_pkt_t lsu_error_pkt_dc4;
 
    rvdff #( $bits(lsu_error_pkt_t)+1 ) lsu_error_dc4ff (.*, .clk(lsu_e3_e4_clk), .din({lsu_error_pkt_dc3, lsu_load_ecc_stbuf_full_dc3}),  .dout({lsu_error_pkt_dc4, lsu_load_ecc_stbuf_full_dc4}));
 
