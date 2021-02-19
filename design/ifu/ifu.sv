@@ -258,10 +258,6 @@ module ifu
 
    logic ic_hit_f2;
 
-   // fetch control
-   ifu_ifc_ctl ifc (.*
-                    );
-
 
 `ifdef RV_BTB_48
    logic [7:0][1:0] ifu_bp_way_f2; // way indication; right justified
@@ -278,10 +274,6 @@ module ifu
    logic [7:0]  ifu_bp_pc4_f2; // pc4 indication; right justified
    logic [7:0]  ifu_bp_valid_f2; // branch valid, right justified
    logic [`RV_BHT_GHR_RANGE] ifu_bp_fghr_f2;
-
-   // branch predictor
-   ifu_bp_ctl bp (.*);
-
 
    logic [7:0]   ic_fetch_val_f2;
    logic [127:0] ic_data_f2;
@@ -302,9 +294,16 @@ module ifu
    assign ifu_fetch_val[7:0] = ic_fetch_val_f2[7:0];
    assign ifu_fetch_pc[31:1] = ifc_fetch_addr_f2[31:1];
 
+   // fetch control
+   ifu_ifc_ctl ifc (.*
+                    );
+
    // aligner
    ifu_aln_ctl aln (.*
                     );
+
+   // branch predictor
+   ifu_bp_ctl bp (.*);
 
    // icache
    ifu_mem_ctl mem_ctl

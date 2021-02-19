@@ -989,14 +989,6 @@ module swerv
        .*
    );
 
-
-
-   dec dec (
-            .dbg_cmd_wrdata(dbg_cmd_wrdata[1:0]),
-            .rst_l(core_rst_l),
-            .*
-            );
-
    exu exu (
       .clk_override(dec_tlu_exu_clk_override),
       .rst_l(core_rst_l),
@@ -1016,6 +1008,12 @@ module swerv
    logic        mhwakeup;
 
    logic        dec_tlu_claim_ack_wb;
+
+   dec dec (
+            .dbg_cmd_wrdata(dbg_cmd_wrdata[1:0]),
+            .rst_l(core_rst_l),
+            .*
+            );
 
    pic_ctrl  pic_ctrl_inst (
                   .clk_override(dec_tlu_pic_clk_override),

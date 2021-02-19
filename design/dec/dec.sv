@@ -512,13 +512,6 @@ module dec
 
    assign dec_dbg_rddata[31:0] = dec_i0_wdata_wb[31:0];
 
-   dec_ib_ctl instbuff (.*
-                        );
-
-   dec_decode_ctl decode (.*);
-
-   dec_tlu_ctl tlu (.*);
-
    // Temp hookups
    assign wen_bank_id = '0;
    assign wr_bank_id  = '0;
@@ -577,6 +570,12 @@ module dec
    assign trace_rv_trace_pkt.trace_rv_i_interrupt_ip = {dec_tlu_int_valid_wb1,2'b0};
    assign trace_rv_trace_pkt.trace_rv_i_tval_ip =    dec_tlu_mtval_wb1[31:0];        // replicate across ports
 
+   dec_ib_ctl instbuff (.*
+                        );
+
+   dec_decode_ctl decode (.*);
+
+   dec_tlu_ctl tlu (.*);
 
 
 // end trace
