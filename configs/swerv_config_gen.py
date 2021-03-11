@@ -8,14 +8,14 @@ import tempfile
 class SwervConfigGenerator(Generator):
     def run(self):
         files = [
-            {"configs/snapshots/default/common_defines.vh" : {
+            {"snapshots/default/common_defines.vh" : {
                 "copyto"    : "config/common_defines.vh",
                 "file_type" : "systemVerilogSource"}},
-            {"configs/snapshots/default/pic_ctrl_verilator_unroll.sv" : {
+            {"snapshots/default/pic_ctrl_verilator_unroll.sv" : {
                 "copyto" : "config/pic_ctrl_verilator_unroll.sv",
                 "is_include_file" : True,
                 "file_type" : "systemVerilogSource"}},
-            {"configs/snapshots/default/pic_map_auto.h" : {
+            {"snapshots/default/pic_map_auto.h" : {
                 "copyto" : "config/pic_map_auto.h",
                 "is_include_file" : True,
                 "file_type" : "systemVerilogSource"}}]
