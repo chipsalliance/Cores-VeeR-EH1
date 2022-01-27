@@ -58,12 +58,14 @@ filesets:
 
   mem_init:
     files:
-      - testbench/hex/data.hex : {copyto : data.hex}
-      - testbench/hex/program.hex : {copyto : program.hex}
+      - testbench/hex/hello_world.hex : {copyto : program.hex}
     file_type : user
 
   tb:
-    files: [testbench/ahb_sif.sv, testbench/tb_top.sv]
+    files:
+      - testbench/dasm.svi : {is_include_file : true}
+      - testbench/ahb_sif.sv
+      - testbench/tb_top.sv
     file_type : systemVerilogSource
 
   verilator_tb:
