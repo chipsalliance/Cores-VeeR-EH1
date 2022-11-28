@@ -215,7 +215,7 @@ git submodule update
 This will install riscof and clone the riscv-arch-test repository containing the compliance tests. For running the compliance test, run the following command.
 `make -f $RV_ROOT/tools/Makefile riscof_compliance`
 
-Note: arch-test repo needs to be cloned to run these tests in the compliance folder and path of the tests is to be specified accordingly. In the makefile under tools, makeFile contains label riscof_compliance: which has the command to run riscof compliance test (arch test repo containg suite and env path is to be set accordingly)
+N: arch-test repo needs to be cloned to run these tests in the compliance folder and path of the tests is to be specified accordingly. In the makefile under tools, makeFile contains label riscof_compliance: which has the command to run riscof compliance test (arch test repo containg suite and env path is to be set accordingly)
 ----
 Western Digital, the Western Digital logo, G-Technology, SanDisk, Tegile, Upthere, WD, SweRV Core, SweRV ISS, 
 and OmniXtend are registered trademarks or trademarks of Western Digital Corporation or its affiliates in the US 
