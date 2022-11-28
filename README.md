@@ -9,8 +9,7 @@ Files under the [tools](tools/) directory may be available under a different lic
 
 ## Directory Structure
     
-    ├── configs                 # Configurations Dir
-    │   └── snapshots           # Where generated configuration files are created
+
     ├── configs                 # Configurations Dir
     │   └── snapshots           # Where generated configuration files are created
     ├── compliance              #Compliance related dir and files
