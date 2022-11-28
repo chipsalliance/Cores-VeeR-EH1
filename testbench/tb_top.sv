@@ -377,7 +377,7 @@ module tb_top;
         end
     end
 
-
+string fileName;
     initial begin
         abi_reg[0] = "zero";
         abi_reg[1] = "ra";
@@ -419,8 +419,12 @@ module tb_top;
         nmi_vector   = 32'hee000000;
         nmi_int   = 0;
 
-        $readmemh("program.hex",  lmem.mem);
-        $readmemh("program.hex",  imem.mem);
+        
+        if($value$plusargs("CODEFILE=%s",fileName)) begin
+            $readmemh(fileName,  lmem.mem);
+            $readmemh(fileName,  imem.mem);
+        end
+
         tp = $fopen("trace_port.csv","w");
         el = $fopen("exec.log","w");
         $fwrite (el, "//   Cycle : #inst  hart   pc    opcode    reg=value   ; mnemonic\n");
@@ -939,7 +943,32 @@ axi_lsu_dma_bridge # (`RV_LSU_BUS_TAG,`RV_LSU_BUS_TAG ) bridge(
 
 );
 
+int fddd; string sigFile;
+initial begin
+        
+        if($value$plusargs("SIGFILE=%s",sigFile)) begin
+            fddd = $fopen(sigFile,"w");
+        end
+end
+//save data in file at currunt location
+always @(negedge lmem.aclk) begin
+    
+    //write data to file
+    if(lmem.awvalid  && (lmem.awaddr == 32'h51000000) ) begin
+        
+        fddd = $fopen(sigFile,"a");        
+        $fdisplay(fddd,"%h",{ 
+            lmem.wdata[31:24],
+            lmem.wdata[23:16],
+            lmem.wdata[15:08],
+            lmem.wdata[07:00]});
+        $fclose(fddd);
+    end
+    
+end
+
 `endif
+
 
 task preload_iccm;
 bit[31:0] data;
