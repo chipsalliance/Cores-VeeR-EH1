@@ -8,15 +8,15 @@ By contributing to this project, you agree that your contribution is governed by
 Files under the [tools](tools/) directory may be available under a different license. Please review individual file for details.
 
 ## Directory Structure
-
+    
     ├── configs                 # Configurations Dir
     │   └── snapshots           # Where generated configuration files are created
     ├── configs                 # Configurations Dir
     │   └── snapshots           # Where generated configuration files are created
     ├── compliance              #Compliance related dir and files
-    |   ├── config.ini          #Configuration file for ref(sail) and dut(swerveh1)
-    |   ├── sail_cSim           #Sail plugins
-    |   └── swerveh1            #swerveh1 plugins
+    │   ├── conig.ini           #Configuration file for ref(sail) and dut(swerveh1)
+    │   ├── sail_cSim           #Sail plugins
+    │   ├── swerveh1            #swerveh1 plugins
     ├── design                  # Design root dir
     │   ├── dbg                 # Debugger
     │   ├── dec                 # Decode, Registers and Exceptions
@@ -205,7 +205,8 @@ dhry              - dhrystone benchmark - example of multi source files program
 
 The `$RV_ROOT/testbench/hex` directory contains precompiled hex files of the tests, ready for simulation in case RISCV SW tools are not installed.
 
-`Note: arch-test repo needs to be cloned to run these tests in the compliance folder and path of the tests is to be specified accordingly. In the makefile under tools, makeFile contains label riscof_compliance: which has the command to run riscof compliance test (arch test repo containg suite and env path is to be set accordingly)`
+Note: arch-test repo needs to be cloned to run these tests in the compliance folder and path of the tests is to be specified accordingly. In the makefile under tools, makeFile contains label `riscof_compliance: which has the command to run riscof compliance test` (arch test repo containg suite and env path is to be set accordingly)
+
 ----
 Western Digital, the Western Digital logo, G-Technology, SanDisk, Tegile, Upthere, WD, SweRV Core, SweRV ISS, 
 and OmniXtend are registered trademarks or trademarks of Western Digital Corporation or its affiliates in the US 
