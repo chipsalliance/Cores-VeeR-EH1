@@ -305,7 +305,7 @@ string mn;
     imm = opcode[24:20];
     case(opcode[14:12])
     1: mn = "slli";
-    5: mn = opcode[30] ? "srli": "srai";
+    5: mn = opcode[30] ? "srai": "srli";
     endcase
 
     return $sformatf("%s    %s,%s,%0d", mn, abi_reg[opcode[11:7]], abi_reg[opcode[19:15]], imm);
