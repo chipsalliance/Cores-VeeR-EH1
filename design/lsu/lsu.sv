@@ -26,7 +26,7 @@
 //********************************************************************************
 
 module lsu
-   import swerv_types::*;
+   import veer_types::*;
 (
 
    input logic [31:0]                      i0_result_e4_eff, // I0 e4 result for e4 -> dc3 store forwarding

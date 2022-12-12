@@ -1,8 +1,8 @@
 +incdir+$RV_ROOT/testbench
-$RV_ROOT/design/swerv_wrapper.sv
+$RV_ROOT/design/veer_wrapper.sv
 $RV_ROOT/design/mem.sv
 $RV_ROOT/design/pic_ctrl.sv
-$RV_ROOT/design/swerv.sv
+$RV_ROOT/design/veer.sv
 $RV_ROOT/design/dma_ctrl.sv
 $RV_ROOT/design/ifu/ifu_aln_ctl.sv
 $RV_ROOT/design/ifu/ifu_compress_ctl.sv

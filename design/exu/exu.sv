@@ -15,7 +15,7 @@
 
 
 module exu
-   import swerv_types::*;
+   import veer_types::*;
 (
 
    input logic clk,                                                    // Top level clock

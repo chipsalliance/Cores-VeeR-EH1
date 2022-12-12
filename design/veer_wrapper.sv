@@ -16,14 +16,14 @@
 //********************************************************************************
 // $Id$
 //
-// Function: Top wrapper file with swerv/mem instantiated inside
+// Function: Top wrapper file with veer/mem instantiated inside
 // Comments:
 //
 //********************************************************************************
 `include "build.h"
 //`include "def.sv"
-module swerv_wrapper
-   import swerv_types::*;
+module veer_wrapper
+   import veer_types::*;
 (
    input logic                       clk,
    input logic                       rst_l,
@@ -402,8 +402,8 @@ module swerv_wrapper
    logic        dmi_hard_reset;
 
 
-   // Instantiate the swerv core
-   swerv swerv (
+   // Instantiate the veer core
+   veer veer (
           .*
           );
 

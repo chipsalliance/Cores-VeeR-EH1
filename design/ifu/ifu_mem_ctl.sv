@@ -22,7 +22,7 @@
 //********************************************************************************
 
 module ifu_mem_ctl
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic clk,
    input logic free_clk,                                            // free clock always except during pause

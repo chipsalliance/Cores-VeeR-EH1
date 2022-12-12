@@ -23,7 +23,7 @@
 //
 //********************************************************************************
 module lsu_trigger
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic         clk,                          // clock
    input logic         lsu_free_c2_clk,              // clock

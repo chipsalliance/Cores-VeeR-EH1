@@ -1,6 +1,6 @@
-# EH1 RISC-V SweRV Core<sup>TM</sup> 1.9 from Western Digital
+# EH1 RISC-V VeeR Core<sup>TM</sup> 1.9 from Western Digital
 
-This repository contains the EH1 SweRV Core<sup>TM</sup>  design RTL
+This repository contains the EH1 VeeR Core<sup>TM</sup>  design RTL
 
 ## License
 
@@ -40,24 +40,24 @@ installed so that it can be used to prepare RISCV binaries to run.
 1. Run make with tools/Makefile
 
 ## Release Notes for this version
-Please see [release notes](release-notes.md) for changes and bug fixes in this version of SweRV
+Please see [release notes](release-notes.md) for changes and bug fixes in this version of VeeR
 
 ### Configurations
 
-SweRV can be configured by running the `$RV_ROOT/configs/swerv.config` script:
+VeeR can be configured by running the `$RV_ROOT/configs/veer.config` script:
 
-`% $RV_ROOT/configs/swerv.config -h` for detailed help options
+`% $RV_ROOT/configs/veer.config -h` for detailed help options
 
 For example to build with a DCCM of size 64 Kb:  
 
-`% $RV_ROOT/configs/swerv.config -dccm_size=64`  
+`% $RV_ROOT/configs/veer.config -dccm_size=64`  
 
-This will update the **default** snapshot in $PWD/snapshots/default/ with parameters for a 64K DCCM. To **unset** a parameter, use `-unset=PARAM` option to swerv.config.
+This will update the **default** snapshot in $PWD/snapshots/default/ with parameters for a 64K DCCM. To **unset** a parameter, use `-unset=PARAM` option to veer.config.
 
 Add `-snapshot=dccm64`, for example, if you wish to name your build snapshot *dccm64* and refer to it during the build.  
 
 There are four predefined target configurations: `default`, `default_ahb`, `default_pd`, `high_perf`  that can be selected via 
-the `-target=name` option to swerv.config.
+the `-target=name` option to veer.config.
 
 This script derives the following consistent set of include files :  
 
@@ -67,7 +67,7 @@ This script derives the following consistent set of include files :
     ├── pd_defines.vh                           # `defines for physical design
     ├── perl_configs.pl                         # Perl %configs hash for scripting
     ├── pic_map_auto.h                          # PIC memory map based on configure size
-    └── whisper.json                            # JSON file for swerv-iss
+    └── whisper.json                            # JSON file for veer-iss
 
 
 
@@ -75,11 +75,11 @@ This script derives the following consistent set of include files :
 
 while in a work directory:
 
-1. Set the RV_ROOT environment variable to the root of the SweRV directory structure.
+1. Set the RV_ROOT environment variable to the root of the VeeR directory structure.
 Example for bash shell:  
-    `export RV_ROOT=/path/to/swerv`  
+    `export RV_ROOT=/path/to/veer`  
 Example for csh or its derivatives:  
-    `setenv RV_ROOT /path/to/swerv`
+    `setenv RV_ROOT /path/to/veer`
     
 1. Create your specific configuration
 
@@ -88,16 +88,16 @@ Example for csh or its derivatives:
     For example if `mybuild` is the name for the snapshot:
 
      
-    `$RV_ROOT/configs/swerv.config [configuration options..] -snapshot=mybuild`  
+    `$RV_ROOT/configs/veer.config [configuration options..] -snapshot=mybuild`  
     
     Snapshots are placed in ./snapshots directory
 
 **Building an FPGA speed optimized model:**  
-Use ``-fpga_optimize=1`` option to ``swerv.config`` to build a model that removes clock gating logic from flop model so that the FPGA builds can run at higher speeds. **This is now the default option for
+Use ``-fpga_optimize=1`` option to ``veer.config`` to build a model that removes clock gating logic from flop model so that the FPGA builds can run at higher speeds. **This is now the default option for
 targets other than ``default_pd``.**
 
 **Building a Power optimized model (ASIC flows):**  
-Use ``-fpga_optimize=0`` option to ``swerv.config`` to build a model that **enables** clock gating logic into the flop model so that the ASIC flows get a better power footprint. **This is now the default option for
+Use ``-fpga_optimize=0`` option to ``veer.config`` to build a model that **enables** clock gating logic into the flop model so that the ASIC flows get a better power footprint. **This is now the default option for
 target``default_pd``.**
 
 ### Running RTL simulations
@@ -106,7 +106,7 @@ target``default_pd``.**
 
     `make -f $RV_ROOT/tools/Makefile`
 
-This command will build a verilator model of SweRV EH1 with AXI bus, and
+This command will build a verilator model of VeeR EH1 with AXI bus, and
 execute a short sequence of instructions that writes out "HELLO WORLD"
 to the bus.
 
@@ -117,7 +117,7 @@ The simulation produces output on the screen like:
 VerilatorTB: Start of sim
 
 ----------------------------------
-Hello World from SweRV EH1 @WDC !!
+Hello World from VeeR EH1 @WDC !!
 ----------------------------------
 
 Finished : minstret = 443, mcycle = 1372
@@ -144,7 +144,7 @@ or
 The simulation run/build command has following generic form:
 
 ```
-make -f $RV_ROOT/tools/Makefile [<simulator>] [debug=1] [snapshot=<snapshot>] [target=<target>] [TEST=<test>] [TEST_DIR=<path_to_test_dir>] [CONF_PARAMS=<swerv.config option>]
+make -f $RV_ROOT/tools/Makefile [<simulator>] [debug=1] [snapshot=<snapshot>] [target=<target>] [TEST=<test>] [TEST_DIR=<path_to_test_dir>] [CONF_PARAMS=<veer.config option>]
 
 where:
 
@@ -156,7 +156,7 @@ TEST        -  allows to run a C (<test>.c) or assembly (<test>.s) test, hello_w
 TEST_DIR    -  alternative to test source directory testbench/asm
 <snapshot>  -  run and build executable model of custom CPU configuration, remember to provide 'snapshot' argument 
                for runs on custom configurations.
-CONF_PARAMS -  configuration parameter for swerv.config : ex: 'CONF_PARAMS=-unset=dccm_enable' to build with no DCCM
+CONF_PARAMS -  configuration parameter for veer.config : ex: 'CONF_PARAMS=-unset=dccm_enable' to build with no DCCM
 ```
 
 Example:
@@ -201,6 +201,6 @@ The `$RV_ROOT/testbench/hex` directory contains precompiled hex files of the tes
 
 
 ----
-Western Digital, the Western Digital logo, G-Technology, SanDisk, Tegile, Upthere, WD, SweRV Core, SweRV ISS, 
+Western Digital, the Western Digital logo, G-Technology, SanDisk, Tegile, Upthere, WD, VeeR Core, VeeR ISS, 
 and OmniXtend are registered trademarks or trademarks of Western Digital Corporation or its affiliates in the US 
 and/or other countries. All other marks are the property of their respective owners.

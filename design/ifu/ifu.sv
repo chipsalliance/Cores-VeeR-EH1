@@ -20,7 +20,7 @@
 //********************************************************************************
 
 module ifu
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic free_clk,
    input logic active_clk,

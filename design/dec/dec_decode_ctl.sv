@@ -15,7 +15,7 @@
 
 
 module dec_decode_ctl
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic [15:0] dec_i0_cinst_d,         // 16b compressed instruction
    input logic [15:0] dec_i1_cinst_d,
@@ -2492,7 +2492,7 @@ endmodule
 // 2) espresso -Dso -oeqntott legal.e | addassign -pre out. > legal_equation
 
 module dec_dec_ctl
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic [31:0] inst,
 

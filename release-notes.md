@@ -1,4 +1,4 @@
-# SweRV RISC-V Core<sup>TM</sup> 1.9 from Western Digital
+# VeeR RISC-V Core<sup>TM</sup> 1.9 from Western Digital
 ## Release Notes
 
 * Removed unused scan_mode input from dmi_wrapper (PR#89)
@@ -15,7 +15,7 @@
 
 
 
-# SweRV RISC-V Core<sup>TM</sup> 1.8 from Western Digital
+# VeeR RISC-V Core<sup>TM</sup> 1.8 from Western Digital
 ## Release Notes
 
 * Enhanced Debug module to support access to system bus via access memory abstract commands (see PRM chapter 9)
@@ -25,7 +25,7 @@
 * Fixed issue with PIC ld/st access following a pipe freeze
 * Improvements to demo testbench
 
-# SweRV RISC-V Core<sup>TM</sup> 1.7 from Western Digital
+# VeeR RISC-V Core<sup>TM</sup> 1.7 from Western Digital
 ## Release Notes
 
 * RV_FPGA_OPTIMIZE is now default build option. 
@@ -36,19 +36,19 @@
 
 
 
-# SweRV RISC-V Core<sup>TM</sup> 1.6 from Western Digital
+# VeeR RISC-V Core<sup>TM</sup> 1.6 from Western Digital
 ## Release Notes
 
-* Added internal timers support. Please see Chapter 4 of the RISC-V SweRV EH1<sup>TM</sup> Programmers Reference Manual.
+* Added internal timers support. Please see Chapter 4 of the RISC-V VeeR EH1<sup>TM</sup> Programmers Reference Manual.
 * Fixed an openOCD compliance case with abstract command error codes.
 
 
-# SweRV RISC-V Core<sup>TM</sup> 1.5 from Western Digital
+# VeeR RISC-V Core<sup>TM</sup> 1.5 from Western Digital
 ## Release Notes
 
 
 This is a bug-fix and performance-improvement release.  No new functionality
-is added to the SweRV core.
+is added to the VeeR core.
 
 
 ##### 1. Bug fixes:
@@ -113,34 +113,34 @@ is added to the SweRV core.
 
 
 
-# SweRV RISC-V Core<sup>TM</sup> 1.4 from Western Digital
+# VeeR RISC-V Core<sup>TM</sup> 1.4 from Western Digital
 ## Release Notes
 Move declarations to top of Verilog file to fix fpga compile issues.
 
 
-# SweRV RISC-V Core<sup>TM</sup> 1.3 from Western Digital
+# VeeR RISC-V Core<sup>TM</sup> 1.3 from Western Digital
 ## Release Notes
-1. Make the FPGA optimization code work with the latest version of Verilator.[Pull request #13](https://github.com/chipsalliance/Cores-SweRV/pull/12)
-1. Move JTAG TAP to swerv_wrapper module. [Pull request #10](https://github.com/chipsalliance/Cores-SweRV/pull/10)
+1. Make the FPGA optimization code work with the latest version of Verilator.[Pull request #13](https://github.com/chipsalliance/Cores-VeeR/pull/12)
+1. Move JTAG TAP to veer_wrapper module. [Pull request #10](https://github.com/chipsalliance/Cores-VeeR/pull/10)
 
-# SweRV RISC-V Core<sup>TM</sup> 1.2 from Western Digital
+# VeeR RISC-V Core<sup>TM</sup> 1.2 from Western Digital
 ## Release Notes
-1. SWERV core RISCV compatibility improvements
+1. VEER core RISCV compatibility improvements
     * The ebreak and ecall instructions are no longer counted in the MINSRET
       control and status register.
     * Write to SBDATA0 does not start SB write access when both
       sbreadonaddr/sbreadondata are zero. This fixes issue number
       5 on github.
 
-1. FPGA support: Add fpga_optimize option to swerv.config which
+1. FPGA support: Add fpga_optimize option to veer.config which
    eliminates over 90% of clock-gating enabling faster FPGA
    simulation.
    
 1. Usability: Untabified all the verilog files.  This fixes issue number 3 on github.
 
-# SweRV RISC-V Core<sup>TM</sup> 1.1 from Western Digital
+# VeeR RISC-V Core<sup>TM</sup> 1.1 from Western Digital
 ## Release Notes
-1. SWERV core RISCV compatibility improvements
+1. VEER core RISCV compatibility improvements
 
     * Illegal instructions no longer increment minstret
     * Debug single-step command no longer executes multiple instructions
@@ -148,7 +148,7 @@ Move declarations to top of Verilog file to fix fpga compile issues.
       triggered an access fault
     * DICAD1 debug CSR ECC read size enhancements
 
-1. SWERV core performance enhancements
+1. VEER core performance enhancements
 
     * Improved instruction fetch unit external memory access performance
     * Instruction fetcher no longer stalls due to DMA ICCM requests
@@ -158,7 +158,7 @@ Move declarations to top of Verilog file to fix fpga compile issues.
     * Non-idempotent Ld/St changed to non-posted in MFDC
     * DMA QoS Configurable in MFDC
 
-1. SWERV core miscellaneous changes
+1. VEER core miscellaneous changes
 
     * Non-word access to PIC memory generates access-error
     * Improved streaming performance with unified read/write buffer

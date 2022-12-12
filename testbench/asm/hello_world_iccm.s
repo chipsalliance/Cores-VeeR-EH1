@@ -63,9 +63,9 @@ _finish:
 
 .data
 hw_data:
-.ascii "----------------------------------------\n"
-.ascii "Hello World from SweRV EL2 ICCM  @WDC !!\n"
-.ascii "----------------------------------------\n"
+.ascii "------------------------------\n"
+.ascii "Hello World from VeeR EL2 ICCM\n"
+.ascii "------------------------------\n"
 .byte 0
 
 .section .data_text, "ax"

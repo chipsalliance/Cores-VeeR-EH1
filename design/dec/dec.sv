@@ -28,7 +28,7 @@
 //********************************************************************************
 
 module dec
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic clk,
    input logic free_clk,

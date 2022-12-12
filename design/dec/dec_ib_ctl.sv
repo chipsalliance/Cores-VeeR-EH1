@@ -14,7 +14,7 @@
 // limitations under the License.
 
 module dec_ib_ctl
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic   free_clk,                    // free clk
    input logic   active_clk,                  // active clk if not halt / pause

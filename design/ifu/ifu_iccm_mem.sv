@@ -20,7 +20,7 @@
 //********************************************************************************
 
 module ifu_iccm_mem
-   import swerv_types::*;
+   import veer_types::*;
 
 (
    input logic         clk,

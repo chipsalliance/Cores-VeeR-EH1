@@ -15,7 +15,7 @@
 //********************************************************************************
 // $Id$
 //
-// Function: Top level SWERV core file to control the debug mode
+// Function: Top level VEER core file to control the debug mode
 // Comments: Responsible to put the rest of the core in quiesce mode,
 //           Send the commands/address. sends WrData and Recieve read Data.
 //           And then Resume the core to do the normal mode

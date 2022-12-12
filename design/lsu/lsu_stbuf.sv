@@ -28,7 +28,7 @@
 
 
 module lsu_stbuf
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic        clk,                                // core clock
    input logic        rst_l,                              // reset

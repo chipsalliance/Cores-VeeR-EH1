@@ -23,7 +23,7 @@
 //
 //********************************************************************************
 module dec_trigger
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic         clk,
    input logic         rst_l,

@@ -27,7 +27,7 @@
 // //********************************************************************************
 
 module lsu_dccm_mem
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic         clk,                                              // clock
    input logic         free_clk,                                         // clock

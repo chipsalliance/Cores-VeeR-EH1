@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package swerv_types;
+package veer_types;
 
 // performance monitor stuff
 typedef struct packed {
@@ -332,4 +332,4 @@ typedef struct packed {
             } cache_debug_pkt_t;
 
 
-endpackage // swerv_types
+endpackage // veer_types

@@ -1,4 +1,4 @@
-#define SWERV
+#define VEER
 /*
  ****************************************************************************
  *
@@ -16,7 +16,7 @@
  ****************************************************************************
  */
 
-#ifdef SWERV
+#ifdef VEER
 #include <stdio.h>
 #include <stdint.h>
 extern uint64_t get_mcycle();
@@ -145,7 +145,7 @@ main ()
     printf ("Program compiled without 'register' attribute\n");
   }
 
-  #ifndef SWERV
+  #ifndef VEER
   printf ("Please give the number of runs through the benchmark: ");
   {
     int n = 1000;
@@ -164,7 +164,7 @@ main ()
   /* Start timer */
   /***************/
 
-#ifdef SWERV
+#ifdef VEER
     Begin_Time = get_mcycle();
 #else
 
@@ -236,7 +236,7 @@ main ()
   /* Stop timer */
   /**************/
 
-#ifdef SWERV
+#ifdef VEER
     End_Time = get_mcycle();
     printf("End_time=%d\n", (int) End_Time);
 #else
@@ -311,7 +311,7 @@ main ()
   }
   else
   {
-#ifdef SWERV
+#ifdef VEER
     printf ("Run time = %d clocks for %d Dhrystones\n", User_Time, Number_Of_Runs );
     printf ("Dhrystones per Second per MHz: ");
     printf ("%d.%02d", 1000000*Number_Of_Runs/User_Time,(100000000*Number_Of_Runs/User_Time) % 100);

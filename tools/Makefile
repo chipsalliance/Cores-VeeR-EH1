@@ -15,7 +15,7 @@
 #
 CONF_PARAMS = -set iccm_enable
 # Check for RV_ROOT
-ifeq (,$(wildcard ${RV_ROOT}/configs/swerv.config))
+ifeq (,$(wildcard ${RV_ROOT}/configs/veer.config))
 $(error env var RV_ROOT does not point to a valid dir! Exiting!)
 endif
 
@@ -27,7 +27,7 @@ target = default
 snapshot = $(target)
 
 # Allow tool override
-SWERV_CONFIG = ${RV_ROOT}/configs/swerv.config
+VEER_CONFIG = ${RV_ROOT}/configs/veer.config
 IRUN = xrun
 VCS = vcs
 VERILATOR = verilator
@@ -70,7 +70,7 @@ OFILES = $(TEST).o
 VPATH = $(TEST_DIR) $(BUILD_DIR) $(TBDIR)
 TBFILES = $(TBDIR)/tb_top.sv $(TBDIR)/ahb_sif.sv
 
-defines = $(BUILD_DIR)/common_defines.vh ${RV_ROOT}/design/include/swerv_types.sv
+defines = $(BUILD_DIR)/common_defines.vh ${RV_ROOT}/design/include/veer_types.sv
 includes = -I${RV_ROOT}/design/include -I${RV_ROOT}/design/lib  -I${BUILD_DIR}
 
 # CFLAGS for verilator generated Makefiles. Without -std=c++11 it complains for `auto` variables
@@ -83,13 +83,13 @@ VERILATOR_MAKE_FLAGS = OPT_FAST="-Os"
 all: clean verilator
 
 clean:
-	rm -rf *.log *.s *.hex *.dis *.tbl irun* vcs* simv* *.map snapshots swerv* \
+	rm -rf *.log *.s *.hex *.dis *.tbl irun* vcs* simv* *.map snapshots veer* \
 	verilator* *.exe obj* *.o ucli.key vc_hdrs.h csrc *.csv \
 	work dataset.asdb  library.cfg
 
-# If define files do not exist, then run swerv.config.
+# If define files do not exist, then run veer.config.
 ${BUILD_DIR}/defines.h :
-	BUILD_PATH=${BUILD_DIR} ${SWERV_CONFIG} -target=$(target) $(CONF_PARAMS)
+	BUILD_PATH=${BUILD_DIR} ${VEER_CONFIG} -target=$(target) $(CONF_PARAMS)
 
 ##################### Verilog Builds #####################################
 
@@ -116,7 +116,7 @@ vcs-build: ${TBFILES} ${BUILD_DIR}/defines.h
 	touch vcs-build
 
 irun-build: ${TBFILES} ${BUILD_DIR}/defines.h
-	$(IRUN) -64bit -elaborate $(IRUN_DEBUG) -q -sv -sysv  -nowarn CUVIHR -xmlibdirpath . -xmlibdirname swerv.build \
+	$(IRUN) -64bit -elaborate $(IRUN_DEBUG) -q -sv -sysv  -nowarn CUVIHR -xmlibdirpath . -xmlibdirname veer.build \
 		-incdir ${RV_ROOT}/design/lib -incdir ${RV_ROOT}/design/include -incdir ${BUILD_DIR} -vlog_ext +.vh+.h\
 		$(defines)  -f ${RV_ROOT}/testbench/flist\
 		-top tb_top  ${TBFILES} -I${RV_ROOT}/testbench \
@@ -139,7 +139,7 @@ verilator: program.hex verilator-build
 	./obj_dir/Vtb_top ${DEBUG_PLUS}
 
 irun: program.hex irun-build
-	$(IRUN) -64bit +lic_queue -licqueue -status -xmlibdirpath . -xmlibdirname swerv.build \
+	$(IRUN) -64bit +lic_queue -licqueue -status -xmlibdirpath . -xmlibdirname veer.build \
 		 -snapshot ${snapshot} -r ${snapshot} $(IRUN_DEBUG_RUN) $(profile)
 
 vcs: program.hex vcs-build

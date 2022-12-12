@@ -4,10 +4,10 @@ $RV_ROOT/design/include/def.sv
 +incdir+$RV_ROOT/design/lib
 +incdir+$RV_ROOT/design/include
 +incdir+$RV_ROOT/design/dmi
-$RV_ROOT/design/swerv_wrapper.sv
+$RV_ROOT/design/veer_wrapper.sv
 $RV_ROOT/design/mem.sv
 $RV_ROOT/design/pic_ctrl.sv
-$RV_ROOT/design/swerv.sv
+$RV_ROOT/design/veer.sv
 $RV_ROOT/design/dma_ctrl.sv
 $RV_ROOT/design/ifu/ifu_aln_ctl.sv
 $RV_ROOT/design/ifu/ifu_compress_ctl.sv

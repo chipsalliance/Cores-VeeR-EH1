@@ -25,7 +25,7 @@
 
 
 module lsu_clkdomain
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic      clk,                               // clock
    input logic      free_clk,                          // clock

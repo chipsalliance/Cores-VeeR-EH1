@@ -25,7 +25,7 @@
 //********************************************************************************
 
 module ifu_bp_ctl
-   import swerv_types::*;
+   import veer_types::*;
 (
 
    input logic clk,

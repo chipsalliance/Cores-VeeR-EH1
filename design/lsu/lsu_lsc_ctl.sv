@@ -26,7 +26,7 @@
 //
 //********************************************************************************
 module lsu_lsc_ctl
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic         rst_l,
    input logic         clk,

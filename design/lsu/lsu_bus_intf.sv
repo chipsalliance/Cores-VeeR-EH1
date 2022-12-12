@@ -23,7 +23,7 @@
 //
 //********************************************************************************
 module lsu_bus_intf
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic                          clk,
    input logic                          rst_l,

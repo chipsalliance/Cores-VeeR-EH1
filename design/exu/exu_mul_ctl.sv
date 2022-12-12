@@ -15,7 +15,7 @@
 
 
 module exu_mul_ctl
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic         clk,              // Top level clock
    input logic         active_clk,       // Level 1 active clock

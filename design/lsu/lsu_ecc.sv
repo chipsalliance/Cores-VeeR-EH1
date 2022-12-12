@@ -26,7 +26,7 @@
 //
 //********************************************************************************
 module lsu_ecc
-   import swerv_types::*;
+   import veer_types::*;
 (
 
    input logic        lsu_c2_dc4_clk,                      // clocks

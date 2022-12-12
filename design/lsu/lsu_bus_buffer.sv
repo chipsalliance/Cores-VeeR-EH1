@@ -37,7 +37,7 @@ endfunction // f_Enc8to3
 
 
 module lsu_bus_buffer
-   import swerv_types::*;
+   import veer_types::*;
 (
    input logic                          clk,
    input logic                          rst_l,

@@ -19,7 +19,7 @@
 // Function: Instruction aligner
 //********************************************************************************
 module ifu_aln_ctl
-   import swerv_types::*;
+   import veer_types::*;
 (
 
    input logic        active_clk,

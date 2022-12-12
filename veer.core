@@ -1,11 +1,11 @@
 CAPI=2:
 
-name : chipsalliance.org:cores:SweRV_EH1:1.8
+name : chipsalliance.org:cores:VeeR_EH1:1.8
 
 filesets:
   rtl:
     files:
-      - design/include/swerv_types.sv
+      - design/include/veer_types.sv
       - design/lib/beh_lib.sv
       - design/mem.sv
       - design/pic_ctrl.sv
@@ -46,8 +46,8 @@ filesets:
       - design/lib/mem_lib.sv
       - design/lib/ahb_to_axi4.sv
       - design/lib/axi4_to_ahb.sv
-      - design/swerv.sv
-      - design/swerv_wrapper.sv
+      - design/veer.sv
+      - design/veer_wrapper.sv
     file_type : systemVerilogSource
 
   includes:
@@ -82,11 +82,11 @@ targets:
   lint:
     default_tool: verilator
     filesets : [includes, rtl]
-    generate : [swerv_default_config]
+    generate : [veer_default_config]
     tools:
       verilator :
         mode : lint-only
-    toplevel : swerv_wrapper
+    toplevel : veer_wrapper
 
   sim:
     default_tool : verilator
@@ -97,7 +97,7 @@ targets:
       - tb
       - "tool_verilator? (verilator_tb)"
 
-    generate : [swerv_ahb_config]
+    generate : [veer_ahb_config]
     tools:
       modelsim:
         vlog_options :
@@ -116,35 +116,35 @@ targets:
   synth:
     default_tool : vivado
     filesets : [includes, rtl, "tool_vivado ? (vivado_tcl)"]
-    generate : [swerv_fpga_config]
+    generate : [veer_fpga_config]
     tools:
       vivado:
         part : xc7a100tcsg324-1
         pnr  : none
-    toplevel : swerv_wrapper
+    toplevel : veer_wrapper
 
 generate:
-  swerv_ahb_config:
-    generator: swerv_config
+  veer_ahb_config:
+    generator: veer_config
     position : first
     parameters:
       args : ['-ahb_lite', -unset=assert_on]
 
-  swerv_default_config:
-    generator: swerv_config
+  veer_default_config:
+    generator: veer_config
     position : first
     parameters:
       args : [-unset=assert_on]
 
-  swerv_fpga_config:
-    generator: swerv_config
+  veer_fpga_config:
+    generator: veer_config
     position : first
     parameters:
       args : [-unset=assert_on, -set=fpga_optimize=1]
 
 generators:
-  swerv_config:
+  veer_config:
     interpreter: python3
-    command: configs/swerv_config_gen.py
-    description : Create a SweRV configuration. Note! Only supports the default config
+    command: configs/veer_config_gen.py
+    description : Create a VeeR configuration. Note! Only supports the default config
 
