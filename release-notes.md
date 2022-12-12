@@ -1,22 +1,22 @@
-# VeeR RISC-V Core<sup>TM</sup> 1.9 from Western Digital
-## Release Notes
+# Release notes
+
+## 1.9
 
 * Removed unused scan_mode input from dmi_wrapper (PR#89)
 * Enhanced DMA/Side-Effect-load interlock to conditionally allow Side-Effect loads to be non-blocking
-    * See PRM for new enable bit in MFDC[13]
+  * See PRM for new enable bit in MFDC[13]
 * Bug fixes for NMI, MPC, PMU corner cases, MPC ack timing fixes
 * Trigger chaining compliance fixes for 0.13.2 missing cases
 * Fixed qualification in DCCM access fault equation
 * Updated reset hookup for AHB gasket
 * Demo TB updates: 
-   * added AXI LSU/DMA bridge and ICCM preload by CPU test,
-   * dhrystone test,
-   * exec.log shows instruction mnemonics
+  * added AXI LSU/DMA bridge and ICCM preload by CPU test,
+  * dhrystone test,
+  * exec.log shows instruction mnemonics
 
 
 
-# VeeR RISC-V Core<sup>TM</sup> 1.8 from Western Digital
-## Release Notes
+## 1.8
 
 * Enhanced Debug module to support access to system bus via access memory abstract commands (see PRM chapter 9)
 * Enhanced mpmc firmware halt CSR to add atomic MSTATUS.MIE enable to mpmc CSR (see PRM section 5.5.1)
@@ -25,8 +25,7 @@
 * Fixed issue with PIC ld/st access following a pipe freeze
 * Improvements to demo testbench
 
-# VeeR RISC-V Core<sup>TM</sup> 1.7 from Western Digital
-## Release Notes
+## 1.7
 
 * RV_FPGA_OPTIMIZE is now default build option. 
     * Use  -fpga_optimize=0 to build for lower power (ASIC) flows.
@@ -34,24 +33,18 @@
 * Fixes for 4 debug compliance issues reported by Codasip
 * Fixed some remaining clock gating issues for RV_FPGA_OPTIMIZE to improve fpga speed
 
+## 1.6
 
-
-# VeeR RISC-V Core<sup>TM</sup> 1.6 from Western Digital
-## Release Notes
-
-* Added internal timers support. Please see Chapter 4 of the RISC-V VeeR EH1<sup>TM</sup> Programmers Reference Manual.
+* Added internal timers support. Please see Chapter 4 of the RISC-V VeeR EH1 Programmers Reference Manual.
 * Fixed an openOCD compliance case with abstract command error codes.
 
 
-# VeeR RISC-V Core<sup>TM</sup> 1.5 from Western Digital
-## Release Notes
-
+## 1.5
 
 This is a bug-fix and performance-improvement release.  No new functionality
 is added to the VeeR core.
 
-
-##### 1. Bug fixes:
+### 1. Bug fixes:
 
 * Hart incorrectly cleared dmcontrol.dmactive on reset (reported by
   Codasip). *Note that a separate system power-on-reset signal `dbg_rst_l`
@@ -95,14 +88,14 @@ is added to the VeeR core.
   being corrected in memory.
 
 
-##### 2. Improvements:
+### 2. Improvements:
 
 * Improved performance by removing redundant term in decode stall
   logic.
 * Reduced power used by the ICCM memory arrays.
 
 
-##### 3. Testbench Improvements:
+### 3. Testbench Improvements:
 
 * AXI4 and AHB-Lite support.
 * Updated bus memory to be persistent and handle larger programs.
@@ -111,66 +104,63 @@ is added to the VeeR core.
 * Makefile supports targets for CoreMarks benchmark (issue #25).
 * Questa support in Makefile (Issue #19).
 
+## 1.4
 
-
-# VeeR RISC-V Core<sup>TM</sup> 1.4 from Western Digital
-## Release Notes
 Move declarations to top of Verilog file to fix fpga compile issues.
 
+## 1.3
 
-# VeeR RISC-V Core<sup>TM</sup> 1.3 from Western Digital
-## Release Notes
-1. Make the FPGA optimization code work with the latest version of Verilator.[Pull request #13](https://github.com/chipsalliance/Cores-VeeR/pull/12)
-1. Move JTAG TAP to veer_wrapper module. [Pull request #10](https://github.com/chipsalliance/Cores-VeeR/pull/10)
+* Make the FPGA optimization code work with the latest version of Verilator.[Pull request #13](https://github.com/chipsalliance/Cores-VeeR/pull/12)
+* Move JTAG TAP to veer_wrapper module. [Pull request #10](https://github.com/chipsalliance/Cores-VeeR/pull/10)
 
-# VeeR RISC-V Core<sup>TM</sup> 1.2 from Western Digital
-## Release Notes
-1. VEER core RISCV compatibility improvements
-    * The ebreak and ecall instructions are no longer counted in the MINSRET
-      control and status register.
-    * Write to SBDATA0 does not start SB write access when both
-      sbreadonaddr/sbreadondata are zero. This fixes issue number
-      5 on github.
+## 1.2
 
-1. FPGA support: Add fpga_optimize option to veer.config which
-   eliminates over 90% of clock-gating enabling faster FPGA
-   simulation.
+* VeeR core RISC-V compatibility improvements
+  * The ebreak and ecall instructions are no longer counted in the MINSRET
+    control and status register.
+  * Write to SBDATA0 does not start SB write access when both
+    sbreadonaddr/sbreadondata are zero. This fixes issue number
+    5 on github.
+
+* FPGA support: Add fpga_optimize option to veer.config which
+  eliminates over 90% of clock-gating enabling faster FPGA
+  simulation.
    
-1. Usability: Untabified all the verilog files.  This fixes issue number 3 on github.
+* Usability: Untabified all the verilog files. This fixes issue number 3 on github.
 
-# VeeR RISC-V Core<sup>TM</sup> 1.1 from Western Digital
-## Release Notes
-1. VEER core RISCV compatibility improvements
+## 1.1
 
-    * Illegal instructions no longer increment minstret
-    * Debug single-step command no longer executes multiple instructions
-    * For instructions, MTVAL register holds the address that actually
-      triggered an access fault
-    * DICAD1 debug CSR ECC read size enhancements
+* VeeR core RISC-V compatibility improvements
 
-1. VEER core performance enhancements
+  * Illegal instructions no longer increment minstret
+  * Debug single-step command no longer executes multiple instructions
+  * For instructions, MTVAL register holds the address that actually
+    triggered an access fault
+  * DICAD1 debug CSR ECC read size enhancements
 
-    * Improved instruction fetch unit external memory access performance
-    * Instruction fetcher no longer stalls due to DMA ICCM requests
-    * Improved performance of streaming stores
-    * Improved performance of divide instruction
-    * Improved I/O Timing 
-    * Non-idempotent Ld/St changed to non-posted in MFDC
-    * DMA QoS Configurable in MFDC
+* VeeR core performance enhancements
 
-1. VEER core miscellaneous changes
+  * Improved instruction fetch unit external memory access performance
+  * Instruction fetcher no longer stalls due to DMA ICCM requests
+  * Improved performance of streaming stores
+  * Improved performance of divide instruction
+  * Improved I/O Timing 
+  * Non-idempotent Ld/St changed to non-posted in MFDC
+  * DMA QoS Configurable in MFDC
 
-    * Non-word access to PIC memory generates access-error
-    * Improved streaming performance with unified read/write buffer
-    * Non-idempotent load enhancements
-    * Debug, single-step, and trigger enhancements
-    * DMA, IFU, and LSU interaction enhancements
-    * Bus error handling improvements
-    * DMA h-ready addition
-    * DMA slave error response enhancements
+* VeeR core miscellaneous changes
 
-1. Added memory protection windows
+  * Non-word access to PIC memory generates access-error
+  * Improved streaming performance with unified read/write buffer
+  * Non-idempotent load enhancements
+  * Debug, single-step, and trigger enhancements
+  * DMA, IFU, and LSU interaction enhancements
+  * Bus error handling improvements
+  * DMA h-ready addition
+  * DMA slave error response enhancements
+
+* Added memory protection windows
     
-    * Now able to define up to eight instruction fetch windows and up to eight
-      data load/store windows. See the programmer reference manual for more
-      details.
+  * Now able to define up to eight instruction fetch windows and up to eight
+    data load/store windows. See the programmer reference manual for more
+    details.
