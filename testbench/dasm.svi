@@ -23,7 +23,7 @@
 bit[31:0] [31:0] gpr[`RV_NUM_THREADS];
 
 // main DASM function
-function string dasm(input[31:0] opcode, input[31:0] pc, input[4:0] regn, input[31:0] regv, input tid=0);
+function automatic string dasm(input[31:0] opcode, input[31:0] pc, input[4:0] regn, input[31:0] regv, input tid=0);
     dasm = (opcode[1:0] == 2'b11) ? dasm32(opcode, pc, tid) : dasm16(opcode, pc, tid);
     if(regn) gpr[tid][regn] = regv;
 endfunction
@@ -31,7 +31,7 @@ endfunction
 
 ///////////////// 16 bits instructions ///////////////////////
 
-function string dasm16( input[31:0] opcode, input[31:0] pc, input tid=0);
+function automatic string dasm16( input[31:0] opcode, input[31:0] pc, input tid=0);
     case(opcode[1:0])
     0: return dasm16_0(opcode, tid);
     1: return dasm16_1(opcode, pc);
@@ -40,7 +40,7 @@ function string dasm16( input[31:0] opcode, input[31:0] pc, input tid=0);
     return $sformatf(".short 0x%h", opcode[15:0]);
 endfunction
 
-function string dasm16_0( input[31:0] opcode, tid);
+function automatic string dasm16_0( input[31:0] opcode, tid);
     case(opcode[15:13])
     3'b000: return dasm16_ciw(opcode);
     3'b001: return {"c.fld  ", dasm16_cl(opcode, tid)};
@@ -53,7 +53,7 @@ function string dasm16_0( input[31:0] opcode, tid);
     return $sformatf(".short  0x%h", opcode[15:0]);
 endfunction
 
-function string dasm16_ciw( input[31:0] opcode);
+function automatic string dasm16_ciw( input[31:0] opcode);
 int imm;
     imm=0;
     if(opcode[15:0] == 0) return ".short  0";
@@ -61,7 +61,7 @@ int imm;
     return $sformatf("c.addi4spn %s,0x%0h", abi_reg[opcode[4:2]+8], imm);
 endfunction
 
-function string dasm16_cl( input[31:0] opcode, input tid=0);
+function automatic string dasm16_cl( input[31:0] opcode, input tid=0);
 int imm;
     imm=0;
     imm[5:3] = opcode[12:10];
@@ -70,7 +70,7 @@ int imm;
     return $sformatf(" %s,%0d(%s) [%h]", abi_reg[opcode[4:2]+8], imm, abi_reg[opcode[9:7]+8], gpr[tid][opcode[9:7]+8]+imm);
 endfunction
 
-function string dasm16_1( input[31:0] opcode, input[31:0] pc);
+function automatic string dasm16_1( input[31:0] opcode, input[31:0] pc);
     case(opcode[15:13])
     3'b000: return opcode[11:7]==0 ? "c.nop" : {"c.addi  ",dasm16_ci(opcode)};
     3'b001: return {"c.jal   ", dasm16_cj(opcode, pc)};
@@ -83,7 +83,7 @@ function string dasm16_1( input[31:0] opcode, input[31:0] pc);
     endcase
 endfunction
 
-function string dasm16_ci( input[31:0] opcode);
+function automatic string dasm16_ci( input[31:0] opcode);
 int imm;
     imm=0;
     imm[4:0] = opcode[6:2];
@@ -91,7 +91,7 @@ int imm;
     return $sformatf("%s,%0d", abi_reg[opcode[11:7]], imm);
 endfunction
 
-function string dasm16_cj( input[31:0] opcode, input[31:0] pc);
+function automatic string dasm16_cj( input[31:0] opcode, input[31:0] pc);
 bit[31:0] imm;
     imm=0;
     {imm[11],imm[4],imm[9:8],imm[10],imm[6], imm[7],imm[3:1], imm[5]} = opcode[12:2];
@@ -99,7 +99,7 @@ bit[31:0] imm;
     return $sformatf("0x%0h", imm+pc);
 endfunction
 
-function string dasm16_cb( input[31:0] opcode, input[31:0] pc);
+function automatic string dasm16_cb( input[31:0] opcode, input[31:0] pc);
 bit[31:0] imm;
     imm=0;
     {imm[8],imm[4:3]} = opcode[12:10];
@@ -108,7 +108,7 @@ bit[31:0] imm;
     return $sformatf("%s,0x%0h",abi_reg[opcode[9:7]+8], imm+pc);
 endfunction
 
-function string dasm16_cr( input[31:0] opcode);
+function automatic string dasm16_cr( input[31:0] opcode);
 bit[31:0] imm;
 
     imm = 0;
@@ -128,7 +128,7 @@ bit[31:0] imm;
     endcase
 endfunction
 
-function string dasm16_1_3( input[31:0] opcode);
+function automatic string dasm16_1_3( input[31:0] opcode);
 int imm;
 
     imm=0;
@@ -145,7 +145,7 @@ int imm;
     end
 endfunction
 
-function string dasm16_2( input[31:0] opcode, input tid=0);
+function automatic string dasm16_2( input[31:0] opcode, input tid=0);
     case(opcode[15:13])
     3'b000: return {"c.slli  ", dasm16_ci(opcode)};
     3'b001: return {"c.fldsp ", dasm16_cls(opcode,1,tid)};
@@ -167,7 +167,7 @@ function string dasm16_2( input[31:0] opcode, input tid=0);
 endfunction
 
 
-function string dasm16_cls( input[31:0] opcode, input sh1=0, tid=0);
+function automatic string dasm16_cls( input[31:0] opcode, input sh1=0, tid=0);
 bit[31:0] imm;
     imm=0;
     if(sh1) {imm[4:3],imm[8:6]} = opcode[6:2];
@@ -176,7 +176,7 @@ bit[31:0] imm;
     return $sformatf("%s,0x%0h [%h]", abi_reg[opcode[11:7]], imm, gpr[tid][2]+imm);
 endfunction
 
-function string dasm16_css( input[31:0] opcode, input sh1=0, tid=0);
+function automatic string dasm16_css( input[31:0] opcode, input sh1=0, tid=0);
 bit[31:0] imm;
     imm=0;
     if(sh1) {imm[5:3],imm[8:6]} = opcode[12:7];
@@ -186,7 +186,7 @@ endfunction
 
 ///////////////// 32 bit instructions ///////////////////////
 
-function string dasm32( input[31:0] opcode, input[31:0] pc, input tid=0);
+function automatic string dasm32( input[31:0] opcode, input[31:0] pc, input tid=0);
     case(opcode[6:0])
     7'b0110111: return {"lui     ", dasm32_u(opcode)};
     7'b0010111: return {"auipc   ", dasm32_u(opcode)};
@@ -205,14 +205,14 @@ function string dasm32( input[31:0] opcode, input[31:0] pc, input tid=0);
     return $sformatf(".long   0x%h", opcode);
 endfunction
 
-function string dasm32_u( input[31:0] opcode);
+function automatic string dasm32_u( input[31:0] opcode);
 bit[31:0] imm;
     imm=0;
     imm[31:12] = opcode[31:12];
     return $sformatf("%s,0x%0h", abi_reg[opcode[11:7]], imm);
 endfunction
 
-function string dasm32_j( input[31:0] opcode, input[31:0] pc);
+function automatic string dasm32_j( input[31:0] opcode, input[31:0] pc);
 int imm;
     imm=0;
     {imm[20], imm[10:1], imm[11], imm[19:12]} = opcode[31:12];
@@ -220,7 +220,7 @@ int imm;
     return $sformatf("%s,0x%0h",abi_reg[opcode[11:7]], imm+pc);
 endfunction
 
-function string dasm32_jr( input[31:0] opcode, input[31:0] pc);
+function automatic string dasm32_jr( input[31:0] opcode, input[31:0] pc);
 int imm;
     imm=0;
     imm[11:1] = opcode[31:19];
@@ -228,7 +228,7 @@ int imm;
     return $sformatf("%s,%s,0x%0h",abi_reg[opcode[11:7]], abi_reg[opcode[19:15]], imm+pc);
 endfunction
 
-function string dasm32_b( input[31:0] opcode, input[31:0] pc);
+function automatic string dasm32_b( input[31:0] opcode, input[31:0] pc);
 int imm;
 string mn;
     imm=0;
@@ -247,7 +247,7 @@ string mn;
     return $sformatf("%s%s,%s,0x%0h", mn, abi_reg[opcode[19:15]], abi_reg[opcode[24:20]], imm+pc);
 endfunction
 
-function string dasm32_l( input[31:0] opcode, input tid=0);
+function automatic string dasm32_l( input[31:0] opcode, input tid=0);
 int imm;
 string mn;
     imm=0;
@@ -264,7 +264,7 @@ string mn;
     return $sformatf("%s%s,%0d(%s) [%h]", mn, abi_reg[opcode[11:7]], imm, abi_reg[opcode[19:15]], imm+gpr[tid][opcode[19:15]]);
 endfunction
 
-function string dasm32_s( input[31:0] opcode, input tid=0);
+function automatic string dasm32_s( input[31:0] opcode, input tid=0);
 int imm;
 string mn;
     imm=0;
@@ -280,7 +280,7 @@ string mn;
     return $sformatf("%s%s,%0d(%s) [%h]", mn, abi_reg[opcode[24:20]], imm, abi_reg[opcode[19:15]], imm+gpr[tid][opcode[19:15]]);
 endfunction
 
-function string dasm32_ai( input[31:0] opcode);
+function automatic string dasm32_ai( input[31:0] opcode);
 int imm;
 string mn;
     imm=0;
@@ -299,7 +299,7 @@ endcase
 return $sformatf("%s%s,%s,%0d", mn, abi_reg[opcode[11:7]], abi_reg[opcode[19:15]], imm);
 endfunction
 
-function string dasm32_si( input[31:0] opcode);
+function automatic string dasm32_si( input[31:0] opcode);
 int imm;
 string mn;
     imm = opcode[24:20];
@@ -313,7 +313,7 @@ endfunction
 
 
 
-function string dasm32_ar( input[31:0] opcode);
+function automatic string dasm32_ar( input[31:0] opcode);
 string mn;
     if(opcode[25])
         case(opcode[14:12])
@@ -340,11 +340,11 @@ string mn;
     return $sformatf("%s%s,%s,%s", mn, abi_reg[opcode[11:7]], abi_reg[opcode[19:15]], abi_reg[opcode[24:20]]);
 endfunction
 
-function string dasm32_fence( input[31:0] opcode);
+function automatic string dasm32_fence( input[31:0] opcode);
     return  opcode[12] ? ".i" : "";
 endfunction
 
-function string dasm32_e(input[31:0] opcode);
+function automatic string dasm32_e(input[31:0] opcode);
     if(opcode[31:7] == 0) return "ecall";
     else if({opcode[31:21],opcode [19:7]} == 0) return "ebreak";
     else
@@ -360,7 +360,7 @@ function string dasm32_e(input[31:0] opcode);
 endfunction
 
 
-function string dasm32_csr(input[31:0] opcode, input im=0);
+function automatic string dasm32_csr(input[31:0] opcode, input im=0);
 bit[11:0] csr;
     csr = opcode[31:20];
     if(im) begin
@@ -373,7 +373,7 @@ bit[11:0] csr;
 endfunction
 
 //atomics
-function string dasm32_a(input[31:0] opcode, input tid=0);
+function automatic string dasm32_a(input[31:0] opcode, input tid=0);
     case(opcode[31:27])
     'b00010: return $sformatf("lr.w    %s,(%s) [%h]",    abi_reg[opcode[11:7]],                         abi_reg[opcode[19:15]], gpr[tid][opcode[19:15]]);
     'b00011: return $sformatf("sc.w    %s,%s,(%s) [%h]", abi_reg[opcode[11:7]], abi_reg[opcode[24:20]], abi_reg[opcode[19:15]], gpr[tid][opcode[19:15]]);
@@ -390,6 +390,6 @@ function string dasm32_a(input[31:0] opcode, input tid=0);
     return $sformatf(".long 0x%h", opcode);
 endfunction
 
-function string dasm32_amo( input[31:0] opcode, input tid=0);
+function automatic string dasm32_amo( input[31:0] opcode, input tid=0);
     return $sformatf(" %s,%s,(%s) [%h]", abi_reg[opcode[11:7]], abi_reg[opcode[24:20]], abi_reg[opcode[19:15]], gpr[tid][opcode[19:15]]);
 endfunction
