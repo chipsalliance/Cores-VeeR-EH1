@@ -676,7 +676,7 @@ module dec_decode_ctl
       end
 
       i1_dp = i1_dp_raw;
-      if (i1_br_error_all) begin
+      if (i1_br_error_all | i1_instr_errorl) begin
          i1_dp = '0;
          i1_dp.alu = 1'b1;
          i1_dp.rs1 = 1'b1;
