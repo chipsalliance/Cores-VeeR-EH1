@@ -665,7 +665,7 @@ module dec_decode_ctl
 
    always_comb begin
       i0_dp = i0_dp_raw;
-      if (i0_br_error_all | i0_instr_error) begin
+      if ((i0_br_error_all | i0_instr_error)) begin
          i0_dp = '0;
          i0_dp.alu = 1'b1;
          i0_dp.rs1 = 1'b1;
