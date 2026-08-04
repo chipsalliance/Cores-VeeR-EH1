@@ -1703,7 +1703,7 @@ assign fgmask_f2[0] = (~ifc_fetch_addr_f2[3] & ~ifc_fetch_addr_f2[2]
 
 
 
-     function [2:0] encode8_3;
+     function automatic [2:0] encode8_3;
       input [7:0] in;
 
       encode8_3[2] = |in[7:4];
@@ -1711,7 +1711,7 @@ assign fgmask_f2[0] = (~ifc_fetch_addr_f2[3] & ~ifc_fetch_addr_f2[2]
       encode8_3[0] = in[7] | in[5] | in[3] | in[1];
 
    endfunction
-   function [7:0] decode3_8;
+   function automatic [7:0] decode3_8;
       input [2:0] in;
 
       decode3_8[7] =  in[2] &  in[1] &  in[0];
@@ -1724,7 +1724,7 @@ assign fgmask_f2[0] = (~ifc_fetch_addr_f2[3] & ~ifc_fetch_addr_f2[2]
       decode3_8[0] = ~in[2] & ~in[1] & ~in[0];
 
    endfunction
-   function [3:0] decode2_4;
+   function automatic [3:0] decode2_4;
       input [1:0] in;
 
       decode2_4[3] =  in[1] &  in[0];
@@ -1734,7 +1734,7 @@ assign fgmask_f2[0] = (~ifc_fetch_addr_f2[3] & ~ifc_fetch_addr_f2[2]
 
    endfunction
 
-   function [3:0] countones;
+   function automatic [3:0] countones;
       input [7:0] valid;
 
       begin
@@ -1749,7 +1749,7 @@ countones[3:0] = {3'b0, valid[7]} +
                  {3'b0, valid[0]};
       end
    endfunction
-   function [2:0] newlru; // updated lru
+   function automatic [2:0] newlru; // updated lru
       input [2:0] lru;// current lru
       input [1:0] used;// hit way
       begin
@@ -1765,7 +1765,7 @@ newlru[0] = (~lru[2] & lru[1] & ~used[1] & ~used[0]) | (~lru[1] & ~lru[0] & used
       end
    endfunction //
 
-   function [1:0] lru2way; // new repl way taking invalid ways into account
+   function automatic [1:0] lru2way; // new repl way taking invalid ways into account
       input [2:0] lru; // current lru
       input [2:0] v; // current way valids
       begin

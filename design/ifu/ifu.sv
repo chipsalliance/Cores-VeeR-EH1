@@ -394,7 +394,7 @@ assign tmp_bnk[2:0] = encode8_3(bp.btb_sel_f2[7:0]);
       if(dec_tlu_br1_wb_pkt.br_error | dec_tlu_br1_wb_pkt.br_start_error)
         $display("%7d BTB_ERR1: index: %0h bank: %0h start: %b rfpc: %h way: %h", `DEC.tlu.mcyclel[31:0]+32'ha,dec_tlu_br1_wb_pkt.index[`RV_BTB_ADDR_HI:`RV_BTB_ADDR_LO],dec_tlu_br1_wb_pkt.bank[1:0], dec_tlu_br1_wb_pkt.br_start_error, {exu_flush_path_final[31:1], 1'b0}, dec_tlu_br1_wb_pkt.way);
    end // always @ (negedge clk)
-      function [2:0] encode8_3;
+      function automatic [2:0] encode8_3;
       input [7:0] in;
 
       encode8_3[2] = |in[7:4];
