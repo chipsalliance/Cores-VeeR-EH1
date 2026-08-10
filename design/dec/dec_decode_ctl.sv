@@ -2665,5 +2665,13 @@ assign out.legal = (!i[31]&!i[30]&i[29]&i[28]&!i[27]&!i[26]&!i[25]&!i[24]&!i[23]
     i[13]&!i[6]&!i[5]&i[4]&!i[3]&i[1]&i[0]) | (!i[14]&!i[12]&!i[6]&!i[4]
     &!i[3]&!i[2]&i[1]&i[0]) | (!i[6]&i[4]&!i[3]&i[2]&i[1]&i[0]);
 
+always @(posedge clk) begin
+  if (!rst_l) begin
+  end else begin
+    if ((i0_rs1_depend_i1 || i0_rs2_depend_i1) && i1_load_d) begin
+      $error("Load-use hazard detected in decode stage");
+    end
+  end
+end
 
 endmodule
